@@ -135,7 +135,7 @@
 #include <atomic>
 void VisualizePoints(const std::vector<gp_Pnt>& points, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_RED)
 {
-    gp_Pnt lastPoint(0, 0, 0);
+    gp_Pnt lastPoint(0,0,0);
     for (const auto& point : points)
     {
 
@@ -587,7 +587,7 @@ TopoDS_Shape createSurface(const QString& surfaceType)
     // Return an empty shape if the curve type is not recognized
     return TopoDS_Shape();
 }
-occQt::occQt(QWidget* parent)
+occQt::occQt(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
@@ -606,7 +606,7 @@ occQt::~occQt()
 
 }
 
-void occQt::createActions(void)
+void occQt::createActions( void )
 {
     // File
     connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -639,11 +639,11 @@ void occQt::createActions(void)
     connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 }
 
-void occQt::createMenus(void)
+void occQt::createMenus( void )
 {
 }
 
-void occQt::createToolBars(void)
+void occQt::createToolBars( void )
 {
     QToolBar* aToolBar;
     //aToolBar = addToolBar(tr("&Navigate"));
@@ -680,7 +680,7 @@ void occQt::about()
 {
     QMessageBox::about(this, tr("About the Project"),
         tr("<h2>Opencascade Application 2.0</h2>"
-            "<p>Copyright &copy; 281885807@qq.com"));
+        "<p>Copyright &copy; 281885807@qq.com"));
 }
 
 void occQt::importFile()
@@ -696,7 +696,7 @@ void occQt::importFile()
     }
     TopExp_Explorer exp;
     int cnt = 0;
-    for (exp.Init(shape, TopAbs_FACE); exp.More(); exp.Next())
+    for (exp.Init(shape, TopAbs_FACE); exp.More(); exp.Next()) 
     {
         if (!cnt) {
             shape1 = exp.Current();
@@ -767,13 +767,13 @@ void occQt::Triangulation()
         {
             for (size_t i = 0; i < faceList[j].size(); ++i)
             {
-                futures.push_back(std::async(std::launch::async, [&, j, i]()
+                futures.push_back(std::async(std::launch::async, [&, j, i]() 
                     {
-                        Handle(AIS_Shape) triShape = new AIS_Shape(faceList[j][i]);
-                        triShape->SetColor(Quantity_NOC_BISQUE);
-                        // 互斥锁,析构时自动解锁
-                        std::lock_guard<std::mutex> lock(displayMutex);
-                        myOccView->getContext()->Display(triShape, Standard_True);
+                    Handle(AIS_Shape) triShape = new AIS_Shape(faceList[j][i]);
+                    triShape->SetColor(Quantity_NOC_BISQUE);
+                    // 互斥锁,析构时自动解锁
+                    std::lock_guard<std::mutex> lock(displayMutex);
+                    myOccView->getContext()->Display(triShape, Standard_True);
                     }));
             }
         }
@@ -822,21 +822,21 @@ void occQt::TriangulationIntersection()
             for (R_TreeNode* node2 : potentialIntersectNodes)
             {
                 // 将每个求交操作作为一个异步任务
-                futures.push_back(std::async(std::launch::async, [&, currentNode, node2]()
+                futures.push_back(std::async(std::launch::async, [&, currentNode, node2]() 
                     {
-                        std::unique_lock<std::mutex> lock(sectionMutex);
-                        BRepAlgoAPI_Section section(currentNode->Face, node2->Face, Standard_True);
-                        section.ComputePCurveOn1(Standard_True);
-                        section.Approximation(Standard_True);
-                        section.Build();
-                        lock.unlock(); // 释放锁
+                    std::unique_lock<std::mutex> lock(sectionMutex);
+                    BRepAlgoAPI_Section section(currentNode->Face, node2->Face, Standard_True);
+                    section.ComputePCurveOn1(Standard_True);
+                    section.Approximation(Standard_True);
+                    section.Build();
+                    lock.unlock(); // 释放锁
 
-                        if (section.IsDone())
-                        {
-                            TopoDS_Shape intersectionLine = section.Shape();
-                            // 在这里不需要锁，因为builder.Add被假定为线程安全或对结果的影响不会造成冲突
-                            builder.Add(result, intersectionLine);
-                        }
+                    if (section.IsDone())
+                    {
+                        TopoDS_Shape intersectionLine = section.Shape();
+                        // 在这里不需要锁，因为builder.Add被假定为线程安全或对结果的影响不会造成冲突
+                        builder.Add(result, intersectionLine);
+                    }
                     }));
             }
 
@@ -944,7 +944,7 @@ void occQt::RandomExport()
     QString string1 = QInputDialog::getText(nullptr, "Input", "Enter String 1: (Basic Model Type: plane, cone, cylinder, sphere, torus)", QLineEdit::Normal, "", &ok);
     QString string2 = QInputDialog::getText(nullptr, "Input", "Enter String 2: (Basic Model Type: plane, cone, cylinder, sphere, torus)", QLineEdit::Normal, "", &ok);
     int value = QInputDialog::getInt(nullptr, "Input", "Enter an Integer:", 0, 0, 100, 1, &ok);
-
+     
 
     // 使用用户输入调用RandomExport::randomRotateAndExport()
     RandomExport::randomRotateAndExport(folderPath.toStdString().c_str(), string1.toStdString().c_str(), string2.toStdString().c_str(), value);
@@ -996,7 +996,7 @@ void occQt::MakeSurface()
         {
             shape1 = shape;
         }
-        else
+        else 
         {
             shape2 = shape;
         }
@@ -1058,7 +1058,7 @@ void occQt::ExportFile()
 }
 
 // 对单条等参线进行等距采样并计算弧长
-std::vector<std::pair<gp_Pnt, double>> SampleIsoCurveWithArcLength(const Handle(Geom_BSplineCurve)& bsplineCurve, int numSamples)
+std::vector<std::pair<gp_Pnt, double>> SampleIsoCurveWithArcLength(const Handle(Geom_BSplineCurve)& bsplineCurve, int numSamples) 
 {
     Handle(GeomAdaptor_Curve) curve = new GeomAdaptor_Curve(bsplineCurve);
     GCPnts_QuasiUniformAbscissa sampler(*curve, numSamples);
@@ -1090,7 +1090,7 @@ void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 20; i <= 20; i++)
+    for (int i = 21; i <= 21; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1146,11 +1146,11 @@ void occQt::GenerateIsoCurves(void)
             gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
 
             auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
-                {
-                    double dotProduct = v1.Dot(v2);
-                    double magnitudes = v1.Magnitude() * v2.Magnitude();
-                    return std::acos(dotProduct / magnitudes);  // 返回角度
-                };
+            {
+                double dotProduct = v1.Dot(v2);
+                double magnitudes = v1.Magnitude() * v2.Magnitude();
+                return std::acos(dotProduct / magnitudes);  // 返回角度
+            };
 
             // 计算三个角的夹角
             double angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
@@ -1164,22 +1164,22 @@ void occQt::GenerateIsoCurves(void)
             else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
 
             // 构造退化边
-            auto CreateDegenerateEdge = [](const gp_Pnt& point)
-                {
-                    TColgp_Array1OfPnt poles(1, 2);
-                    poles.SetValue(1, point);
-                    poles.SetValue(2, point);
+            auto CreateDegenerateEdge = [](const gp_Pnt & point)
+            {
+                TColgp_Array1OfPnt poles(1, 2);
+                poles.SetValue(1, point);
+                poles.SetValue(2, point);
 
-                    TColStd_Array1OfReal knots(1, 2);
-                    knots.SetValue(1, 0.0);
-                    knots.SetValue(2, 1.0);
+                TColStd_Array1OfReal knots(1, 2);
+                knots.SetValue(1, 0.0);
+                knots.SetValue(2, 1.0);
 
-                    TColStd_Array1OfInteger multiplicities(1, 2);
-                    multiplicities.SetValue(1, 2);
-                    multiplicities.SetValue(2, 2);
+                TColStd_Array1OfInteger multiplicities(1, 2);
+                multiplicities.SetValue(1, 2);
+                multiplicities.SetValue(2, 2);
 
-                    return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
-                };
+                return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
+            };
 
             //maxAngleIndex = 0;
             //maxAngleIndex = 1;
@@ -1212,8 +1212,8 @@ void occQt::GenerateIsoCurves(void)
         // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        int isoCount = 20;
-        SurfaceModelingTool::GetISOCurveWithNormal(surfacecoons, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+        int isoCount = 30;
+        SurfaceModelingTool::GetISOCurveWithNormal(surfacecoons, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines,isoCount);
 
         // 可视化阶段结果
         //std::vector<Handle(Geom_BSplineSurface)> visualSurfaceArray = { surfacecoons };
@@ -1239,108 +1239,108 @@ void occQt::GenerateIsoCurves(void)
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_New, vISOcurvesArray_New;
         std::vector<gp_Pnt> interPoints;
         SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, uISOcurvesArray_New, interPoints, isoCount);
-        //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+        VisualizePoints(interPoints, myOccView->getContext(), myOccView);
         interPoints.clear();
         SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, vISOcurvesArray_New, interPoints, isoCount);
-        //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+        VisualizePoints(interPoints, myOccView->getContext(), myOccView);
         interPoints.clear();
 
         VisualizeBSplineCurves(aBoundarycurveArray, myOccView->getContext(), myOccView);
         VisualizeBSplineCurves(vISOcurvesArray_New, myOccView->getContext(), myOccView);
         VisualizeBSplineCurves(uISOcurvesArray_New, myOccView->getContext(), myOccView);
 
-        // 生成新等参线
-        {
-            //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-            myOccView->getContext()->RemoveAll(Standard_True);
+       //// 生成新等参线
+       //{
+       //    //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+       //    myOccView->getContext()->RemoveAll(Standard_True);
 
-            // 根据u、v等参线之间的交点，生成最终等参线
-            interPoints.clear();
-            std::vector<gp_Pnt> boundaryPoints;
-            SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount);
+       //    // 根据u、v等参线之间的交点，生成最终等参线
+       //    interPoints.clear();
+       //    std::vector<gp_Pnt> boundaryPoints;
+       //    SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount);
 
-            SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
-            for (auto boundaryPoint : boundaryPoints)
-            {
-                interPoints.push_back(boundaryPoint);
-            }
-            interPoints.push_back(uISOcurvesArray_Final[0]->StartPoint());
-            interPoints.push_back(uISOcurvesArray_Final[0]->EndPoint());
-            interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->StartPoint());
-            interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
+       //    SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
+       //    for (auto boundaryPoint : boundaryPoints)
+       //    {
+       //        interPoints.push_back(boundaryPoint);
+       //    }
+       //    interPoints.push_back(uISOcurvesArray_Final[0]->StartPoint());
+       //    interPoints.push_back(uISOcurvesArray_Final[0]->EndPoint());
+       //    interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->StartPoint());
+       //    interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
 
-            //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
-            // 遍历 u(v)ISOcurvesArray_Final 进行可视化
-            VisualizeBSplineCurves(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
-            VisualizeBSplineCurves(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
+       //    //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+       //    // 遍历 u(v)ISOcurvesArray_Final 进行可视化
+       //    VisualizeBSplineCurves(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
+       //    VisualizeBSplineCurves(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
 
-            auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
-                {
-                    // 创建一个复合体以存储所有顶点
-                    TopoDS_Compound compound;
-                    BRep_Builder builder;
-                    builder.MakeCompound(compound);
+       //    auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
+       //        {
+       //            // 创建一个复合体以存储所有顶点
+       //            TopoDS_Compound compound;
+       //            BRep_Builder builder;
+       //            builder.MakeCompound(compound);
 
-                    // 将 gp_Pnt 转换为 TopoDS_Vertex 并添加到复合体
-                    for (const auto& point : boundaryPoints)
-                    {
-                        TopoDS_Vertex vertex = BRepBuilderAPI_MakeVertex(point);
-                        builder.Add(compound, vertex);
-                    }
+       //            // 将 gp_Pnt 转换为 TopoDS_Vertex 并添加到复合体
+       //            for (const auto& point : boundaryPoints)
+       //            {
+       //                TopoDS_Vertex vertex = BRepBuilderAPI_MakeVertex(point);
+       //                builder.Add(compound, vertex);
+       //            }
 
-                    // 将复合体保存到 BREP 文件
-                    if (BRepTools::Write(compound, filename.c_str()))
-                    {
-                        std::cout << "成功导出到 BREP 文件: " << filename << std::endl;
-                    }
-                    else {
-                        std::cerr << "导出 BREP 文件失败！" << std::endl;
-                    }
-                };
+       //            // 将复合体保存到 BREP 文件
+       //            if (BRepTools::Write(compound, filename.c_str()))
+       //            {
+       //                std::cout << "成功导出到 BREP 文件: " << filename << std::endl;
+       //            }
+       //            else {
+       //                std::cerr << "导出 BREP 文件失败！" << std::endl;
+       //            }
+       //        };
 
-            ExportPointsToBREP(interPoints, filename + std::string("points.brep"));
+       //    ExportPointsToBREP(interPoints, filename + std::string("points.brep"));
 
-            TopoDS_Compound UResult;
-            BRep_Builder builder1;
-            builder1.MakeCompound(UResult);
-            for (auto curve : uISOcurvesArray_Final)
-            {
-                TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
-                builder1.Add(UResult, edge);
-            }
-            TopoDS_Compound VResult;
-            BRep_Builder builder;
-            builder.MakeCompound(VResult);
-            for (auto curve : vISOcurvesArray_Final)
-            {
-                TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
-                builder.Add(VResult, edge);
-            }
+       //    TopoDS_Compound UResult;
+       //    BRep_Builder builder1;
+       //    builder1.MakeCompound(UResult);
+       //    for (auto curve : uISOcurvesArray_Final)
+       //    {
+       //        TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
+       //        builder1.Add(UResult, edge);
+       //    }
+       //    TopoDS_Compound VResult;
+       //    BRep_Builder builder;
+       //    builder.MakeCompound(VResult);
+       //    for (auto curve : vISOcurvesArray_Final)
+       //    {
+       //        TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
+       //        builder.Add(VResult, edge);
+       //    }
 
-            std::string UresultPath = filename + "UResult.brep"; std::string VresultPath = filename + "VResult.brep";
-            BRepTools::Write(UResult, UresultPath.c_str()); BRepTools::Write(VResult, VresultPath.c_str());
+       //    std::string UresultPath = filename + "UResult.brep"; std::string VresultPath = filename + "VResult.brep";
+       //    BRepTools::Write(UResult, UresultPath.c_str()); BRepTools::Write(VResult, VresultPath.c_str());
 
-            SurfaceModelingTool tool;
-            std::string knotsPath = filename + "knots.txt";
-            tool.setKnotsOutputPath(knotsPath.c_str());
-            // 检查文件是否存在，如果存在，清空文件内容
-            std::ifstream checkFile(tool.getKnotsOuputPath());
-            if (checkFile.is_open())
-            {
-                // 关闭检查文件的输入流
-                checkFile.close();
-                // 清空文件内容，覆盖写
-                std::ofstream clearFile(tool.getKnotsOuputPath(), std::ios::trunc);
-                clearFile.close();
-            }
+       //    SurfaceModelingTool tool;
+       //    std::string knotsPath = filename + "knots.txt";
+       //    tool.setKnotsOutputPath(knotsPath.c_str());
+       //    // 检查文件是否存在，如果存在，清空文件内容
+       //    std::ifstream checkFile(tool.getKnotsOuputPath());
+       //    if (checkFile.is_open())
+       //    {
+       //        // 关闭检查文件的输入流
+       //        checkFile.close();
+       //        // 清空文件内容，覆盖写
+       //        std::ofstream clearFile(tool.getKnotsOuputPath(), std::ios::trunc);
+       //        clearFile.close();
+       //    }
 
-            tool.ContextToTxt("U:");
-            for (auto debugKnots : uKnots)
-                tool.KnotsToTxt(debugKnots);
+       //    tool.ContextToTxt("U:");
+       //    for (auto debugKnots : uKnots)
+       //        tool.KnotsToTxt(debugKnots);
 
-            tool.ContextToTxt("------------------------------\nV:");
-            for (auto debugKnots : vKnots)
-                tool.KnotsToTxt(debugKnots);
-        }
+       //    tool.ContextToTxt("------------------------------\nV:");
+       //    for (auto debugKnots : vKnots)
+       //        tool.KnotsToTxt(debugKnots);
+       //}
     }
 }

@@ -49,12 +49,12 @@
 
 Standard_Integer SurfaceModelingTool::SetSameDistribution(Handle(
 	Geom_BSplineCurve)& C1,
-	Handle(Geom_BSplineCurve)& C2)
+	Handle(Geom_BSplineCurve)& C2) 
 {
 	Standard_Integer C1_Degree = C1->Degree();
 	Standard_Integer C2_Degree = C2->Degree();
 	// 如果Degree不相同的话，对低阶进行升阶
-	if (C1_Degree < C2_Degree)
+	if (C1_Degree < C2_Degree) 
 	{
 		C1->IncreaseDegree(C2_Degree);
 	}
@@ -500,7 +500,7 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 		curve1->Degree(), curve2->Degree());
 }
 
-int SurfaceModelingTool::Arrange_Coons_G0(std::vector<Handle(Geom_BSplineCurve)>& curveArray, Handle(Geom_BSplineCurve)& bslpineCurve1, Handle(Geom_BSplineCurve)& bslpineCurve2, Handle(Geom_BSplineCurve)& bslpineCurve3, Handle(Geom_BSplineCurve)& bslpineCurve4, double Tol, int IsModify)
+int SurfaceModelingTool:: Arrange_Coons_G0(std::vector<Handle(Geom_BSplineCurve)>& curveArray, Handle(Geom_BSplineCurve)& bslpineCurve1, Handle(Geom_BSplineCurve)& bslpineCurve2, Handle(Geom_BSplineCurve)& bslpineCurve3, Handle(Geom_BSplineCurve)& bslpineCurve4, double Tol, int IsModify)
 {
 	//Standard_Real Tol = 2;
 	//Currently only work for four curves
@@ -1002,7 +1002,7 @@ void sequenceToKnots(const std::vector<double>& sequence, std::vector<double>& k
 	std::map<double, int> knotMap;
 
 	// 使用map来统计每个节点的重复次数
-	for (double value : sequence)
+	for (double value : sequence) 
 	{
 		bool found = false;
 		for (auto& knot : knotMap)
@@ -1020,7 +1020,7 @@ void sequenceToKnots(const std::vector<double>& sequence, std::vector<double>& k
 	}
 
 	// 将map的内容转移到knots和multiplicities向量
-	for (const auto& knot : knotMap)
+	for (const auto& knot : knotMap) 
 	{
 		knots.push_back(knot.first);
 		multiplicities.push_back(knot.second);
@@ -1262,18 +1262,18 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 		// 插入起点、交点和终点
 		if (aInterPnts.size() > 0)
 		{
-			interPoints.insert(interPoints.end(), aInterPnts.begin(), aInterPnts.end());
 			gp_Pnt startPoint = ISOcurvesArray_Initial[i]->StartPoint();
 			gp_Pnt endPoint = ISOcurvesArray_Initial[i]->EndPoint();
-			aPntsVector.push_back(startPoint);  // 起点
 			aPntsVector.insert(aPntsVector.end(), aInterPnts.begin(), aInterPnts.end()); // 交点
-			aPntsVector.push_back(endPoint);    // 终点
 
 			// 按照与startPoint的距离从小到大排序，主要事保证方向
 			std::sort(aPntsVector.begin(), aPntsVector.end(), [&startPoint](const gp_Pnt& p1, const gp_Pnt& p2)
-				{
+			{
 					return p1.Distance(startPoint) < p2.Distance(startPoint);
-				});
+			});
+
+			aPntsVector.insert(aPntsVector.begin(), startPoint);  // 起点
+			aPntsVector.push_back(endPoint);    // 终点
 
 			for (int i = 1; i < aPntsVector.size() - 1; i++)
 			{
@@ -1286,6 +1286,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 					aPntsVector.erase(aPntsVector.begin() + i);
 				}
 			}
+			interPoints.insert(interPoints.end(), aPntsVector.begin(), aPntsVector.end());
 			Handle(TColgp_HArray1OfPnt) points = new TColgp_HArray1OfPnt(1, aPntsVector.size());
 			for (int i = 0; i < aPntsVector.size(); i++)
 			{
@@ -1317,20 +1318,20 @@ std::vector<double> GetKnotsSequence(Handle(Geom_BSplineCurve) curve)
 }
 
 // 增加最后一个区间的采样点
-void SamplePointsOnCurve(std::vector<gp_Pnt>& intersectionPoints,
-	const Handle(Geom_Curve)& curve,
+void SamplePointsOnCurve(std::vector<gp_Pnt>& intersectionPoints, 
+	const Handle(Geom_Curve)& curve, 
 	Standard_Integer numSamples = 10) {
 	if (intersectionPoints.size() < 2) return;
 
 	Standard_Real parameter1, parameter2;
 	GeomAPI_ProjectPointOnCurve projector1(intersectionPoints[intersectionPoints.size() - 2], curve);
-	if (projector1.NbPoints() > 0)
+	if (projector1.NbPoints() > 0) 
 		parameter1 = projector1.LowerDistanceParameter();
 
 	GeomAPI_ProjectPointOnCurve projector2(intersectionPoints.back(), curve);
 	if (projector2.NbPoints() > 0)
 		parameter2 = projector2.LowerDistanceParameter();
-
+	
 	if (parameter1 > parameter2)
 		std::swap(parameter1, parameter2);
 
@@ -1392,9 +1393,9 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 
 		// 按照与startPoint的距离从小到大排序，主要事保证方向
 		std::sort(intersectionPoints.begin(), intersectionPoints.end(), [&startPoint](const gp_Pnt& p1, const gp_Pnt& p2)
-			{
-				return p1.Distance(startPoint) < p2.Distance(startPoint);
-			});
+		{
+			return p1.Distance(startPoint) < p2.Distance(startPoint);
+		});
 
 		intersectionPoints.insert(intersectionPoints.begin(), startPoint);
 		intersectionPoints.push_back(endPoint);
@@ -1484,7 +1485,7 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 			double distance1 = Pnt.Distance(lastPnt);
 			double distance2 = Pnt.Distance(nextPnt);
 			double distance3 = startPoint.Distance(endPoint);
-
+																		
 			if (Pnt.Distance(lastPnt) < startPoint.Distance(endPoint) / (100) ||
 				Pnt.Distance(nextPnt) < startPoint.Distance(endPoint) / (100))
 			{
@@ -1504,8 +1505,8 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 			tempKnots.push_back(1);
 		}
 		std::vector<double> insertKnots;
-		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, params, tempKnots, degree, 25, 0.01);
-
+		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, params, tempKnots, degree, 25,0.01);
+		
 		vKnots.push_back(GetKnotsSequence(aBSplineCurve));
 		vISOcurvesArray_Final.emplace_back(aBSplineCurve);
 	}
@@ -1521,20 +1522,20 @@ void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::ve
 	std::string extension = filePath.substr(filePath.find_last_of('.') + 1);
 
 	TopoDS_Shape boundary;
-	if (extension == "brep")
+	if (extension == "brep") 
 	{
 		// 初始化边界Shape
 		BRep_Builder B1;
 		// 从文件读取BRep数据
 		BRepTools::Read(boundary, filePath.c_str(), B1);
 	}
-	else if (extension == "step" || extension == "stp")
+	else if(extension == "step" || extension == "stp")
 	{
 		// 创建 STEP 文件读取器
 		STEPControl_Reader reader;
 		IFSelect_ReturnStatus status = reader.ReadFile(filePath.c_str());
 
-		if (status == IFSelect_ReturnStatus::IFSelect_RetDone)
+		if (status == IFSelect_ReturnStatus::IFSelect_RetDone) 
 		{
 			// 传输读取的数据
 			reader.TransferRoots();
@@ -1557,7 +1558,7 @@ void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::ve
 
 	// 遍历Shape中的边
 	TopExp_Explorer explorer(boundary, TopAbs_EDGE);
-	for (; explorer.More(); explorer.Next())
+	for (; explorer.More(); explorer.Next()) 
 	{
 		TopoDS_Edge edge = TopoDS::Edge(explorer.Current());
 
@@ -1568,7 +1569,7 @@ void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::ve
 		gcurve = Handle(Geom_Curve)::DownCast(gcurve->Copy());
 
 		// 检查曲线类型
-		if (gcurve->DynamicType() == STANDARD_TYPE(Geom_Line))
+		if (gcurve->DynamicType() == STANDARD_TYPE(Geom_Line)) 
 		{
 			// 如果是直线，转换为BSpline
 			Handle(Geom_TrimmedCurve) aTrimmedLine = new Geom_TrimmedCurve(gcurve, first, last);
@@ -1578,13 +1579,13 @@ void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::ve
 				curveArray.push_back(aGeom_BSplineCurve);
 			}
 		}
-		else if (gcurve->DynamicType() == STANDARD_TYPE(Geom_BSplineCurve))
+		else if (gcurve->DynamicType() == STANDARD_TYPE(Geom_BSplineCurve)) 
 		{
 			// 如果已经是BSpline，直接处理
 			Handle(Geom_BSplineCurve) aGeom_BSplineCurve = Handle(Geom_BSplineCurve)::DownCast(gcurve);
 			if (!aGeom_BSplineCurve.IsNull()) {
 				aGeom_BSplineCurve->Segment(first, last);
-				if (!aGeom_BSplineCurve.IsNull() && aGeom_BSplineCurve->IsKind(STANDARD_TYPE(Geom_BSplineCurve)))
+				if (!aGeom_BSplineCurve.IsNull() && aGeom_BSplineCurve->IsKind(STANDARD_TYPE(Geom_BSplineCurve))) 
 				{
 					curveArray.push_back(aGeom_BSplineCurve);
 				}
@@ -1596,30 +1597,30 @@ void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::ve
 void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface)& surfacecoons, std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Initial, std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Initial, std::vector<gp_Vec>& normalsOfUISOLines, std::vector<gp_Vec>& normalsOfVISOLines, int numIsoCurves)
 {
 	auto IsPointOnSurface = [](const gp_Pnt& point, const Handle(Geom_Surface)& surface)
+	{
+		GeomAPI_ProjectPointOnSurf proj(point, surface);
+
+		if (proj.NbPoints() > 0) 
 		{
-			GeomAPI_ProjectPointOnSurf proj(point, surface);
+			gp_Pnt closestPoint = proj.NearestPoint();
 
-			if (proj.NbPoints() > 0)
-			{
-				gp_Pnt closestPoint = proj.NearestPoint();
+			return point.Distance(closestPoint) < 1e-6;
+		}
 
-				return point.Distance(closestPoint) < 1e-6;
-			}
-
-			return false;
-		};
+		return false;
+	};
 
 	auto GetClosestPointOnSurface = [](const gp_Pnt& point, const Handle(Geom_Surface)& surface)
+	{
+		GeomAPI_ProjectPointOnSurf proj(point, surface);
+
+		if (proj.NbPoints() > 0)
 		{
-			GeomAPI_ProjectPointOnSurf proj(point, surface);
+			return proj.NearestPoint(); // 返回最近点
+		}
 
-			if (proj.NbPoints() > 0)
-			{
-				return proj.NearestPoint(); // 返回最近点
-			}
-
-			return point;
-		};
+		return point;
+	};
 
 	const int numSamplePoints = 10;
 	for (int i = 1; i < numIsoCurves; i++)
@@ -1627,7 +1628,7 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 		std::vector<gp_Vec> normalsU;
 		std::vector<gp_Vec> normalsV;
 
-		Handle(Geom_BSplineCurve) aUGeom_BSplineCurve = Handle(Geom_BSplineCurve)::DownCast(surfacecoons->UIso(((double)i / numIsoCurves)
+		Handle(Geom_BSplineCurve) aUGeom_BSplineCurve = Handle(Geom_BSplineCurve)::DownCast(surfacecoons->UIso(((double)i / numIsoCurves) 
 			* (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())));
 		uISOcurvesArray_Initial.emplace_back(aUGeom_BSplineCurve);
 
@@ -1641,9 +1642,9 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 			gp_Pnt p1 = aUGeom_BSplineCurve->Value(t);
 			gp_Vec DXu, DXv, N;
 
-			if (IsPointOnSurface(p1, surfacecoons))
+			if (IsPointOnSurface(p1, surfacecoons)) 
 			{
-				surfacecoons->D1(((double)i / numIsoCurves) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()),
+				surfacecoons->D1(((double)i / numIsoCurves) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()), 
 					((double)j / numSamplePoints) * (surfacecoons->VKnot(surfacecoons->LastVKnotIndex()) - surfacecoons->VKnot(surfacecoons->FirstVKnotIndex())) + surfacecoons->VKnot(surfacecoons->FirstVKnotIndex()), p1, DXu, DXv);
 			}
 			else
@@ -1677,13 +1678,13 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 			// 计算法向量
 			if (IsPointOnSurface(p1, surfacecoons))
 			{
-				surfacecoons->D1(((double)j / numSamplePoints) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()),
+				surfacecoons->D1(((double)j / numSamplePoints) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()), 
 					((double)i / numIsoCurves) * (surfacecoons->VKnot(surfacecoons->LastVKnotIndex()) - surfacecoons->VKnot(surfacecoons->FirstVKnotIndex())) + surfacecoons->VKnot(surfacecoons->FirstVKnotIndex()), p1, DXu, DXv);
 			}
 			else
 			{
 				gp_Pnt closestPoint = GetClosestPointOnSurface(p1, surfacecoons);
-				surfacecoons->D1(((double)j / numSamplePoints) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()),
+				surfacecoons->D1(((double)j / numSamplePoints) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()), 
 					((double)i / numIsoCurves) * (surfacecoons->VKnot(surfacecoons->LastVKnotIndex()) - surfacecoons->VKnot(surfacecoons->FirstVKnotIndex())) + surfacecoons->VKnot(surfacecoons->FirstVKnotIndex()), closestPoint, DXu, DXv);
 			}
 			DXu.Cross(DXv);
@@ -1698,8 +1699,8 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 	}
 }
 
-void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplineCurve)>& aBoundarycurveArray,
-	std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,
+void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplineCurve)>& aBoundarycurveArray, 
+	std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final, 
 	std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Final)
 {
 	Handle(Geom_BSplineCurve) uCurve = uISOcurvesArray_Final[0];
@@ -1729,13 +1730,13 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 	vISOcurvesArray_Final.insert(vISOcurvesArray_Final.end(), isVFirstCloser ? vBoundaryCurve[1] : vBoundaryCurve[0]);
 
 	gp_Pnt origin(0, 0, 0);
-	auto minDistanceToPoint = [&origin](const Handle(Geom_BSplineCurve)& curve)
-		{
-			return std::min(curve->StartPoint().Distance(origin), curve->EndPoint().Distance(origin));
-		};
+	auto minDistanceToPoint = [&origin](const Handle(Geom_BSplineCurve)& curve) 
+	{
+		return std::min(curve->StartPoint().Distance(origin), curve->EndPoint().Distance(origin));
+	};
 
 	// 如果最后一条曲线比第一条曲线距离原点更近，反转 uISOcurvesArray_Final
-	if (minDistanceToPoint(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]) < minDistanceToPoint(uISOcurvesArray_Final[0]))
+	if (minDistanceToPoint(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]) < minDistanceToPoint(uISOcurvesArray_Final[0])) 
 	{
 		std::reverse(uISOcurvesArray_Final.begin(), uISOcurvesArray_Final.end());
 	}
