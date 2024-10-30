@@ -1351,6 +1351,40 @@ void SamplePointsOnCurve(std::vector<gp_Pnt>& intersectionPoints,
 	);
 }
 
+std::vector<double> ComputeUniformParam(int numSamples, double left, double right) {
+	std::vector<double> parameters;
+	if (numSamples == 0) {
+		return parameters;
+	}
+	for (int i = 1; i <= numSamples; i++) {
+		Standard_Real param = left + (right - left) * (i - 1) / (numSamples - 1);
+		parameters.push_back(param);
+	}
+	return parameters;
+}
+std::vector<double> KnotGernerationByParams(const std::vector<double>& params, int n, int p)
+{
+	int m = params.size() - 1;
+	double d = (m + 1) / (n - p + 1);
+	std::vector<double> Knots(n + p + 2);
+	int temp;
+	double alpha;
+	for (size_t i = 0; i <= p; i++)
+	{
+		Knots[i] = 0.0;
+	}
+	for (size_t j = 1; j <= n - p; j++)
+	{
+		temp = int(j * d);
+		alpha = j * d - temp;
+		Knots[p + j] = (1 - alpha) * params[temp - 1] + alpha * params[temp];
+	}
+	for (size_t i = n + 1; i <= n + p + 1; i++)
+	{
+		Knots[i] = 1;
+	}
+	return Knots;
+}
 void SurfaceModelingTool::CreateFinalISOCurves(
 	const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,
 	const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
@@ -1387,7 +1421,6 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 				extrema.NearestPoints(P1, P2);
 				gp_Pnt midPoint = P1.XYZ() + 0.5 * (P2.XYZ() - P1.XYZ());
 				intersectionPoints.push_back(midPoint);
-
 			}
 		}
 
@@ -1399,7 +1432,7 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 
 		intersectionPoints.insert(intersectionPoints.begin(), startPoint);
 		intersectionPoints.push_back(endPoint);
-		SamplePointsOnCurve(intersectionPoints, uCurve);
+		//SamplePointsOnCurve(intersectionPoints, uCurve);
 
 		interPoints.insert(interPoints.end(), intersectionPoints.begin(), intersectionPoints.end());
 
@@ -1412,26 +1445,30 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 			double distance2 = Pnt.Distance(nextPnt);
 			double distance3 = startPoint.Distance(endPoint);
 
-			if (Pnt.Distance(lastPnt) < startPoint.Distance(endPoint) / (100) ||
-				Pnt.Distance(nextPnt) < startPoint.Distance(endPoint) / (100))
+			if (Pnt.Distance(lastPnt) < startPoint.Distance(endPoint) / (isoCount * 2) ||
+				Pnt.Distance(nextPnt) < startPoint.Distance(endPoint) / (isoCount * 2))
 			{
 				intersectionPoints.erase(intersectionPoints.begin() + i);
 			}
 		}
 		// 用陈鑫的拟合函数替换
-		std::vector<double> params;
-		ComputeChordLength(intersectionPoints, params);
-		std::vector<double> tempKnots;
-		for (int j = 1; j <= degree + 1; j++)
-		{
-			tempKnots.push_back(0);
-		}
-		for (int j = 1; j <= degree + 1; j++)
-		{
-			tempKnots.push_back(1);
-		}
+		//std::vector<double> params;
+		//ComputeChordLength(intersectionPoints, params);
+		//std::vector<double> tempKnots;
+		//for (int j = 1; j <= degree + 1; j++)
+		//{
+		//	tempKnots.push_back(0);
+		//}
+		//for (int j = 1; j <= degree + 1; j++)
+		//{
+		//	tempKnots.push_back(1);
+		//}
+
+		std::vector<double> params = ComputeUniformParam(intersectionPoints.size(), 0., 1.);
+		std::vector<double> tempKnots = KnotGernerationByParams(params, 10, degree);
+
 		std::vector<double> insertKnots;
-		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, params, tempKnots, degree, 25, 0.01);
+		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, params, tempKnots, degree, 50, 0.1);//李博统一容差为0.1
 		uKnots.push_back(GetKnotsSequence(aBSplineCurve));
 		uISOcurvesArray_Final.emplace_back(aBSplineCurve);
 	}
@@ -1474,7 +1511,7 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 			});
 		intersectionPoints.insert(intersectionPoints.begin(), startPoint);
 		intersectionPoints.push_back(endPoint);
-		SamplePointsOnCurve(intersectionPoints, vCurve);
+		//SamplePointsOnCurve(intersectionPoints, vCurve);
 
 		interPoints.insert(interPoints.end(), intersectionPoints.begin(), intersectionPoints.end());
 		for (int i = 1; i < intersectionPoints.size() - 1; i++)
@@ -1486,27 +1523,30 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 			double distance2 = Pnt.Distance(nextPnt);
 			double distance3 = startPoint.Distance(endPoint);
 																		
-			if (Pnt.Distance(lastPnt) < startPoint.Distance(endPoint) / (100) ||
-				Pnt.Distance(nextPnt) < startPoint.Distance(endPoint) / (100))
+			if (Pnt.Distance(lastPnt) < startPoint.Distance(endPoint) / (isoCount * 2) ||
+				Pnt.Distance(nextPnt) < startPoint.Distance(endPoint) / (isoCount * 2))
 			{
 				intersectionPoints.erase(intersectionPoints.begin() + i);
 			}
 		}
-		std::vector<double> params;
-		ComputeChordLength(intersectionPoints, params);
-		std::vector<double> tempKnots;
+		//std::vector<double> params;
+		//ComputeChordLength(intersectionPoints, params);
+		//std::vector<double> tempKnots;
 
-		for (int j = 1; j <= degree + 1; j++)
-		{
-			tempKnots.push_back(0);
-		}
-		for (int j = 1; j <= degree + 1; j++)
-		{
-			tempKnots.push_back(1);
-		}
-		std::vector<double> insertKnots;
-		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, params, tempKnots, degree, 25,0.01);
+		//for (int j = 1; j <= degree + 1; j++)
+		//{
+		//	tempKnots.push_back(0);
+		//}
+		//for (int j = 1; j <= degree + 1; j++)
+		//{
+		//	tempKnots.push_back(1);
+		//}
 		
+		std::vector<double> params = ComputeUniformParam(intersectionPoints.size(), 0., 1.);
+		std::vector<double> tempKnots = KnotGernerationByParams(params, 10, degree);
+
+		std::vector<double> insertKnots;
+		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, params, tempKnots, degree, 50, 0.1);//李博统一容差为0.1
 		vKnots.push_back(GetKnotsSequence(aBSplineCurve));
 		vISOcurvesArray_Final.emplace_back(aBSplineCurve);
 	}
