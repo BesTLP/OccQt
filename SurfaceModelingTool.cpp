@@ -1814,7 +1814,7 @@ void SurfaceModelingTool::CreateFinalISOCurvesWithSurfaceTangent(
 
 	GeomAPI_ProjectPointOnSurf projector1(startPoint, surface);
 	GeomAPI_ProjectPointOnSurf projector2(endPoint, surface);
-	double distance = 0;
+	double distance;
 	if (projector1.NbPoints() > 0)
 	{
 		gp_Pnt closestPoint = projector1.NearestPoint();
@@ -1826,6 +1826,7 @@ void SurfaceModelingTool::CreateFinalISOCurvesWithSurfaceTangent(
 		distance = endPoint.Distance(closestPoint) < distance? endPoint.Distance(closestPoint) : distance;
 	}
 
+	double pointDistance = startPoint.Distance(endPoint);
 	if (distance < startPoint.Distance(endPoint) / 1000)
 	{
 		ProcessISOCurvesWithTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final,
