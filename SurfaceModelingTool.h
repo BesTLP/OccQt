@@ -58,19 +58,7 @@ public:
 		std::vector<gp_Pnt>& interPoints,
 		Standard_Integer isoCount);
 
-	static void CreateFinalISOCurvesWithSurfaceTangent(
-		const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,
-		const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
-		std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,
-		std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Final,
-		std::vector<std::vector<double> >& uKnots,
-		std::vector<std::vector<double> >& vKnots,
-		std::vector<gp_Pnt>& boundaryPoints,
-		std::vector<gp_Pnt>& interPoints,
-		Standard_Integer isoCount,
-		const Handle(Geom_BSplineSurface)& surface);
-
-	static void CreateFinalISOCurvesWithSurfaceTangent(
+	static void CreateFinalISOCurves(
 		const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,
 		const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
 		std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,
@@ -83,17 +71,6 @@ public:
 		std::vector<TopoDS_Edge>& TangentArray,
 		std::vector<Handle(Geom_BSplineSurface)>& surfaceArr);
 
-
-	static void CreateFinalISOCurvesWithoutSurfaceTangent(
-		const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,
-		const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
-		std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,
-		std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Final,
-		std::vector<std::vector<double> >& uKnots,
-		std::vector<std::vector<double> >& vKnots,
-		std::vector<gp_Pnt>& boundaryPoints,
-		std::vector<gp_Pnt>& interPoints,
-		Standard_Integer isoCount);
 
 
 	static void UpdateFinalCurves(const std::vector<Handle(Geom_BSplineCurve)>& aBoundarycurveArray,

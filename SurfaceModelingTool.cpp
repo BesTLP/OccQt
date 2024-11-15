@@ -1609,12 +1609,11 @@ void ProcessISOCurvesWithTangent(
 		gp_Vec U_StartTangent, V_StartTangent;
 		gp_Vec U_EndTangent, V_EndTangent;
 		// 计算切向和指定方向的角度，取小的
-		gp_Vec direction = (intersectionPoints.back().XYZ() - intersectionPoints.front().XYZ()).Normalized(); // 切线指向
 		double cosAngleStartU, cosAngleStartV, cosAngleEndU, cosAngleEndV;
+		gp_Vec direction = (intersectionPoints.back().XYZ() - intersectionPoints.front().XYZ()).Normalized(); // 切线指向
 
 		// startPoint切线和endPoint的切线
 		gp_Vec FirstD1, LastD1;
-
 		if (!surfaceArr[0].IsNull())
 		{
 			GeomAPI_ProjectPointOnSurf projector(intersectionPoints.front(), surfaceArr[0]);
@@ -1637,9 +1636,7 @@ void ProcessISOCurvesWithTangent(
 
 				FirstD1 = acos(cosAngleStartU) < acos(cosAngleStartV) ? U_StartTangent : V_StartTangent;
 				
-				TangentArray.push_back(
-					BRepBuilderAPI_MakeEdge(intersectionPoints.front(), 
-						intersectionPoints.front().Translated(FirstD1 * 0.1)).Edge());
+
 			}
 		}
 		else
@@ -1653,14 +1650,11 @@ void ProcessISOCurvesWithTangent(
 				{
 					FirstD1.Reverse();
 				}
-				FirstD1.Multiply(CalPointsChordLen(intersectionPoints)/ FirstD1.Magnitude());
-				TangentArray.push_back(
-					BRepBuilderAPI_MakeEdge(intersectionPoints.front(),
-						intersectionPoints.front().Translated(FirstD1 * 0.1)).Edge());
 			}
 
 		}
-
+		FirstD1.Multiply(CalPointsChordLen(intersectionPoints) / FirstD1.Magnitude());
+		TangentArray.push_back(BRepBuilderAPI_MakeEdge(intersectionPoints.front(),intersectionPoints.front().Translated(FirstD1 * 0.1)).Edge());
 		if (!surfaceArr[1].IsNull())
 		{
 			GeomAPI_ProjectPointOnSurf projector(intersectionPoints.back(), surfaceArr[1]);
@@ -1679,9 +1673,6 @@ void ProcessISOCurvesWithTangent(
 				cosAngleEndU = U_EndTangent.Dot(direction) / (U_EndTangent.Magnitude() * direction.Magnitude());
 				cosAngleEndV = V_EndTangent.Dot(direction) / (V_EndTangent.Magnitude() * direction.Magnitude());
 				LastD1 = acos(cosAngleEndU) < acos(cosAngleEndV) ? U_EndTangent : V_EndTangent;
-				TangentArray.push_back(
-					BRepBuilderAPI_MakeEdge(intersectionPoints.back(),
-						intersectionPoints.back().Translated(LastD1 * 0.1)).Edge());
 			}
 		}
 		else
@@ -1695,20 +1686,14 @@ void ProcessISOCurvesWithTangent(
 				{
 					LastD1.Reverse();
 				}
-				LastD1.Multiply(CalPointsChordLen(intersectionPoints) / LastD1.Magnitude());
-				TangentArray.push_back(
-					BRepBuilderAPI_MakeEdge(intersectionPoints.back(),
-						intersectionPoints.back().Translated(LastD1 * 0.1)).Edge());
 			}
 		}
-
+		LastD1.Multiply(CalPointsChordLen(intersectionPoints) / LastD1.Magnitude());
+		TangentArray.push_back(BRepBuilderAPI_MakeEdge(intersectionPoints.back(),intersectionPoints.back().Translated(LastD1 * 0.1)).Edge());
 		std::vector<double> params = ComputeUniformParam(intersectionPoints.size(), 0., 1.);
 		std::vector<double> tempKnots = KnotGernerationByParams(params, 5, degree);
 		std::vector<double> insertKnots;
-		if (i == 16)
-		{
-			std::cout << true << std::endl;
-		}
+
 		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, FirstD1, LastD1, params, tempKnots, degree, 50, 0.1);
 		knotsArray.push_back(GetKnotsSequence(aBSplineCurve));
 		isoCurvesArray_Final.emplace_back(aBSplineCurve);
@@ -1771,7 +1756,7 @@ Handle(Geom_BSplineSurface) FindClosestSurface(
 	return nullptr; // 若没有找到有效的表面，返回空指针
 }
 
-void SurfaceModelingTool::CreateFinalISOCurvesWithSurfaceTangent(
+void SurfaceModelingTool::CreateFinalISOCurves(
 	const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,
 	const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
 	std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,

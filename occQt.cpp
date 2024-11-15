@@ -1115,7 +1115,7 @@ void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 4; i <= 4; i++)
+    for (int i = 7; i <= 7; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // ¶ÁÈë±ß½çÏß
@@ -1293,7 +1293,7 @@ void occQt::GenerateIsoCurves(void)
            SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
            SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
            VisualizeBSplineSurface(surfaceArray, myOccView->getContext(), myOccView);
-           SurfaceModelingTool::CreateFinalISOCurvesWithSurfaceTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
+           SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
            VisualizeEdges(TangentArray, myOccView->getContext(), myOccView, Quantity_NOC_RED);
 
            SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
