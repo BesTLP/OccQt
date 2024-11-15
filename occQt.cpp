@@ -252,32 +252,7 @@ void VisualizeShapes(const std::vector<TopoDS_Shape>& shapes, Handle(AIS_Interac
 
     }
 }
-void VisualizeEdges(const std::vector<TopoDS_Edge>& edges,
-    Handle(AIS_InteractiveContext) context,
-    OccView* myOccView,
-    const Quantity_Color& color = Quantity_NOC_BISQUE)
-{
-    for (const auto& edge : edges)
-    {
-        try
-        {
-            // 创建 AIS_Shape
-            Handle(AIS_Shape) edgeShape = new AIS_Shape(edge);
-            edgeShape->SetColor(color); // 设置颜色
-            // 显示曲线
-            context->Display(edgeShape, Standard_True);
-        }
-        catch (Standard_Failure& e)
-        {
-            QMessageBox::critical(nullptr, "Error", QString("Failed to display edge: %1").arg(e.GetMessageString()));
-            return;
-        }
-    }
 
-    // 调整视角
-    myOccView->fitAll();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(200)); // 可选,用于延时显示
-}
 
 void PrintMatrix(const math_Matrix& Mat) {
     for (Standard_Integer i = Mat.LowerRow(); i <= Mat.UpperRow(); ++i) {
@@ -1115,15 +1090,15 @@ void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 4; i <= 4; i++)
+    for (int i = 21; i <= 21; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
         std::vector<Handle(Geom_BSplineCurve)> tempArray;
         tempArray.clear();
-        std::string filename = "D:/GordenModels/Constraint/test";
+        std::string filename = "D:\\GordenModels\\internal\\";
         filename += std::to_string(i);
-        filename += "/";
+        filename += "_";
         std::string boundaryPath = filename + "boundary.brep";
         SurfaceModelingTool::LoadBSplineCurves(boundaryPath.c_str(), tempArray);
         VisualizeBSplineCurves(tempArray, myOccView->getContext(), myOccView);
@@ -1237,7 +1212,7 @@ void occQt::GenerateIsoCurves(void)
         // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        int isoCount = 18;
+        int isoCount = 20;
         SurfaceModelingTool::GetISOCurveWithNormal(surfacecoons, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines,isoCount);
 
         // 可视化阶段结果
@@ -1282,22 +1257,10 @@ void occQt::GenerateIsoCurves(void)
            // 根据u、v等参线之间的交点，生成最终等参线
            interPoints.clear();
            std::vector<gp_Pnt> boundaryPoints;
-           std::vector<Handle(Geom_BSplineSurface)> surfaceArray;
-           std::vector<TopoDS_Edge> TangentArray;
-           std::string gordenSurf1 = filename + "gordonSurf1.step";
-           std::string gordenSurf2 = filename + "gordonSurf2.step";
-           std::string gordenSurf3 = filename + "gordonSurf3.step";
-           std::string gordenSurf4 = filename + "gordonSurf4.step";
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf1, surfaceArray);
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf2, surfaceArray);
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
-           VisualizeBSplineSurface(surfaceArray, myOccView->getContext(), myOccView);
-           SurfaceModelingTool::CreateFinalISOCurvesWithSurfaceTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
-           VisualizeEdges(TangentArray, myOccView->getContext(), myOccView, Quantity_NOC_RED);
+           //SurfaceModelingTool::CreateFinalISOCurvesWithoutSurfaceTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount);
+           SurfaceModelingTool::CreateFinalISOCurvesWithSurfaceTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount, surfacecoons);
 
            SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
-           
            for (auto boundaryPoint : boundaryPoints)
            {
                interPoints.push_back(boundaryPoint);
@@ -1311,6 +1274,7 @@ void occQt::GenerateIsoCurves(void)
            // 遍历 u(v)ISOcurvesArray_Final 进行可视化
            VisualizeBSplineCurves(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
            VisualizeBSplineCurves(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
+
            auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
                {
                    // 创建一个复合体以存储所有顶点
