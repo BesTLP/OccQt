@@ -1651,7 +1651,6 @@ void ProcessISOCurvesWithTangent(
 					FirstD1.Reverse();
 				}
 			}
-
 		}
 		FirstD1.Multiply(CalPointsChordLen(intersectionPoints) / FirstD1.Magnitude());
 		TangentArray.push_back(BRepBuilderAPI_MakeEdge(intersectionPoints.front(),intersectionPoints.front().Translated(FirstD1 * 0.1)).Edge());
@@ -1789,17 +1788,25 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 	gp_Pnt startPoint = uISOcurvesArray_New[uISOcurvesArray_New.size() / 2]->StartPoint();
 	gp_Pnt endPoint = uISOcurvesArray_New[uISOcurvesArray_New.size() / 2]->EndPoint();
 
-	// 计算 uTangentSurface[0] 和 uTangentSurface[1]
-	uTangentSurface[0] = FindClosestSurface(startPoint, surfaceArr, startPoint.Distance(endPoint) / 1000.0);
-	uTangentSurface[1] = FindClosestSurface(endPoint, surfaceArr, startPoint.Distance(endPoint) / 1000.0);
+	if (startPoint.Distance(endPoint) > 1e-6)
+	{
+		// 计算 uTangentSurface[0] 和 uTangentSurface[1]
+		uTangentSurface[0] = FindClosestSurface(startPoint, surfaceArr, startPoint.Distance(endPoint) / 1000.0);
+		uTangentSurface[1] = FindClosestSurface(endPoint, surfaceArr, startPoint.Distance(endPoint) / 1000.0);
+	}
+
 
 	// 使用 vISOcurvesArray_New 的中间曲线来获取新的起点和终点
 	gp_Pnt newStartPoint = vISOcurvesArray_New[vISOcurvesArray_New.size() / 2]->StartPoint();
 	gp_Pnt newEndPoint = vISOcurvesArray_New[vISOcurvesArray_New.size() / 2]->EndPoint();
 
-	// 计算 vTangentSurface[0] 和 vTangentSurface[1]
-	vTangentSurface[0] = FindClosestSurface(newStartPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
-	vTangentSurface[1] = FindClosestSurface(newEndPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
+	if (newStartPoint.Distance(newEndPoint) > 1e-6)
+	{
+		// 计算 vTangentSurface[0] 和 vTangentSurface[1]
+		vTangentSurface[0] = FindClosestSurface(newStartPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
+		vTangentSurface[1] = FindClosestSurface(newEndPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
+	}
+
 
 	ProcessISOCurvesWithTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, uKnots, boundaryPoints, interPoints, isoCount, TangentArray, uTangentSurface);
 	ProcessISOCurvesWithTangent(vISOcurvesArray_New, uISOcurvesArray_New, vISOcurvesArray_Final, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, vTangentSurface);
@@ -1812,7 +1819,6 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 	UniformCurve(vCurve);
 	vKnots.push_back(GetKnotsSequence(vCurve));
 }
-
 void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::vector<Handle(Geom_BSplineCurve)>& curveArray)
 {
 	// 获取文件后缀
@@ -1890,7 +1896,6 @@ void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::ve
 		}
 	}
 }
-
 void SurfaceModelingTool::LoadBSplineSurfaces(const std::string& filePath, std::vector<Handle(Geom_BSplineSurface)>& surfaceArray)
 {
 	if (!std::filesystem::exists(filePath))

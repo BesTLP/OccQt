@@ -1115,7 +1115,7 @@ void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 7; i <= 7; i++)
+    for (int i = 12; i <= 12; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1237,7 +1237,7 @@ void occQt::GenerateIsoCurves(void)
         // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        int isoCount = 18;
+        int isoCount = 10;
         SurfaceModelingTool::GetISOCurveWithNormal(surfacecoons, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines,isoCount);
 
         // 可视化阶段结果
