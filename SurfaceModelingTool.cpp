@@ -1226,7 +1226,12 @@ Handle(Geom_BSplineCurve) IterateApproximate(std::vector<double>& InsertKnots, c
 	return IterBspineCurve;
 }
 
-void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS_Shape>& LoftingSur, const std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_Initial, const std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves, std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_New, std::vector<gp_Pnt>& interPoints, Standard_Integer isoCount)
+void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS_Shape>& LoftingSur, 
+	const std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_Initial, 
+	const std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves, 
+	std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_New, 
+	Standard_Integer isoCount,
+	std::vector<std::vector<gp_Pnt>>& InterpolatePoints)
 {
 	std::vector<std::vector<gp_Pnt>> debugPoints;
 	for (int i = 0; i < LoftingSur.size(); i++)
@@ -1278,22 +1283,23 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			aPntsVector.insert(aPntsVector.begin(), startPoint);  // 起点
 			aPntsVector.push_back(endPoint);    // 终点
 
-			for (int i = 1; i < aPntsVector.size() - 1; i++)
+			for (int j = 1; j < aPntsVector.size() - 1; j++)
 			{
-				gp_Pnt lastPnt = aPntsVector[i - 1];
-				gp_Pnt Pnt = aPntsVector[i];
-				gp_Pnt nextPnt = aPntsVector[i + 1];
+				gp_Pnt lastPnt = aPntsVector[j - 1];
+				gp_Pnt Pnt = aPntsVector[j];
+				gp_Pnt nextPnt = aPntsVector[j + 1];
 				if (!(Pnt.Distance(lastPnt) > startPoint.Distance(endPoint) / (isoCount * 2) &&
 					Pnt.Distance(nextPnt) > startPoint.Distance(endPoint) / (isoCount * 2)))
 				{
-					aPntsVector.erase(aPntsVector.begin() + i);
+					aPntsVector.erase(aPntsVector.begin() + j);
+					j--;
 				}
 			}
-			interPoints.insert(interPoints.end(), aPntsVector.begin(), aPntsVector.end());
+			InterpolatePoints.push_back(aPntsVector);
 			Handle(TColgp_HArray1OfPnt) points = new TColgp_HArray1OfPnt(1, aPntsVector.size());
-			for (int i = 0; i < aPntsVector.size(); i++)
+			for (int j = 0; j < aPntsVector.size(); j++)
 			{
-				points->SetValue(i + 1, aPntsVector[i]);
+				points->SetValue(j + 1, aPntsVector[j]);
 			}
 			debugPoints.push_back(aPntsVector);
 			GeomAPI_Interpolate interpolate(points, Standard_False, 1.0e-3);
@@ -1550,9 +1556,112 @@ double CalPointsChordLen(const std::vector<gp_Pnt>& points)
 	return totalLength;
 }
 
+bool CompareDistance(std::pair<double, gp_Pnt> p1, std::pair<double, gp_Pnt> p2)
+{
+	return p1.first < p2.first;
+}
+
+std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, const std::vector<gp_Pnt>& isoInterpolatePoints, const std::vector<gp_Pnt>& oppsiteInterpolatePoints)
+{
+	std::vector<std::pair<double, gp_Pnt>> distancesP1;
+	for (const auto& point : isoInterpolatePoints)
+	{
+		distancesP1.push_back({ P1.Distance(point), point });
+	}
+
+	std::sort(distancesP1.begin(), distancesP1.end(), CompareDistance);
+
+	gp_Pnt nearestPoint1_P1 = distancesP1[0].second;
+	gp_Pnt nearestPoint2_P1 = distancesP1[1].second;
+
+	// 计算夹角，确保两个点分布在当前点两侧
+	gp_Vec v1_P1(nearestPoint1_P1, P1);
+	gp_Vec v2_P1(nearestPoint2_P1, P1);
+	double cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+
+	int next = 2;
+	while (cosAngle_P1 >= 0)
+	{
+		nearestPoint2_P1 = distancesP1[next++].second;  // 找到下一个最近的点
+		v1_P1 = gp_Vec(nearestPoint1_P1, P1);
+		v2_P1 = gp_Vec(nearestPoint2_P1, P1);
+		cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+	}
+
+	std::vector<std::pair<double, gp_Pnt>> distancesP2;
+	for (const auto& point : oppsiteInterpolatePoints)
+	{
+		distancesP2.push_back({ P2.Distance(point), point });
+	}
+
+	std::sort(distancesP2.begin(), distancesP2.end(), CompareDistance);
+
+	gp_Pnt nearestPoint1_P2 = distancesP2[0].second;
+	gp_Pnt nearestPoint2_P2 = distancesP2[1].second;
+
+	// 计算夹角，确保两个点分布在当前点两侧
+	gp_Vec v1_P2(nearestPoint1_P2, P2);
+	gp_Vec v2_P2(nearestPoint2_P2, P2);
+	double cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+
+	next = 2;
+	while (cosAngle_P2 >= 0)
+	{
+		nearestPoint2_P2 = distancesP2[next++].second;  // 找到下一个最近的点
+		v1_P2 = gp_Vec(nearestPoint1_P2, P2);
+		v2_P2 = gp_Vec(nearestPoint2_P2, P2);
+		cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+	}
+
+	// 计算半径
+	double L1 = P1.Distance(nearestPoint1_P1) + P1.Distance(nearestPoint2_P1);
+	double L2 = P2.Distance(nearestPoint1_P2) + P2.Distance(nearestPoint2_P2);
+	double radius = (L1 + L2) / 2;
+	int M = 0;
+	double w1, w2;
+	if (L1 > L2)
+	{
+		for (const auto& point : oppsiteInterpolatePoints)
+		{
+			if (P2.Distance(point) <= radius)
+				M++;
+		}
+		if (M >= 3)
+		{
+			w2 = 1;
+		}
+		else
+		{
+			M += 1;
+			w2 = M / (M + 1);
+		}
+		return std::make_pair(1-w2, w2);
+	}
+	else
+	{
+		for (const auto& point : isoInterpolatePoints)
+		{
+			if (P1.Distance(point) <= radius)
+				M++;
+		}
+		if (M >= 3)
+		{
+			w1 = 1;
+		}
+		else
+		{
+			M += 1;
+			w1 = M / (M + 1);
+		}
+		return std::make_pair(w1, 1 - w1);
+	}
+}
+
 void ProcessISOCurvesWithTangent(
 	const std::vector<Handle(Geom_BSplineCurve)>& isoCurvesArray_New,
 	const std::vector<Handle(Geom_BSplineCurve)>& oppsiteISOcurvesArray_New,
+	std::vector<std::vector<gp_Pnt>>& isoInterpolatePoints,
+	std::vector<std::vector<gp_Pnt>>& oppsiteInterpolatePoints,
 	std::vector<Handle(Geom_BSplineCurve)>& isoCurvesArray_Final,
 	std::vector<std::vector<double>>& knotsArray,
 	std::vector<gp_Pnt>& boundaryPoints,
@@ -1565,6 +1674,7 @@ void ProcessISOCurvesWithTangent(
 	for (int i = 0; i < isoCurvesArray_New.size(); i++)
 	{
 		auto curve = isoCurvesArray_New[i];
+
 		gp_Pnt startPoint = curve->StartPoint();
 		gp_Pnt endPoint = curve->EndPoint();
 		boundaryPoints.push_back(startPoint);
@@ -1572,14 +1682,23 @@ void ProcessISOCurvesWithTangent(
 		std::vector<gp_Pnt> intersectionPoints;
 
 		// 遍历相对方向的等参线，计算交点
-		for (const auto& oppositeCurve : oppsiteISOcurvesArray_New)
+		for (int j = 0; j < oppsiteISOcurvesArray_New.size(); j++)
 		{
+			Handle(Geom_BSplineCurve) oppositeCurve = oppsiteISOcurvesArray_New[j];
 			GeomAPI_ExtremaCurveCurve extrema(curve, oppositeCurve);
 			if (extrema.NbExtrema() > 0)
 			{
 				gp_Pnt P1, P2;
 				extrema.NearestPoints(P1, P2);
-				gp_Pnt midPoint = P1.XYZ() + 0.5 * (P2.XYZ() - P1.XYZ());
+				std::pair<double, double> weights = processPoints(P1, P2, isoInterpolatePoints[i], oppsiteInterpolatePoints[j]);
+				// 获取权重值
+				double w1 = weights.first;
+				double w2 = weights.second;
+				gp_Pnt midPoint;
+				double x = (P1.X() * w1 + P2.X() * w2);
+				double y = (P1.Y() * w1 + P2.Y() * w2);
+				double z = (P1.Z() * w1 + P2.Z() * w2);
+				midPoint.SetX(x); midPoint.SetY(y);midPoint.SetZ(z);
 				intersectionPoints.push_back(midPoint);
 				interPoints.push_back(midPoint);
 			}
@@ -1635,8 +1754,6 @@ void ProcessISOCurvesWithTangent(
 				double AngleV = acos(cosAngleStartV);
 
 				FirstD1 = acos(cosAngleStartU) < acos(cosAngleStartV) ? U_StartTangent : V_StartTangent;
-				
-
 			}
 		}
 		else
@@ -1646,10 +1763,6 @@ void ProcessISOCurvesWithTangent(
 			{
 				std::vector<gp_Pnt> points(intersectionPoints.begin(), intersectionPoints.begin() + 3);
 				FirstD1 = CalTangent(points, 1).Normalized();
-				if (FirstD1.Dot(direction) < 0)
-				{
-					FirstD1.Reverse();
-				}
 			}
 		}
 		FirstD1.Multiply(CalPointsChordLen(intersectionPoints) / FirstD1.Magnitude());
@@ -1681,19 +1794,17 @@ void ProcessISOCurvesWithTangent(
 			{
 				std::vector<gp_Pnt> points(intersectionPoints.rbegin(), intersectionPoints.rbegin() + 3);
 				LastD1 = CalTangent(points, 1).Normalized();
-				if (LastD1.Dot(direction) < 0)
-				{
-					LastD1.Reverse();
-				}
+				LastD1.Reverse();
 			}
 		}
+
 		LastD1.Multiply(CalPointsChordLen(intersectionPoints) / LastD1.Magnitude());
 		TangentArray.push_back(BRepBuilderAPI_MakeEdge(intersectionPoints.back(),intersectionPoints.back().Translated(LastD1 * 0.1)).Edge());
 		std::vector<double> params = ComputeUniformParam(intersectionPoints.size(), 0., 1.);
 		std::vector<double> tempKnots = KnotGernerationByParams(params, 5, degree);
 		std::vector<double> insertKnots;
 
-		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, FirstD1, LastD1, params, tempKnots, degree, 50, 0.1);
+		Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, intersectionPoints, FirstD1, LastD1, params, tempKnots, degree, 50, 0.01);
 		knotsArray.push_back(GetKnotsSequence(aBSplineCurve));
 		isoCurvesArray_Final.emplace_back(aBSplineCurve);
 
@@ -1760,6 +1871,8 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 	const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
 	std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,
 	std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Final,
+	std::vector<std::vector<gp_Pnt>>& uInterpolatePoints,
+	std::vector<std::vector<gp_Pnt>>& vInterpolatePoints,
 	std::vector<std::vector<double>>& uKnots,
 	std::vector<std::vector<double>>& vKnots,
 	std::vector<gp_Pnt>& boundaryPoints,
@@ -1806,10 +1919,8 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 		vTangentSurface[0] = FindClosestSurface(newStartPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
 		vTangentSurface[1] = FindClosestSurface(newEndPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
 	}
-
-
-	ProcessISOCurvesWithTangent(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, uKnots, boundaryPoints, interPoints, isoCount, TangentArray, uTangentSurface);
-	ProcessISOCurvesWithTangent(vISOcurvesArray_New, uISOcurvesArray_New, vISOcurvesArray_Final, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, vTangentSurface);
+	ProcessISOCurvesWithTangent(uISOcurvesArray_New, vISOcurvesArray_New, uInterpolatePoints, vInterpolatePoints, uISOcurvesArray_Final, uKnots, boundaryPoints, interPoints, isoCount, TangentArray, uTangentSurface);
+	ProcessISOCurvesWithTangent(vISOcurvesArray_New, uISOcurvesArray_New, vInterpolatePoints, uInterpolatePoints, vISOcurvesArray_Final, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, vTangentSurface);
 
 	uCurve = uISOcurvesArray_New.back();
 	UniformCurve(uCurve);

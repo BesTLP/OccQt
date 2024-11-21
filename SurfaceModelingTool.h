@@ -55,14 +55,16 @@ public:
 		const std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_Initial,
 		const std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves,
 		std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_New,
-		std::vector<gp_Pnt>& interPoints,
-		Standard_Integer isoCount);
+		Standard_Integer isoCount,
+		std::vector<std::vector<gp_Pnt>>& InterpolatePoints);
 
 	static void CreateFinalISOCurves(
 		const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,
 		const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_New,
 		std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Final,
 		std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Final,
+		std::vector<std::vector<gp_Pnt>>& uInterpolatePoints,
+		std::vector<std::vector<gp_Pnt>>& vInterpolatePoints,
 		std::vector<std::vector<double> >& uKnots,
 		std::vector<std::vector<double> >& vKnots,
 		std::vector<gp_Pnt>& boundaryPoints,

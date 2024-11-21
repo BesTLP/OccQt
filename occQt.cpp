@@ -1115,7 +1115,7 @@ void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 12; i <= 12; i++)
+    for (int i = 34; i <= 36; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1263,12 +1263,15 @@ void occQt::GenerateIsoCurves(void)
         // 生成修正的等参线
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_New, vISOcurvesArray_New;
         std::vector<gp_Pnt> interPoints;
-        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, uISOcurvesArray_New, interPoints, isoCount);
-        VisualizePoints(interPoints, myOccView->getContext(), myOccView);
-        interPoints.clear();
-        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, vISOcurvesArray_New, interPoints, isoCount);
-        VisualizePoints(interPoints, myOccView->getContext(), myOccView);
-        interPoints.clear();
+        std::vector<std::vector<gp_Pnt>> uInterpolatePoints;
+        std::vector<std::vector<gp_Pnt>> vInterpolatePoints;
+        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, uISOcurvesArray_New, isoCount, uInterpolatePoints);
+        for (auto interPoints : uInterpolatePoints)
+            VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+
+        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, vISOcurvesArray_New, isoCount, vInterpolatePoints);
+        for(auto interPoints : vInterpolatePoints)
+            VisualizePoints(interPoints, myOccView->getContext(), myOccView);
 
         VisualizeBSplineCurves(aBoundarycurveArray, myOccView->getContext(), myOccView);
         VisualizeBSplineCurves(vISOcurvesArray_New, myOccView->getContext(), myOccView);
@@ -1293,7 +1296,7 @@ void occQt::GenerateIsoCurves(void)
            SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
            SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
            VisualizeBSplineSurface(surfaceArray, myOccView->getContext(), myOccView);
-           SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
+           SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uInterpolatePoints, vInterpolatePoints,uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
            VisualizeEdges(TangentArray, myOccView->getContext(), myOccView, Quantity_NOC_RED);
 
            SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
