@@ -1344,96 +1344,12 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			}
 			InterpolatePoints.push_back(aPntsVector);
 
-
-			//// startPoint切线和endPoint的切线
-			//gp_Vec FirstD1, LastD1;
-			//gp_Vec startDirection = aPntsVector[1].XYZ() - aPntsVector[0].XYZ();
-			//startDirection.Normalized();
-			//gp_Vec endDirection = aPntsVector[aPntsVector.size() - 1].XYZ() - aPntsVector[aPntsVector.size() - 2].XYZ();
-			//endDirection.Normalized();
-			//if (!CoonsSurface.IsNull())
-			//{
-			//	//if (aPntsVector.size() >= 3)
-			//	//{
-			//	//	std::vector<gp_Pnt> points(aInterPnts.begin(), aInterPnts.begin() + 3);
-			//	//	startDirection = CalTangent(points, 1).Normalized();
-			//	//}
-			//	gp_Vec U_StartTangent, V_StartTangent;
-			//	GeomAPI_ProjectPointOnSurf projector(aPntsVector.front(), CoonsSurface);
-			//	if (projector.NbPoints() > 0)
-			//	{
-			//		gp_Pnt closestPoint = projector.NearestPoint();
-			//		double uParam, vParam;
-			//		projector.LowerDistanceParameters(uParam, vParam);
-
-			//		CoonsSurface->D1(uParam, vParam, closestPoint, U_StartTangent, V_StartTangent);
-			//		if (U_StartTangent.Dot(startDirection) < 0)
-			//			U_StartTangent.Reverse();
-			//		if (V_StartTangent.Dot(startDirection) < 0)
-			//			V_StartTangent.Reverse();
-
-			//		double cosAngleStartU = U_StartTangent.Dot(startDirection) / (U_StartTangent.Magnitude() * startDirection.Magnitude());
-			//		double cosAngleStartV = V_StartTangent.Dot(startDirection) / (V_StartTangent.Magnitude() * startDirection.Magnitude());
-			//		double AngleU = acos(cosAngleStartU);
-			//		double AngleV = acos(cosAngleStartV);
-
-			//		FirstD1 = acos(cosAngleStartU) < acos(cosAngleStartV) ? U_StartTangent : V_StartTangent;
-			//		FirstD1.Multiply(CalPointsChordLen(aPntsVector) / FirstD1.Magnitude());
-			//		U_StartTangent.Multiply(CalPointsChordLen(aPntsVector) / U_StartTangent.Magnitude());
-			//		V_StartTangent.Multiply(CalPointsChordLen(aPntsVector) / V_StartTangent.Magnitude());
-			//		TangentArray1.push_back(BRepBuilderAPI_MakeEdge(closestPoint, closestPoint.Translated(FirstD1 * 0.1)).Edge());
-			//		TangentArray2.push_back(BRepBuilderAPI_MakeEdge(closestPoint, closestPoint.Translated(U_StartTangent * 0.01)).Edge());
-			//		TangentArray2.push_back(BRepBuilderAPI_MakeEdge(closestPoint, closestPoint.Translated(V_StartTangent * 0.01)).Edge());
-
-			//	}
-			//}
-
-			//if (!CoonsSurface.IsNull())
-			//{
-			//	//if (aPntsVector.size() >= 3)
-			//	//{
-			//	//	std::vector<gp_Pnt> points(aInterPnts.rbegin(), aInterPnts.rbegin() + 3);
-			//	//	endDirection = CalTangent(points, 1).Normalized();
-			//	//	endDirection.Reverse();
-			//	//}
-
-			//	gp_Vec U_EndTangent, V_EndTangent;
-			//	GeomAPI_ProjectPointOnSurf projector(aPntsVector.back(), CoonsSurface);
-			//	if (projector.NbPoints() > 0)
-			//	{
-			//		gp_Pnt closestPoint = projector.NearestPoint();
-			//		double uParam, vParam;
-			//		projector.LowerDistanceParameters(uParam, vParam);
-
-			//		CoonsSurface->D1(uParam, vParam, closestPoint, U_EndTangent, V_EndTangent);
-			//		if (U_EndTangent.Dot(endDirection) < 0)
-			//			U_EndTangent.Reverse();
-			//		if (V_EndTangent.Dot(endDirection) < 0)
-			//			V_EndTangent.Reverse();
-
-			//		double cosAngleEndU = U_EndTangent.Dot(endDirection) / (U_EndTangent.Magnitude() * endDirection.Magnitude());
-			//		double cosAngleEndV = V_EndTangent.Dot(endDirection) / (V_EndTangent.Magnitude() * endDirection.Magnitude());
-			//		LastD1 = acos(cosAngleEndU) < acos(cosAngleEndV) ? U_EndTangent : V_EndTangent;
-			//		LastD1.Multiply(CalPointsChordLen(aPntsVector) / LastD1.Magnitude());
-			//		U_EndTangent.Multiply(CalPointsChordLen(aPntsVector) / U_EndTangent.Magnitude());
-			//		V_EndTangent.Multiply(CalPointsChordLen(aPntsVector) / V_EndTangent.Magnitude());
-			//		TangentArray1.push_back(BRepBuilderAPI_MakeEdge(closestPoint, closestPoint.Translated(LastD1 * 0.1)).Edge());
-			//		TangentArray2.push_back(BRepBuilderAPI_MakeEdge(closestPoint, closestPoint.Translated(U_EndTangent * 0.01)).Edge());
-			//		TangentArray2.push_back(BRepBuilderAPI_MakeEdge(closestPoint, closestPoint.Translated(V_EndTangent * 0.01)).Edge());
-			//	}
-			//}
-			//startDirection.Multiply(CalPointsChordLen(aPntsVector) / startDirection.Magnitude());
-			//endDirection.Multiply(CalPointsChordLen(aPntsVector) / endDirection.Magnitude());
-			////TangentArray.push_back(BRepBuilderAPI_MakeEdge(aPntsVector.front(), aPntsVector.front().Translated(startDirection * 0.1)).Edge());
-			////TangentArray.push_back(BRepBuilderAPI_MakeEdge(aPntsVector.back(), aPntsVector.back().Translated(endDirection * 0.1)).Edge());
-
-
 			// startPoint切线和endPoint的切线
 			gp_Vec FirstD1, LastD1;
 			gp_Vec startDirection = aPntsVector[1].XYZ() - aPntsVector[0].XYZ();
-			startDirection.Normalized();
+			startDirection.Normalize();
 			gp_Vec endDirection = aPntsVector[aPntsVector.size() - 1].XYZ() - aPntsVector[aPntsVector.size() - 2].XYZ();
-			endDirection.Normalized();
+			endDirection.Normalize();
 
 			if (!CoonsSurface.IsNull())
 			{
@@ -1451,6 +1367,11 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 
 					// 计算法向量（U和V偏导数的叉积）
 					gp_Vec normalVector = U_StartTangent.Crossed(V_StartTangent);
+					normalVector = normalVector.Normalized();
+					if (startDirection.Dot(normalVector) < 0)
+					{
+						normalVector.Reverse(); // 反向法向量
+					}
 
 					// 计算startDirection在法向量上的投影分量
 					double projectionMagnitude = startDirection.Dot(normalVector) / normalVector.Magnitude();
@@ -1458,9 +1379,8 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 
 					// 计算startDirection在平面上的投影（去掉法向量的分量）
 					gp_Vec projectedDirection = startDirection - projection;
+					projectedDirection.Normalize();
 
-					// 归一化投影方向
-					projectedDirection.Normalized();
 
 					// 计算投影后的切线
 					FirstD1 = projectedDirection;
@@ -1487,17 +1407,18 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 
 					// 计算法向量（U和V偏导数的叉积）
 					gp_Vec normalVector = U_EndTangent.Crossed(V_EndTangent);
-
+					normalVector = normalVector.Normalized();
+					if (normalVector.Dot(endDirection) < 0)
+					{
+						normalVector.Reverse();
+					}
 					// 计算endDirection在法向量上的投影分量
 					double projectionMagnitude = endDirection.Dot(normalVector) / normalVector.Magnitude();
 					gp_Vec projection = normalVector * projectionMagnitude; // 计算投影向量
 
 					// 计算endDirection在平面上的投影（去掉法向量的分量）
 					gp_Vec projectedDirection = endDirection - projection;
-
-					// 归一化投影方向
-					projectedDirection.Normalized();
-
+					projectedDirection.Normalize();
 					// 计算投影后的切线
 					LastD1 = projectedDirection;
 					LastD1.Multiply(CalPointsChordLen(aPntsVector) / LastD1.Magnitude());
@@ -1917,6 +1838,12 @@ void ProcessISOCurvesWithTangent(
 
 				// 计算法向量（U和V偏导数的叉积）
 				gp_Vec normalVector = U_StartTangent.Crossed(V_StartTangent);
+				normalVector = normalVector.Normalized();
+				// 确保法向量与startDirection夹角为锐角
+				if (startDirection.Dot(normalVector) < 0)
+				{
+					normalVector.Reverse(); // 反向法向量
+				}
 
 				// 计算startDirection在法向量上的投影分量
 				double projectionMagnitude = startDirection.Dot(normalVector) / normalVector.Magnitude();
@@ -1926,7 +1853,7 @@ void ProcessISOCurvesWithTangent(
 				gp_Vec projectedDirection = startDirection - projection;
 
 				// 归一化投影方向
-				projectedDirection.Normalized();
+				projectedDirection.Normalize();
 
 				FirstD1 = projectedDirection; // 将投影后的方向作为切线
 			}
@@ -1957,7 +1884,12 @@ void ProcessISOCurvesWithTangent(
 
 				// 计算法向量（U和V偏导数的叉积）
 				gp_Vec normalVector = U_EndTangent.Crossed(V_EndTangent);
-
+				normalVector = normalVector.Normalized();
+				// 确保法向量与startDirection夹角为锐角
+				if (endDirection.Dot(normalVector) < 0)
+				{
+					normalVector.Reverse(); // 反向法向量
+				}
 				// 计算endDirection在法向量上的投影分量
 				double projectionMagnitude = endDirection.Dot(normalVector) / normalVector.Magnitude();
 				gp_Vec projection = normalVector * projectionMagnitude; // 计算投影向量
@@ -1966,7 +1898,7 @@ void ProcessISOCurvesWithTangent(
 				gp_Vec projectedDirection = endDirection - projection;
 
 				// 归一化投影方向
-				projectedDirection.Normalized();
+				projectedDirection.Normalize();
 
 				LastD1 = projectedDirection; // 将投影后的方向作为切线
 			}
@@ -2371,31 +2303,6 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 				surfacecoons->D1(((double)i / numIsoCurves) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()),
 					((double)j / numSamplePoints) * (surfacecoons->VKnot(surfacecoons->LastVKnotIndex()) - surfacecoons->VKnot(surfacecoons->FirstVKnotIndex())) + surfacecoons->VKnot(surfacecoons->FirstVKnotIndex()), closestPoint, DXu, DXv);
 			}
-			//// 计算从 startPoint 到 endPoint 的方向向量
-			//gp_Vec direction = aUGeom_BSplineCurve->EndPoint().XYZ() - aUGeom_BSplineCurve->StartPoint().XYZ(); // 得到方向向量
-			//// 确保 direction 是一个单位向量
-			//direction.Normalize();
-			//// 对于 startTangent
-			//if (j == 0)
-			//{
-			//	startTangent = DXu.Normalized();
-			//	if (startTangent.Dot(direction) < 0)
-			//	{
-			//		startTangent = -startTangent; // 反转切向量的方向
-			//	}
-			//}
-
-			//// 对于 endTangent
-			//if (j == numSamplePoints - 1)
-			//{
-			//	endTangent = DXu.Normalized();
-			//	// 确保切向量方向与 direction 一致
-			//	if (endTangent.Dot(direction) < 0)
-			//	{
-			//		endTangent = -endTangent; // 反转切向量的方向
-			//	}
-			//}
-			//tangentOfUISOLines.push_back(std::make_pair(startTangent.Normalized(), endTangent.Normalized()));
 
 			DXu.Cross(DXv);
 			N = DXu.Normalized();
