@@ -56,7 +56,10 @@ public:
 		const std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves,
 		std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_New,
 		Standard_Integer isoCount,
-		std::vector<std::vector<gp_Pnt>>& InterpolatePoints);
+		std::vector<std::vector<gp_Pnt>>& InterpolatePoints,
+		std::vector<TopoDS_Edge>& TangentArray1,
+		std::vector<TopoDS_Edge>& TangentArray2,
+		Handle(Geom_BSplineSurface) CoonsSurface);
 
 	static void CreateFinalISOCurves(
 		const std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_New,

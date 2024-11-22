@@ -133,6 +133,10 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include "../../OpenCASCADE-7.7.0-vc14-64/opencascade-7.7.0/src/GeomFill/GeomFill_Coons.hxx"
+#include "BRepBuilderAPI_MakeFace.hxx"
+#include <STEPControl_Writer.hxx>
+#include <GeomFill_BSplineCurves.hxx>
 void VisualizePoints(const std::vector<gp_Pnt>& points, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_RED)
 {
     gp_Pnt lastPoint(0,0,0);
@@ -255,7 +259,7 @@ void VisualizeShapes(const std::vector<TopoDS_Shape>& shapes, Handle(AIS_Interac
 void VisualizeEdges(const std::vector<TopoDS_Edge>& edges,
     Handle(AIS_InteractiveContext) context,
     OccView* myOccView,
-    const Quantity_Color& color = Quantity_NOC_BISQUE)
+    const Quantity_Color& color = Quantity_NOC_GOLD)
 {
     for (const auto& edge : edges)
     {
@@ -278,6 +282,70 @@ void VisualizeEdges(const std::vector<TopoDS_Edge>& edges,
     myOccView->fitAll();
     // std::this_thread::sleep_for(std::chrono::milliseconds(200)); // 可选,用于延时显示
 }
+
+
+
+void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
+{
+    // 获取曲面的参数范围
+    Standard_Real uMin, uMax, vMin, vMax;
+    bsplineSurface->Bounds(uMin, uMax, vMin, vMax);
+
+    // 使用曲面和参数范围创建面
+    TopoDS_Face face = BRepBuilderAPI_MakeFace(bsplineSurface, uMin, uMax, vMin, vMax, 1e-7);
+
+    // 检查面是否有效
+    if (face.IsNull())
+    {
+        std::cerr << "面创建失败！" << std::endl;
+        return;
+    }
+
+    // 将文件名转换为小写以进行不区分大小写的比较
+    std::string filename_lower = filename;
+    std::transform(filename_lower.begin(), filename_lower.end(), filename_lower.begin(), ::tolower);
+
+    // 根据文件扩展名选择输出格式
+    if (filename_lower.size() >= 5 && filename_lower.substr(filename_lower.size() - 5) == ".brep")
+    {
+        // 将面保存到 BREP 文件
+        if (BRepTools::Write(face, filename.c_str()))
+        {
+            std::cout << "成功导出到 BREP 文件: " << filename << std::endl;
+        }
+        else
+        {
+            std::cerr << "导出 BREP 文件失败！" << std::endl;
+        }
+    }
+    else if (filename_lower.size() >= 5 && filename_lower.substr(filename_lower.size() - 5) == ".step")
+    {
+        // 将面保存到 STEP 文件
+        STEPControl_Writer writer;
+        IFSelect_ReturnStatus status = writer.Transfer(face, STEPControl_AsIs);
+        if (status == IFSelect_RetDone)
+        {
+            status = writer.Write(filename.c_str());
+            if (status == IFSelect_RetDone)
+            {
+                std::cout << "成功导出到 STEP 文件: " << filename << std::endl;
+            }
+            else
+            {
+                std::cerr << "导出 STEP 文件失败！" << std::endl;
+            }
+        }
+        else
+        {
+            std::cerr << "面转换为 STEP 格式失败！" << std::endl;
+        }
+    }
+    else
+    {
+        std::cerr << "不支持的文件扩展名，请使用 .brep 或 .step。" << std::endl;
+    }
+}
+
 
 void PrintMatrix(const math_Matrix& Mat) {
     for (Standard_Integer i = Mat.LowerRow(); i <= Mat.UpperRow(); ++i) {
@@ -1113,9 +1181,41 @@ void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>
     }
 }
 
+Handle(Geom_BSplineSurface) GenerateCoonsSurface(
+    Handle(Geom_BSplineCurve)& curve1, Handle(Geom_BSplineCurve)& curve2, Handle(Geom_BSplineCurve)& curve3, Handle(Geom_BSplineCurve)& curve4
+) {
+
+    // 创建 GeomFill_BSplineCurves 对象，使用 Coons 填充样式
+    GeomFill_BSplineCurves fillCoonsStyle(
+        curve1, // U=0
+        curve2, // V=1
+        curve3, // U=1
+        curve4, // V=0
+        GeomFill_CoonsStyle
+    );
+
+    // 获取生成的曲面
+    Handle(Geom_Surface) surface = fillCoonsStyle.Surface();
+
+    // 检查曲面是否生成成功
+    if (surface.IsNull()) {
+        throw std::runtime_error("使用 CoonsStyle 创建曲面失败！");
+    }
+
+    std::cout << "使用 CoonsStyle 成功创建曲面！" << std::endl;
+
+    // 尝试将 Geom_Surface 转换为 Geom_BSplineSurface
+    Handle(Geom_BSplineSurface) bsplineSurface = Handle(Geom_BSplineSurface)::DownCast(surface);
+    if (bsplineSurface.IsNull()) 
+    {
+        throw std::runtime_error("生成的曲面不是 B-Spline 曲面！");
+    }
+
+    return bsplineSurface;
+}
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 34; i <= 36; i++)
+    for (int i = 21; i <= 21; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1220,8 +1320,7 @@ void occQt::GenerateIsoCurves(void)
         }
 
         Handle(Geom_BSplineCurve) bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4;
-        SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, 10, Standard_True);
-
+        SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4,10, Standard_True);
         // 存储边界曲线
         std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray = { bslpineCurve1 , bslpineCurve2, bslpineCurve3, bslpineCurve4 };
 
@@ -1232,12 +1331,17 @@ void occQt::GenerateIsoCurves(void)
         // 获取Coons曲面
         Handle(Geom_BSplineSurface) surfacecoons;
         SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, surfacecoons);
+        std::string SurfaceCoonsFilename = filename + "SurfaceCoons_y.step";
+        ExportBSplineSurface(surfacecoons, SurfaceCoonsFilename);
+        surfacecoons = GenerateCoonsSurface(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4);
+        SurfaceCoonsFilename = filename + "SurfaceCoons_OCC.step";
+        ExportBSplineSurface(surfacecoons, SurfaceCoonsFilename);  
 
 
         // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        int isoCount = 10;
+        int isoCount = 20;
         SurfaceModelingTool::GetISOCurveWithNormal(surfacecoons, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines,isoCount);
 
         // 可视化阶段结果
@@ -1265,11 +1369,20 @@ void occQt::GenerateIsoCurves(void)
         std::vector<gp_Pnt> interPoints;
         std::vector<std::vector<gp_Pnt>> uInterpolatePoints;
         std::vector<std::vector<gp_Pnt>> vInterpolatePoints;
-        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, uISOcurvesArray_New, isoCount, uInterpolatePoints);
+        std::vector<TopoDS_Edge> uInterpoalteTangentArray;
+        std::vector<TopoDS_Edge> uInterpoalteTangentArray2;
+        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, uISOcurvesArray_New, isoCount, uInterpolatePoints, uInterpoalteTangentArray, uInterpoalteTangentArray2,surfacecoons);
+        VisualizeEdges(uInterpoalteTangentArray, myOccView->getContext(), myOccView);
+        VisualizeEdges(uInterpoalteTangentArray2, myOccView->getContext(), myOccView, Quantity_NOC_RED);
         for (auto interPoints : uInterpolatePoints)
             VisualizePoints(interPoints, myOccView->getContext(), myOccView);
 
-        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, vISOcurvesArray_New, isoCount, vInterpolatePoints);
+        std::vector<TopoDS_Edge> vInterpoalteTangentArray;
+        std::vector<TopoDS_Edge> vInterpoalteTangentArray2;
+        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, vISOcurvesArray_New, isoCount, vInterpolatePoints, vInterpoalteTangentArray, vInterpoalteTangentArray2,surfacecoons);
+        VisualizeEdges(vInterpoalteTangentArray, myOccView->getContext(), myOccView);
+        VisualizeEdges(vInterpoalteTangentArray2, myOccView->getContext(), myOccView, Quantity_NOC_RED);
+        VisualizeBSplineSurface({surfacecoons}, myOccView->getContext(), myOccView);
         for(auto interPoints : vInterpolatePoints)
             VisualizePoints(interPoints, myOccView->getContext(), myOccView);
 
@@ -1277,110 +1390,110 @@ void occQt::GenerateIsoCurves(void)
         VisualizeBSplineCurves(vISOcurvesArray_New, myOccView->getContext(), myOccView);
         VisualizeBSplineCurves(uISOcurvesArray_New, myOccView->getContext(), myOccView);
 
-       // 生成新等参线
-       {
-           //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-           myOccView->getContext()->RemoveAll(Standard_True);
+       //// 生成新等参线
+       //{
+       //    //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+       //    myOccView->getContext()->RemoveAll(Standard_True);
 
-           // 根据u、v等参线之间的交点，生成最终等参线
-           interPoints.clear();
-           std::vector<gp_Pnt> boundaryPoints;
-           std::vector<Handle(Geom_BSplineSurface)> surfaceArray;
-           std::vector<TopoDS_Edge> TangentArray;
-           std::string gordenSurf1 = filename + "gordonSurf1.step";
-           std::string gordenSurf2 = filename + "gordonSurf2.step";
-           std::string gordenSurf3 = filename + "gordonSurf3.step";
-           std::string gordenSurf4 = filename + "gordonSurf4.step";
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf1, surfaceArray);
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf2, surfaceArray);
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
-           SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
-           VisualizeBSplineSurface(surfaceArray, myOccView->getContext(), myOccView);
-           SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uInterpolatePoints, vInterpolatePoints,uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
-           VisualizeEdges(TangentArray, myOccView->getContext(), myOccView, Quantity_NOC_RED);
+       //    // 根据u、v等参线之间的交点，生成最终等参线
+       //    interPoints.clear();
+       //    std::vector<gp_Pnt> boundaryPoints;
+       //    std::vector<Handle(Geom_BSplineSurface)> surfaceArray;
+       //    std::vector<TopoDS_Edge> TangentArray;
+       //    std::string gordenSurf1 = filename + "gordonSurf1.step";
+       //    std::string gordenSurf2 = filename + "gordonSurf2.step";
+       //    std::string gordenSurf3 = filename + "gordonSurf3.step";
+       //    std::string gordenSurf4 = filename + "gordonSurf4.step";
+       //    SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf1, surfaceArray);
+       //    SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf2, surfaceArray);
+       //    SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
+       //    SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
+       //    VisualizeBSplineSurface(surfaceArray, myOccView->getContext(), myOccView);
+       //    SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uInterpolatePoints, vInterpolatePoints,uKnots, vKnots, boundaryPoints, interPoints, isoCount, TangentArray, surfaceArray);
+       //    VisualizeEdges(TangentArray, myOccView->getContext(), myOccView, Quantity_NOC_RED);
 
-           SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
-           
-           for (auto boundaryPoint : boundaryPoints)
-           {
-               interPoints.push_back(boundaryPoint);
-           }
-           interPoints.push_back(uISOcurvesArray_Final[0]->StartPoint());
-           interPoints.push_back(uISOcurvesArray_Final[0]->EndPoint());
-           interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->StartPoint());
-           interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
+       //    SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
+       //    
+       //    for (auto boundaryPoint : boundaryPoints)
+       //    {
+       //        interPoints.push_back(boundaryPoint);
+       //    }
+       //    interPoints.push_back(uISOcurvesArray_Final[0]->StartPoint());
+       //    interPoints.push_back(uISOcurvesArray_Final[0]->EndPoint());
+       //    interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->StartPoint());
+       //    interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
 
-           //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
-           // 遍历 u(v)ISOcurvesArray_Final 进行可视化
-           VisualizeBSplineCurves(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
-           VisualizeBSplineCurves(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
-           auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
-               {
-                   // 创建一个复合体以存储所有顶点
-                   TopoDS_Compound compound;
-                   BRep_Builder builder;
-                   builder.MakeCompound(compound);
+       //    //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+       //    // 遍历 u(v)ISOcurvesArray_Final 进行可视化
+       //    VisualizeBSplineCurves(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
+       //    VisualizeBSplineCurves(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
+       //    auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
+       //        {
+       //            // 创建一个复合体以存储所有顶点
+       //            TopoDS_Compound compound;
+       //            BRep_Builder builder;
+       //            builder.MakeCompound(compound);
 
-                   // 将 gp_Pnt 转换为 TopoDS_Vertex 并添加到复合体
-                   for (const auto& point : boundaryPoints)
-                   {
-                       TopoDS_Vertex vertex = BRepBuilderAPI_MakeVertex(point);
-                       builder.Add(compound, vertex);
-                   }
+       //            // 将 gp_Pnt 转换为 TopoDS_Vertex 并添加到复合体
+       //            for (const auto& point : boundaryPoints)
+       //            {
+       //                TopoDS_Vertex vertex = BRepBuilderAPI_MakeVertex(point);
+       //                builder.Add(compound, vertex);
+       //            }
 
-                   // 将复合体保存到 BREP 文件
-                   if (BRepTools::Write(compound, filename.c_str()))
-                   {
-                       std::cout << "成功导出到 BREP 文件: " << filename << std::endl;
-                   }
-                   else {
-                       std::cerr << "导出 BREP 文件失败！" << std::endl;
-                   }
-               };
+       //            // 将复合体保存到 BREP 文件
+       //            if (BRepTools::Write(compound, filename.c_str()))
+       //            {
+       //                std::cout << "成功导出到 BREP 文件: " << filename << std::endl;
+       //            }
+       //            else {
+       //                std::cerr << "导出 BREP 文件失败！" << std::endl;
+       //            }
+       //        };
 
-           ExportPointsToBREP(interPoints, filename + std::string("points.brep"));
+       //    ExportPointsToBREP(interPoints, filename + std::string("points.brep"));
 
-           TopoDS_Compound UResult;
-           BRep_Builder builder1;
-           builder1.MakeCompound(UResult);
-           for (auto curve : uISOcurvesArray_Final)
-           {
-               TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
-               builder1.Add(UResult, edge);
-           }
-           TopoDS_Compound VResult;
-           BRep_Builder builder;
-           builder.MakeCompound(VResult);
-           for (auto curve : vISOcurvesArray_Final)
-           {
-               TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
-               builder.Add(VResult, edge);
-           }
+       //    TopoDS_Compound UResult;
+       //    BRep_Builder builder1;
+       //    builder1.MakeCompound(UResult);
+       //    for (auto curve : uISOcurvesArray_Final)
+       //    {
+       //        TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
+       //        builder1.Add(UResult, edge);
+       //    }
+       //    TopoDS_Compound VResult;
+       //    BRep_Builder builder;
+       //    builder.MakeCompound(VResult);
+       //    for (auto curve : vISOcurvesArray_Final)
+       //    {
+       //        TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
+       //        builder.Add(VResult, edge);
+       //    }
 
-           std::string UresultPath = filename + "UResult.brep"; std::string VresultPath = filename + "VResult.brep";
-           BRepTools::Write(UResult, UresultPath.c_str()); BRepTools::Write(VResult, VresultPath.c_str());
+       //    std::string UresultPath = filename + "UResult.brep"; std::string VresultPath = filename + "VResult.brep";
+       //    BRepTools::Write(UResult, UresultPath.c_str()); BRepTools::Write(VResult, VresultPath.c_str());
 
-           SurfaceModelingTool tool;
-           std::string knotsPath = filename + "knots.txt";
-           tool.setKnotsOutputPath(knotsPath.c_str());
-           // 检查文件是否存在，如果存在，清空文件内容
-           std::ifstream checkFile(tool.getKnotsOuputPath());
-           if (checkFile.is_open())
-           {
-               // 关闭检查文件的输入流
-               checkFile.close();
-               // 清空文件内容，覆盖写
-               std::ofstream clearFile(tool.getKnotsOuputPath(), std::ios::trunc);
-               clearFile.close();
-           }
+       //    SurfaceModelingTool tool;
+       //    std::string knotsPath = filename + "knots.txt";
+       //    tool.setKnotsOutputPath(knotsPath.c_str());
+       //    // 检查文件是否存在，如果存在，清空文件内容
+       //    std::ifstream checkFile(tool.getKnotsOuputPath());
+       //    if (checkFile.is_open())
+       //    {
+       //        // 关闭检查文件的输入流
+       //        checkFile.close();
+       //        // 清空文件内容，覆盖写
+       //        std::ofstream clearFile(tool.getKnotsOuputPath(), std::ios::trunc);
+       //        clearFile.close();
+       //    }
 
-           tool.ContextToTxt("U:");
-           for (auto debugKnots : uKnots)
-               tool.KnotsToTxt(debugKnots);
+       //    tool.ContextToTxt("U:");
+       //    for (auto debugKnots : uKnots)
+       //        tool.KnotsToTxt(debugKnots);
 
-           tool.ContextToTxt("------------------------------\nV:");
-           for (auto debugKnots : vKnots)
-               tool.KnotsToTxt(debugKnots);
-       }
+       //    tool.ContextToTxt("------------------------------\nV:");
+       //    for (auto debugKnots : vKnots)
+       //        tool.KnotsToTxt(debugKnots);
+       //}
     }
 }
