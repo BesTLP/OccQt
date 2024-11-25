@@ -147,6 +147,7 @@ public:
 		return Standard_True;
 	}
 
+	static void ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum = 50);
 
 private:
 

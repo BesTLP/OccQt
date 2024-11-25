@@ -1651,6 +1651,101 @@ bool CompareDistance(std::pair<double, gp_Pnt> p1, std::pair<double, gp_Pnt> p2)
 	return p1.first < p2.first;
 }
 
+//std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, const std::vector<gp_Pnt>& isoInterpolatePoints, const std::vector<gp_Pnt>& oppsiteInterpolatePoints)
+//{
+//	std::vector<std::pair<double, gp_Pnt>> distancesP1;
+//	for (const auto& point : isoInterpolatePoints)
+//	{
+//		distancesP1.push_back({ P1.Distance(point), point });
+//	}
+//
+//	std::sort(distancesP1.begin(), distancesP1.end(), CompareDistance);
+//
+//	gp_Pnt nearestPoint1_P1 = distancesP1[0].second;
+//	gp_Pnt nearestPoint2_P1 = distancesP1[1].second;
+//
+//	// 计算夹角，确保两个点分布在当前点两侧
+//	gp_Vec v1_P1(nearestPoint1_P1, P1);
+//	gp_Vec v2_P1(nearestPoint2_P1, P1);
+//	double cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+//
+//	int next = 2;
+//	while (cosAngle_P1 >= 0)
+//	{
+//		nearestPoint2_P1 = distancesP1[next++].second;  // 找到下一个最近的点
+//		v1_P1 = gp_Vec(nearestPoint1_P1, P1);
+//		v2_P1 = gp_Vec(nearestPoint2_P1, P1);
+//		cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+//	}
+//
+//	std::vector<std::pair<double, gp_Pnt>> distancesP2;
+//	for (const auto& point : oppsiteInterpolatePoints)
+//	{
+//		distancesP2.push_back({ P2.Distance(point), point });
+//	}
+//
+//	std::sort(distancesP2.begin(), distancesP2.end(), CompareDistance);
+//
+//	gp_Pnt nearestPoint1_P2 = distancesP2[0].second;
+//	gp_Pnt nearestPoint2_P2 = distancesP2[1].second;
+//
+//	// 计算夹角，确保两个点分布在当前点两侧
+//	gp_Vec v1_P2(nearestPoint1_P2, P2);
+//	gp_Vec v2_P2(nearestPoint2_P2, P2);
+//	double cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+//
+//	next = 2;
+//	while (cosAngle_P2 >= 0)
+//	{
+//		nearestPoint2_P2 = distancesP2[next++].second;  // 找到下一个最近的点
+//		v1_P2 = gp_Vec(nearestPoint1_P2, P2);
+//		v2_P2 = gp_Vec(nearestPoint2_P2, P2);
+//		cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+//	}
+//
+//	// 计算半径
+//	double L1 = P1.Distance(nearestPoint1_P1) + P1.Distance(nearestPoint2_P1);
+//	double L2 = P2.Distance(nearestPoint1_P2) + P2.Distance(nearestPoint2_P2);
+//	double radius = (L1 + L2) / 2;
+//	int M = 0;
+//	double w1, w2;
+//	if (L1 > L2)
+//	{
+//		for (const auto& point : oppsiteInterpolatePoints)
+//		{
+//			if (P2.Distance(point) <= radius)
+//				M++;
+//		}
+//		if (M >= 3)
+//		{
+//			w2 = 1;
+//		}
+//		else
+//		{
+//			M += 1;
+//			w2 = M / (M + 1);
+//		}
+//		return std::make_pair(1-w2, w2);
+//	}
+//	else
+//	{
+//		for (const auto& point : isoInterpolatePoints)
+//		{
+//			if (P1.Distance(point) <= radius)
+//				M++;
+//		}
+//		if (M >= 3)
+//		{
+//			w1 = 1;
+//		}
+//		else
+//		{
+//			M += 1;
+//			w1 = M / (M + 1);
+//		}
+//		return std::make_pair(w1, 1 - w1);
+//	}
+//}
 std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, const std::vector<gp_Pnt>& isoInterpolatePoints, const std::vector<gp_Pnt>& oppsiteInterpolatePoints)
 {
 	std::vector<std::pair<double, gp_Pnt>> distancesP1;
@@ -1664,20 +1759,36 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 	gp_Pnt nearestPoint1_P1 = distancesP1[0].second;
 	gp_Pnt nearestPoint2_P1 = distancesP1[1].second;
 
-	// 计算夹角，确保两个点分布在当前点两侧
-	gp_Vec v1_P1(nearestPoint1_P1, P1);
-	gp_Vec v2_P1(nearestPoint2_P1, P1);
-	double cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+	// 计算连线向量
+	gp_Vec lineVec(nearestPoint1_P1, nearestPoint2_P1);
+	gp_Vec vecToP1(nearestPoint1_P1, P1);
 
-	int next = 2;
-	while (cosAngle_P1 >= 0)
+	// 计算投影
+	double projectionLength = vecToP1.Dot(lineVec) / lineVec.Magnitude();
+
+	// 判断投影是否在连线区间内
+	bool isOppositeSide = false;
+	if (projectionLength >= 0 && projectionLength <= lineVec.Magnitude())
 	{
-		nearestPoint2_P1 = distancesP1[next++].second;  // 找到下一个最近的点
-		v1_P1 = gp_Vec(nearestPoint1_P1, P1);
-		v2_P1 = gp_Vec(nearestPoint2_P1, P1);
-		cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+		isOppositeSide = true;  // 如果投影在连线区间内，认为两点在两侧
 	}
 
+	// 如果两点在同一侧，继续查找下一个点
+	int next = 2;
+	while (!isOppositeSide && next < distancesP1.size())  // 检查索引是否越界
+	{
+		nearestPoint2_P1 = distancesP1[next++].second;
+		lineVec = gp_Vec(nearestPoint1_P1, nearestPoint2_P1);
+		vecToP1 = gp_Vec(nearestPoint1_P1, P1);
+		projectionLength = vecToP1.Dot(lineVec) / lineVec.Magnitude();
+
+		if (projectionLength >= 0 && projectionLength <= lineVec.Magnitude())
+		{
+			isOppositeSide = true;  // 找到满足条件的点
+		}
+	}
+
+	// 计算P2的最近点
 	std::vector<std::pair<double, gp_Pnt>> distancesP2;
 	for (const auto& point : oppsiteInterpolatePoints)
 	{
@@ -1689,18 +1800,33 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 	gp_Pnt nearestPoint1_P2 = distancesP2[0].second;
 	gp_Pnt nearestPoint2_P2 = distancesP2[1].second;
 
-	// 计算夹角，确保两个点分布在当前点两侧
-	gp_Vec v1_P2(nearestPoint1_P2, P2);
-	gp_Vec v2_P2(nearestPoint2_P2, P2);
-	double cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+	// 计算连线向量
+	gp_Vec lineVec_P2(nearestPoint1_P2, nearestPoint2_P2);
+	gp_Vec vecToP2(nearestPoint1_P2, P2);
 
-	next = 2;
-	while (cosAngle_P2 >= 0)
+	// 计算投影
+	double projectionLength_P2 = vecToP2.Dot(lineVec_P2) / lineVec_P2.Magnitude();  // 归一化投影长度，防止除以线段的长度
+
+	// 判断投影是否在连线区间内（0 <= projectionLength_P2 <= lineVec_P2.Magnitude()）
+	bool isOppositeSide_P2 = false;
+	if (projectionLength_P2 >= 0 && projectionLength_P2 <= lineVec_P2.Magnitude())
 	{
-		nearestPoint2_P2 = distancesP2[next++].second;  // 找到下一个最近的点
-		v1_P2 = gp_Vec(nearestPoint1_P2, P2);
-		v2_P2 = gp_Vec(nearestPoint2_P2, P2);
-		cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+		isOppositeSide_P2 = true;  // 如果投影在连线区间内，认为两点在两侧
+	}
+
+	// 如果两点在同一侧，继续查找下一个点
+	int nextP2 = 2;
+	while (!isOppositeSide_P2 && nextP2 < distancesP2.size())  // 检查索引是否越界
+	{
+		nearestPoint2_P2 = distancesP2[nextP2++].second;
+		lineVec_P2 = gp_Vec(nearestPoint1_P2, nearestPoint2_P2);
+		vecToP2 = gp_Vec(nearestPoint1_P2, P2);
+		projectionLength_P2 = vecToP2.Dot(lineVec_P2) / lineVec_P2.Magnitude();
+
+		if (projectionLength_P2 >= 0 && projectionLength_P2 <= lineVec_P2.Magnitude())
+		{
+			isOppositeSide_P2 = true;  // 找到满足条件的点
+		}
 	}
 
 	// 计算半径
@@ -1709,6 +1835,7 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 	double radius = (L1 + L2) / 2;
 	int M = 0;
 	double w1, w2;
+
 	if (L1 > L2)
 	{
 		for (const auto& point : oppsiteInterpolatePoints)
@@ -1725,7 +1852,7 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 			M += 1;
 			w2 = M / (M + 1);
 		}
-		return std::make_pair(1-w2, w2);
+		return std::make_pair(1 - w2, w2);
 	}
 	else
 	{
@@ -2369,6 +2496,38 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 		gp_Vec avgNormalV = std::accumulate(normalsV.begin(), normalsV.end(), gp_Vec()) / normalsV.size();
 		normalsOfVISOLines.emplace_back(avgNormalV);
 
+	}
+}
+
+void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum)
+{
+	for (auto& curve : curves) {
+		TColStd_Array1OfReal curveKnots(1, curve->NbKnots());
+		curve->Knots(curveKnots);
+
+		// 重新参数化曲线的节点
+		if (!(curveKnots(curveKnots.Lower()) == 0 && curveKnots(curveKnots.Upper()) == 1)) {
+			BSplCLib::Reparametrize(0, 1, curveKnots);
+			curve->SetKnots(curveKnots);
+		}
+
+		// 采样点与参数生成
+		std::vector<gp_Pnt> samplingPnts;
+		std::vector<Standard_Real> samplingParams;
+		Standard_Real vMin = curve->FirstParameter();
+		Standard_Real vMax = curve->LastParameter();
+
+		for (int j = 1; j <= samplingNum; j++) {
+			Standard_Real param = vMin + (vMax - vMin) * (j - 1) / (samplingNum - 1);
+			gp_Pnt pnt = curve->Value(param);
+			samplingParams.push_back(param);
+			samplingPnts.push_back(pnt);
+		}
+
+		// 初始化节点并进行拟合
+		std::vector<Standard_Real> init_knots = KnotGernerationByParams(samplingParams, 6, 3);
+		std::vector<Standard_Real> insertKnots;
+		curve = IterateApproximate(insertKnots, samplingPnts, samplingParams, init_knots, 3, 10, 1);
 	}
 }
 
