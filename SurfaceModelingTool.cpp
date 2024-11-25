@@ -2690,8 +2690,6 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 		GeomAPI_ExtremaCurveCurve extrema1(uCurve, aBoundarycurveArray[0]);
 		GeomAPI_ExtremaCurveCurve extrema2(uCurve, aBoundarycurveArray[2]);
 
-		// Get the closest points on the curves
-		Handle(Geom_Curve) closestPoint1, closestPoint2;
 		gp_Pnt p1, p2, p3;
 		extrema1.NearestPoints(p1,p2);
 		extrema2.NearestPoints(p1,p3);
@@ -2752,5 +2750,4 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 	{
 		std::reverse(vISOcurvesArray_Final.begin(), vISOcurvesArray_Final.end());
 	}
-
 }
