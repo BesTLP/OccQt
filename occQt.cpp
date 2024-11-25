@@ -1216,7 +1216,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 12; i <= 12; i++)
+    for (int i = 99; i <= 99; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // ∂¡»Î±ﬂΩÁœﬂ

@@ -2674,13 +2674,54 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 	Handle(Geom_BSplineCurve) vCurve = vISOcurvesArray_Final[0];
 	std::vector<Handle(Geom_BSplineCurve)> uBoundaryCurve(2), vBoundaryCurve(2);
 
-	bool isUBoundaryFirst = ComputeCurveCurveDistance(aBoundarycurveArray[0], uCurve) >
-		ComputeCurveCurveDistance(aBoundarycurveArray[1], uCurve);
+	bool isThreeBoundary = false;
+	for (auto theBoundaryCurve : aBoundarycurveArray)
+	{
+		double distance = theBoundaryCurve->StartPoint().Distance(theBoundaryCurve->EndPoint());
+		if (distance < 0.1)
+		{
+			// 三边
+			isThreeBoundary = true;
+			break;
+		}
+	}
+	if (isThreeBoundary)
+	{
+		GeomAPI_ExtremaCurveCurve extrema1(uCurve, aBoundarycurveArray[0]);
+		GeomAPI_ExtremaCurveCurve extrema2(uCurve, aBoundarycurveArray[2]);
 
-	uBoundaryCurve[0] = isUBoundaryFirst ? aBoundarycurveArray[0] : aBoundarycurveArray[1];
-	uBoundaryCurve[1] = isUBoundaryFirst ? aBoundarycurveArray[2] : aBoundarycurveArray[3];
-	vBoundaryCurve[0] = isUBoundaryFirst ? aBoundarycurveArray[1] : aBoundarycurveArray[0];
-	vBoundaryCurve[1] = isUBoundaryFirst ? aBoundarycurveArray[3] : aBoundarycurveArray[2];
+		// Get the closest points on the curves
+		Handle(Geom_Curve) closestPoint1, closestPoint2;
+		gp_Pnt p1, p2, p3;
+		extrema1.NearestPoints(p1,p2);
+		extrema2.NearestPoints(p1,p3);
+
+		double distance = p2.Distance(p3);
+		if (distance < Precision::Confusion())
+		{
+			uBoundaryCurve[0] = aBoundarycurveArray[0];
+			uBoundaryCurve[1] = aBoundarycurveArray[2];
+			vBoundaryCurve[0] = aBoundarycurveArray[1];
+			vBoundaryCurve[1] = aBoundarycurveArray[3];
+		}
+		else
+		{
+			uBoundaryCurve[0] = aBoundarycurveArray[1];
+			uBoundaryCurve[1] = aBoundarycurveArray[3];
+			vBoundaryCurve[0] = aBoundarycurveArray[0];
+			vBoundaryCurve[1] = aBoundarycurveArray[2];
+		}
+	}
+	else
+	{
+		bool isUBoundaryFirst = ComputeCurveCurveDistance(aBoundarycurveArray[0], uCurve) >
+			ComputeCurveCurveDistance(aBoundarycurveArray[1], uCurve);
+
+		uBoundaryCurve[0] = isUBoundaryFirst ? aBoundarycurveArray[0] : aBoundarycurveArray[1];
+		uBoundaryCurve[1] = isUBoundaryFirst ? aBoundarycurveArray[2] : aBoundarycurveArray[3];
+		vBoundaryCurve[0] = isUBoundaryFirst ? aBoundarycurveArray[1] : aBoundarycurveArray[0];
+		vBoundaryCurve[1] = isUBoundaryFirst ? aBoundarycurveArray[3] : aBoundarycurveArray[2];
+	}
 
 	gp_Pnt uCurveSamplePoint = ComputeAverageSamplePoint(uCurve, 10);
 	bool isUFirstCloser = uCurveSamplePoint.Distance(ComputeAverageSamplePoint(uBoundaryCurve[0], 10)) <
@@ -2695,15 +2736,14 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 
 	vISOcurvesArray_Final.insert(vISOcurvesArray_Final.begin(), isVFirstCloser ? vBoundaryCurve[0] : vBoundaryCurve[1]);
 	vISOcurvesArray_Final.insert(vISOcurvesArray_Final.end(), isVFirstCloser ? vBoundaryCurve[1] : vBoundaryCurve[0]);
-
 	gp_Pnt origin(0, 0, 0);
-	auto minDistanceToPoint = [&origin](const Handle(Geom_BSplineCurve)& curve) 
-	{
-		return std::min(curve->StartPoint().Distance(origin), curve->EndPoint().Distance(origin));
-	};
+	auto minDistanceToPoint = [&origin](const Handle(Geom_BSplineCurve)& curve)
+		{
+			return std::min(curve->StartPoint().Distance(origin), curve->EndPoint().Distance(origin));
+		};
 
 	// 如果最后一条曲线比第一条曲线距离原点更近，反转 uISOcurvesArray_Final
-	if (minDistanceToPoint(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]) < minDistanceToPoint(uISOcurvesArray_Final[0])) 
+	if (minDistanceToPoint(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]) < minDistanceToPoint(uISOcurvesArray_Final[0]))
 	{
 		std::reverse(uISOcurvesArray_Final.begin(), uISOcurvesArray_Final.end());
 	}
