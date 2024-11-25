@@ -1351,6 +1351,8 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			gp_Vec endDirection = aPntsVector[aPntsVector.size() - 1].XYZ() - aPntsVector[aPntsVector.size() - 2].XYZ();
 			endDirection.Normalize();
 
+			Standard_Real uMin, uMax, vMin, vMax;
+			CoonsSurface->Bounds(uMin, uMax, vMin, vMax); // 获取参数范围
 			if (!CoonsSurface.IsNull())
 			{
 				gp_Vec U_StartTangent, V_StartTangent;
@@ -1365,6 +1367,38 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 					// 获取U和V方向的偏导数（切向量）
 					CoonsSurface->D1(uParam, vParam, closestPoint, U_StartTangent, V_StartTangent);
 
+					// 检查是否需要数值逼近法
+					if (!U_StartTangent.Magnitude()|| !V_StartTangent.Magnitude())
+					{
+						// 确保 uParam 在有效区间内
+						if (uParam - Precision::Confusion() < uMin) 
+						{
+							uParam += Precision::Confusion();  // 向大方向调整
+						}
+						if (uParam + Precision::Confusion() > uMax) 
+						{
+							uParam -= Precision::Confusion();  // 向小方向调整
+						}
+						else 
+						{
+							uParam += Precision::Confusion();  // 向大方向调整
+						}
+
+						// 确保 vParam 在有效区间内
+						if (vParam - Precision::Confusion() < vMin) 
+						{
+							vParam += Precision::Confusion();  // 向大方向调整
+						}
+						if (vParam + Precision::Confusion() > vMax)
+						{
+							vParam -= Precision::Confusion();  // 向小方向调整
+						}
+						else 
+						{
+							vParam += Precision::Confusion();  // 向大方向调整
+						}
+						CoonsSurface->D1(uParam, vParam, closestPoint, U_StartTangent, V_StartTangent);
+					}
 					// 计算法向量（U和V偏导数的叉积）
 					gp_Vec normalVector = U_StartTangent.Crossed(V_StartTangent);
 					normalVector = normalVector.Normalized();
@@ -1404,7 +1438,38 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 
 					// 获取U和V方向的偏导数（切向量）
 					CoonsSurface->D1(uParam, vParam, closestPoint, U_EndTangent, V_EndTangent);
+					// 检查是否需要数值逼近法
+					if (!U_EndTangent.Magnitude() || !V_EndTangent.Magnitude())
+					{
+						// 确保 uParam 在有效区间内
+						if (uParam - Precision::Confusion() < uMin) 
+						{
+							uParam += Precision::Confusion();  // 向大方向调整
+						}
+						if (uParam + Precision::Confusion() > uMax) 
+						{
+							uParam -= Precision::Confusion();  // 向小方向调整
+						}
+						else
+						{
+							uParam += Precision::Confusion();  // 向大方向调整
+						}
 
+						// 确保 vParam 在有效区间内
+						if (vParam - Precision::Confusion() < vMin)
+						{
+							vParam += Precision::Confusion();  // 向大方向调整
+						}
+						if (vParam + Precision::Confusion() > vMax) 
+						{
+							vParam -= Precision::Confusion();  // 向小方向调整
+						}
+						else
+						{
+							vParam += Precision::Confusion();  // 向大方向调整
+						}
+						CoonsSurface->D1(uParam, vParam, closestPoint, U_EndTangent, V_EndTangent);
+					}
 					// 计算法向量（U和V偏导数的叉积）
 					gp_Vec normalVector = U_EndTangent.Crossed(V_EndTangent);
 					normalVector = normalVector.Normalized();
@@ -1438,7 +1503,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 				points->SetValue(j + 1, aPntsVector[j]);
 			}
 			debugPoints.push_back(aPntsVector);
-			GeomAPI_Interpolate interpolate(points, Standard_False, 1.0e-3);
+			GeomAPI_Interpolate interpolate(points, Standard_False, 0.1);
 			interpolate.Load(FirstD1, LastD1, Standard_True);
 			// 执行插值计算
 			interpolate.Perform();
@@ -1816,7 +1881,7 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 
 	// 如果两点在同一侧，继续查找下一个点
 	int nextP2 = 2;
-	while (!isOppositeSide_P2 && nextP2 < distancesP2.size())  // 检查索引是否越界
+	while (!isOppositeSide_P2 && nextP2 < distancesP2.size())
 	{
 		nearestPoint2_P2 = distancesP2[nextP2++].second;
 		lineVec_P2 = gp_Vec(nearestPoint1_P2, nearestPoint2_P2);
@@ -1911,6 +1976,7 @@ void ProcessISOCurvesWithTangent(
 				// 获取权重值
 				double w1 = weights.first;
 				double w2 = weights.second;
+
 				gp_Pnt midPoint;
 				double x = (P1.X() * w1 + P2.X() * w2);
 				double y = (P1.Y() * w1 + P2.Y() * w2);
@@ -1953,6 +2019,9 @@ void ProcessISOCurvesWithTangent(
 		gp_Vec FirstD1, LastD1;
 		if (!surfaceArr[0].IsNull())
 		{
+
+			Standard_Real uMin, uMax, vMin, vMax;
+			surfaceArr[0]->Bounds(uMin, uMax, vMin, vMax); // 获取参数范围
 			GeomAPI_ProjectPointOnSurf projector(intersectionPoints.front(), surfaceArr[0]);
 			if (projector.NbPoints() > 0)
 			{
@@ -1962,7 +2031,38 @@ void ProcessISOCurvesWithTangent(
 
 				// 获取U和V方向的偏导数（切向量）
 				surfaceArr[0]->D1(uParam, vParam, closestPoint, U_StartTangent, V_StartTangent);
+				// 处理偏导为零的情况
+				if (!U_StartTangent.Magnitude() || !V_StartTangent.Magnitude())
+				{
+					// 确保 uParam 在有效区间内
+					if (uParam - Precision::Confusion() < uMin)
+					{
+						uParam += Precision::Confusion();  // 向大方向调整
+					}
+					if (uParam + Precision::Confusion() > uMax)
+					{
+						uParam -= Precision::Confusion();  // 向小方向调整
+					}
+					else
+					{
+						uParam += Precision::Confusion();  // 向大方向调整
+					}
 
+					// 确保 vParam 在有效区间内
+					if (vParam - Precision::Confusion() < vMin)
+					{
+						vParam += Precision::Confusion();  // 向大方向调整
+					}
+					if (vParam + Precision::Confusion() > vMax)
+					{
+						vParam -= Precision::Confusion();  // 向小方向调整
+					}
+					else
+					{
+						vParam += Precision::Confusion();  // 向大方向调整
+					}
+					surfaceArr[0]->D1(uParam, vParam, closestPoint, U_StartTangent, V_StartTangent);
+				}
 				// 计算法向量（U和V偏导数的叉积）
 				gp_Vec normalVector = U_StartTangent.Crossed(V_StartTangent);
 				normalVector = normalVector.Normalized();
@@ -1999,6 +2099,8 @@ void ProcessISOCurvesWithTangent(
 
 		if (!surfaceArr[1].IsNull())
 		{
+			Standard_Real uMin, uMax, vMin, vMax;
+			surfaceArr[0]->Bounds(uMin, uMax, vMin, vMax); // 获取参数范围
 			GeomAPI_ProjectPointOnSurf projector(intersectionPoints.back(), surfaceArr[1]);
 			if (projector.NbPoints() > 0)
 			{
@@ -2008,7 +2110,37 @@ void ProcessISOCurvesWithTangent(
 
 				// 获取U和V方向的偏导数（切向量）
 				surfaceArr[1]->D1(uParam, vParam, closestPoint, U_EndTangent, V_EndTangent);
+				if (!U_EndTangent.Magnitude() || !V_EndTangent.Magnitude())
+				{
+					// 确保 uParam 在有效区间内
+					if (uParam - Precision::Confusion() < uMin)
+					{
+						uParam += Precision::Confusion();  // 向大方向调整
+					}
+					if (uParam + Precision::Confusion() > uMax)
+					{
+						uParam -= Precision::Confusion();  // 向小方向调整
+					}
+					else
+					{
+						uParam += Precision::Confusion();  // 向大方向调整
+					}
 
+					// 确保 vParam 在有效区间内
+					if (vParam - Precision::Confusion() < vMin)
+					{
+						vParam += Precision::Confusion();  // 向大方向调整
+					}
+					if (vParam + Precision::Confusion() > vMax)
+					{
+						vParam -= Precision::Confusion();  // 向小方向调整
+					}
+					else
+					{
+						vParam += Precision::Confusion();  // 向大方向调整
+					}
+					surfaceArr[1]->D1(uParam, vParam, closestPoint, U_EndTangent, V_EndTangent);
+				}
 				// 计算法向量（U和V偏导数的叉积）
 				gp_Vec normalVector = U_EndTangent.Crossed(V_EndTangent);
 				normalVector = normalVector.Normalized();
@@ -2501,12 +2633,14 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 
 void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum)
 {
-	for (auto& curve : curves) {
+	for (auto& curve : curves) 
+	{
 		TColStd_Array1OfReal curveKnots(1, curve->NbKnots());
 		curve->Knots(curveKnots);
 
 		// 重新参数化曲线的节点
-		if (!(curveKnots(curveKnots.Lower()) == 0 && curveKnots(curveKnots.Upper()) == 1)) {
+		if (!(curveKnots(curveKnots.Lower()) == 0 && curveKnots(curveKnots.Upper()) == 1))
+		{
 			BSplCLib::Reparametrize(0, 1, curveKnots);
 			curve->SetKnots(curveKnots);
 		}
@@ -2517,7 +2651,8 @@ void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSpl
 		Standard_Real vMin = curve->FirstParameter();
 		Standard_Real vMax = curve->LastParameter();
 
-		for (int j = 1; j <= samplingNum; j++) {
+		for (int j = 1; j <= samplingNum; j++) 
+		{
 			Standard_Real param = vMin + (vMax - vMin) * (j - 1) / (samplingNum - 1);
 			gp_Pnt pnt = curve->Value(param);
 			samplingParams.push_back(param);

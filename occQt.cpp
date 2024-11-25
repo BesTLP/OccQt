@@ -1216,7 +1216,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 99; i <= 99; i++)
+    for (int i = 12; i <= 12; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1339,9 +1339,6 @@ void occQt::GenerateIsoCurves(void)
         SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, surfacecoons);
         SurfaceCoonsFilename = filename + "SurfaceCoons_y.step";
         ExportBSplineSurface(surfacecoons, SurfaceCoonsFilename);  
-        std::vector<Handle(Geom_BSplineSurface)> surfacecoonsArr;
-        SurfaceModelingTool::LoadBSplineSurfaces(SurfaceCoonsFilename, surfacecoonsArr);
-        surfacecoons = surfacecoonsArr[0];
         // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
