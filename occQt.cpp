@@ -1216,7 +1216,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 99; i <= 99; i++)
+    for (int i = 19; i <= 21; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1242,7 +1242,6 @@ void occQt::GenerateIsoCurves(void)
             double tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
             if (tempArray[1]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
             {
-                // TODO：调整tempArray[1]的方向
                 tempArray[1]->Reverse();
             }
             else if (tempArray[2]->StartPoint().Distance(tempArray[0]->EndPoint()) < tol)
@@ -1257,7 +1256,6 @@ void occQt::GenerateIsoCurves(void)
 
             if (tempArray[2]->EndPoint().Distance(tempArray[1]->EndPoint()) < tol)
             {
-                // TODO:调整tempArray[2]的方向
                 tempArray[2]->Reverse();
             }
 
