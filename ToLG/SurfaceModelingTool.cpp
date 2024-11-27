@@ -1417,7 +1417,6 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 					// 计算投影后的切线
 					FirstD1 = projectedDirection;
 					FirstD1.Multiply(CalPointsChordLen(aPntsVector) / FirstD1.Magnitude());
-
 				}
 			}
 
@@ -1497,7 +1496,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			}
 			debugPoints.push_back(aPntsVector);
 			GeomAPI_Interpolate interpolate(points, Standard_False, 0.1);
-			// interpolate.Load(FirstD1, LastD1, Standard_True);
+			//interpolate.Load(FirstD1, LastD1, Standard_True);
 			// 执行插值计算
 			interpolate.Perform();
 			// 检查是否成功完成插值
@@ -1709,6 +1708,101 @@ bool CompareDistance(std::pair<double, gp_Pnt> p1, std::pair<double, gp_Pnt> p2)
 	return p1.first < p2.first;
 }
 
+//std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, const std::vector<gp_Pnt>& isoInterpolatePoints, const std::vector<gp_Pnt>& oppsiteInterpolatePoints)
+//{
+//	std::vector<std::pair<double, gp_Pnt>> distancesP1;
+//	for (const auto& point : isoInterpolatePoints)
+//	{
+//		distancesP1.push_back({ P1.Distance(point), point });
+//	}
+//
+//	std::sort(distancesP1.begin(), distancesP1.end(), CompareDistance);
+//
+//	gp_Pnt nearestPoint1_P1 = distancesP1[0].second;
+//	gp_Pnt nearestPoint2_P1 = distancesP1[1].second;
+//
+//	// 计算夹角，确保两个点分布在当前点两侧
+//	gp_Vec v1_P1(nearestPoint1_P1, P1);
+//	gp_Vec v2_P1(nearestPoint2_P1, P1);
+//	double cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+//
+//	int next = 2;
+//	while (cosAngle_P1 >= 0)
+//	{
+//		nearestPoint2_P1 = distancesP1[next++].second;  // 找到下一个最近的点
+//		v1_P1 = gp_Vec(nearestPoint1_P1, P1);
+//		v2_P1 = gp_Vec(nearestPoint2_P1, P1);
+//		cosAngle_P1 = v1_P1.Dot(v2_P1) / (v1_P1.Magnitude() * v2_P1.Magnitude());
+//	}
+//
+//	std::vector<std::pair<double, gp_Pnt>> distancesP2;
+//	for (const auto& point : oppsiteInterpolatePoints)
+//	{
+//		distancesP2.push_back({ P2.Distance(point), point });
+//	}
+//
+//	std::sort(distancesP2.begin(), distancesP2.end(), CompareDistance);
+//
+//	gp_Pnt nearestPoint1_P2 = distancesP2[0].second;
+//	gp_Pnt nearestPoint2_P2 = distancesP2[1].second;
+//
+//	// 计算夹角，确保两个点分布在当前点两侧
+//	gp_Vec v1_P2(nearestPoint1_P2, P2);
+//	gp_Vec v2_P2(nearestPoint2_P2, P2);
+//	double cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+//
+//	next = 2;
+//	while (cosAngle_P2 >= 0)
+//	{
+//		nearestPoint2_P2 = distancesP2[next++].second;  // 找到下一个最近的点
+//		v1_P2 = gp_Vec(nearestPoint1_P2, P2);
+//		v2_P2 = gp_Vec(nearestPoint2_P2, P2);
+//		cosAngle_P2 = v1_P2.Dot(v2_P2) / (v1_P2.Magnitude() * v2_P2.Magnitude());
+//	}
+//
+//	// 计算半径
+//	double L1 = P1.Distance(nearestPoint1_P1) + P1.Distance(nearestPoint2_P1);
+//	double L2 = P2.Distance(nearestPoint1_P2) + P2.Distance(nearestPoint2_P2);
+//	double radius = (L1 + L2) / 2;
+//	int M = 0;
+//	double w1, w2;
+//	if (L1 > L2)
+//	{
+//		for (const auto& point : oppsiteInterpolatePoints)
+//		{
+//			if (P2.Distance(point) <= radius)
+//				M++;
+//		}
+//		if (M >= 3)
+//		{
+//			w2 = 1;
+//		}
+//		else
+//		{
+//			M += 1;
+//			w2 = M / (M + 1);
+//		}
+//		return std::make_pair(1-w2, w2);
+//	}
+//	else
+//	{
+//		for (const auto& point : isoInterpolatePoints)
+//		{
+//			if (P1.Distance(point) <= radius)
+//				M++;
+//		}
+//		if (M >= 3)
+//		{
+//			w1 = 1;
+//		}
+//		else
+//		{
+//			M += 1;
+//			w1 = M / (M + 1);
+//		}
+//		return std::make_pair(w1, 1 - w1);
+//	}
+//}
 std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, const std::vector<gp_Pnt>& isoInterpolatePoints, const std::vector<gp_Pnt>& oppsiteInterpolatePoints)
 {
 	std::vector<std::pair<double, gp_Pnt>> distancesP1;
@@ -2140,7 +2234,6 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 	Standard_Integer isoCount,
 	std::vector<Handle(Geom_BSplineSurface)>& surfaceArr)
 {
-
 	// Surfacce[0] 代表 startpoint所在的区间相邻的面
 	// Surfacce[1] 代表 endpoint 所在的区间相邻的面
 	std::vector<Handle(Geom_BSplineSurface)> uTangentSurface(2);
@@ -2170,9 +2263,8 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 		vTangentSurface[0] = FindClosestSurface(newStartPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
 		vTangentSurface[1] = FindClosestSurface(newEndPoint, surfaceArr, newStartPoint.Distance(newEndPoint) / 1000);
 	}
-	ProcessISOCurvesWithTangent(uISOcurvesArray_New, vISOcurvesArray_New, uInterpolatePoints, vInterpolatePoints, uISOcurvesArray_Final, isoCount, uTangentSurface);
-	ProcessISOCurvesWithTangent(vISOcurvesArray_New, uISOcurvesArray_New, vInterpolatePoints, uInterpolatePoints, vISOcurvesArray_Final, isoCount, vTangentSurface);
-
+	ProcessISOCurvesWithTangent(uISOcurvesArray_New, vISOcurvesArray_New, uInterpolatePoints, vInterpolatePoints, uISOcurvesArray_Final,isoCount,uTangentSurface);
+	ProcessISOCurvesWithTangent(vISOcurvesArray_New, uISOcurvesArray_New, vInterpolatePoints, uInterpolatePoints, vISOcurvesArray_Final,isoCount,vTangentSurface);
 }
 void SurfaceModelingTool::LoadBSplineCurves(const std::string& filePath, std::vector<Handle(Geom_BSplineCurve)>& curveArray)
 {

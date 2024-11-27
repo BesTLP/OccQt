@@ -137,152 +137,59 @@
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include <STEPControl_Writer.hxx>
 #include <GeomFill_BSplineCurves.hxx>
-void VisualizePoints(const std::vector<gp_Pnt>& points, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_RED)
+
+template <typename T>
+void Visualize(const std::vector<T>& objects, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_BISQUE)
 {
-    gp_Pnt lastPoint(0,0,0);
-    for (const auto& point : points)
-    {
-
-        try
-        {
-            // 创建 AIS_Point 并设置颜色
-            double distance = point.Distance(lastPoint);
-            lastPoint = point;
-            TopoDS_Vertex ver = BRepBuilderAPI_MakeVertex(point);
-            Handle(AIS_Shape) aisPoint = new AIS_Shape(ver);
-            aisPoint->SetColor(color); // 设置颜色
-
-            // 显示点
-            context->Display(aisPoint, Standard_True);
-        }
-        catch (Standard_Failure& e)
-        {
-            QMessageBox::critical(nullptr, "Error", QString("Failed to display point: %1").arg(e.GetMessageString()));
-            return;
-        }
-    }
-
-    // 调整视角
-    myOccView->fitAll();
-}
-void VisualizeBSplineCurves(const std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Initial, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_BISQUE)
-{
-    for (const auto& vCurve : vISOcurvesArray_Initial)
+    for (const auto& obj : objects)
     {
         try
         {
-            // 创建边界曲线
-            TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(vCurve);
+            Handle(AIS_Shape) aisShape;
 
-            // 创建 AIS_Shape 并设置颜色
-            Handle(AIS_Shape) vCurveShape = new AIS_Shape(edge);
-            vCurveShape->SetColor(color); // 设置颜色
-
-            // 显示曲线
-            context->Display(vCurveShape, Standard_True);
-        }
-        catch (Standard_Failure& e)
-        {
-            QMessageBox::critical(nullptr, "Error", QString("Failed to display v curve: %1").arg(e.GetMessageString()));
-            return;
-        }
-
-        // 调整视角
-        myOccView->fitAll();
-
-        //std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-}
-void VisualizeBSplineSurface(const std::vector<Handle(Geom_BSplineSurface)>& surfaceArray, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_BISQUE)
-{
-    for (const auto& surface : surfaceArray)
-    {
-        try
-        {
-            Handle(Geom_Surface) genericSurface = Handle(Geom_Surface)::DownCast(surface);
-
-            if (genericSurface.IsNull()) {
-                QMessageBox::critical(nullptr, "Error", "Failed to cast to Geom_Surface.");
-                continue;
-            }
-            // 使用 Geom_Surface 创建面
-            TopoDS_Face face = BRepBuilderAPI_MakeFace(genericSurface, Precision::Confusion());
-
-            // 创建 AIS_Shape 并设置颜色
-            Handle(AIS_Shape) faceShape = new AIS_Shape(face);
-            faceShape->SetColor(color); // 设置颜色
-
-            // 显示曲线
-            context->Display(faceShape, Standard_True);
-        }
-        catch (Standard_Failure& e)
-        {
-            QMessageBox::critical(nullptr, "Error", QString("Failed to display v curve: %1").arg(e.GetMessageString()));
-            return;
-        }
-
-        // 调整视角
-        myOccView->fitAll();
-
-        //std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-}
-void VisualizeShapes(const std::vector<TopoDS_Shape>& shapes, Handle(AIS_InteractiveContext) context, OccView* myOccView, const Quantity_Color& color = Quantity_NOC_BISQUE)
-{
-    for (auto shape : shapes)
-    {
-        try
-        {
-            TopExp_Explorer exp;
-            for (exp.Init(shape, TopAbs_FACE); exp.More(); exp.Next())
+            // 根据对象类型创建对应的 AIS_Shape
+            if constexpr (std::is_same<T, gp_Pnt>::value) 
             {
-                TopoDS_Face face = TopoDS::Face(exp.Current());
-                Handle(AIS_Shape) aFace = new AIS_Shape(face);
-                aFace->SetColor(color);
-                context->Display(aFace, true);
+                TopoDS_Vertex ver = BRepBuilderAPI_MakeVertex(obj);
+                aisShape = new AIS_Shape(ver);
             }
+            else if constexpr (std::is_same<T, Handle(Geom_BSplineCurve)>::value) 
+            {
+                TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(obj);
+                aisShape = new AIS_Shape(edge);
+            }
+            else if constexpr (std::is_same<T, Handle(Geom_BSplineSurface)>::value)
+            {
+                Handle(Geom_Surface) genericSurface = Handle(Geom_Surface)::DownCast(obj);
+                if (genericSurface.IsNull())
+                {
+                    continue;
+                }
+                TopoDS_Face face = BRepBuilderAPI_MakeFace(genericSurface, Precision::Confusion());
+                aisShape = new AIS_Shape(face);
+            }
+            else if constexpr (std::is_same<T, TopoDS_Shape>::value) 
+            {
+                aisShape = new AIS_Shape(obj);
+            }
+            else if constexpr (std::is_same<T, TopoDS_Edge>::value) 
+            {
+                aisShape = new AIS_Shape(obj);
+            }
+
+            aisShape->SetColor(color); // 设置颜色
+            context->Display(aisShape, Standard_True);
         }
         catch (Standard_Failure& e)
         {
-            QMessageBox::critical(nullptr, "Error", QString("Failed to display v curve: %1").arg(e.GetMessageString()));
-            return;
-        }
-
-        // 调整视角
-        myOccView->fitAll();
-
-        // 等待 1 秒
-        //td::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    }
-}
-void VisualizeEdges(const std::vector<TopoDS_Edge>& edges,
-    Handle(AIS_InteractiveContext) context,
-    OccView* myOccView,
-    const Quantity_Color& color = Quantity_NOC_GOLD)
-{
-    for (const auto& edge : edges)
-    {
-        try
-        {
-            // 创建 AIS_Shape
-            Handle(AIS_Shape) edgeShape = new AIS_Shape(edge);
-            edgeShape->SetColor(color); // 设置颜色
-            // 显示曲线
-            context->Display(edgeShape, Standard_True);
-        }
-        catch (Standard_Failure& e)
-        {
-            QMessageBox::critical(nullptr, "Error", QString("Failed to display edge: %1").arg(e.GetMessageString()));
+            QMessageBox::critical(nullptr, "Error", QString("Failed to display object: %1").arg(e.GetMessageString()));
             return;
         }
     }
 
     // 调整视角
     myOccView->fitAll();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(200)); // 可选,用于延时显示
 }
-
 
 
 void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
@@ -1216,7 +1123,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 34; i <= 36; i++)
+    for (int i = 99; i <= 99; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1227,14 +1134,13 @@ void occQt::GenerateIsoCurves(void)
         filename += "/";
         std::string boundaryPath = filename + "boundary.brep";
         SurfaceModelingTool::LoadBSplineCurves(boundaryPath.c_str(), tempArray);
+        Visualize(tempArray, myOccView->getContext(), myOccView);
 
         std::vector<std::vector<double>> uKnots;
         std::vector<std::vector<double>> vKnots;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Final, vISOcurvesArray_Final;
 
-
         SurfaceModelingTool::ApproximateBoundaryCurves(tempArray);
-
         if (tempArray.size() == 3)
         {
             gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
@@ -1327,6 +1233,7 @@ void occQt::GenerateIsoCurves(void)
 
         // 显示边界曲线
         myOccView->getContext()->RemoveAll(Standard_True);
+        Visualize(aBoundarycurveArray, myOccView->getContext(), myOccView);
 
         // 获取Coons曲面
         Handle(Geom_BSplineSurface) surfacecoons;
@@ -1346,6 +1253,8 @@ void occQt::GenerateIsoCurves(void)
         // 可视化阶段结果
         //std::vector<Handle(Geom_BSplineSurface)> visualSurfaceArray = { surfacecoons };
         //VisualizeBSplineSurface(visualSurfaceArray, myOccView->getContext(), myOccView);
+        Visualize(uISOcurvesArray_Initial, myOccView->getContext(), myOccView);
+        Visualize(vISOcurvesArray_Initial, myOccView->getContext(), myOccView);
 
         //构造Lofting曲面
         std::vector<TopoDS_Shape>  uLoftingSur, vLoftingSur;
@@ -1369,18 +1278,23 @@ void occQt::GenerateIsoCurves(void)
         std::vector<TopoDS_Edge> uInterpoalteTangentArray;
         std::vector<TopoDS_Edge> uInterpoalteTangentArray2;
         SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, uISOcurvesArray_New, isoCount, uInterpolatePoints,surfacecoons);
+        Visualize(uInterpoalteTangentArray, myOccView->getContext(), myOccView, Quantity_NOC_GOLD);
+        Visualize(uInterpoalteTangentArray2, myOccView->getContext(), myOccView, Quantity_NOC_GOLD);
         for (auto interPoints : uInterpolatePoints)
-            VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+            Visualize(interPoints, myOccView->getContext(), myOccView, Quantity_NOC_RED);
 
         std::vector<TopoDS_Edge> vInterpoalteTangentArray;
         std::vector<TopoDS_Edge> vInterpoalteTangentArray2;
         SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, vISOcurvesArray_New, isoCount, vInterpolatePoints,surfacecoons);
-        VisualizeEdges(vInterpoalteTangentArray, myOccView->getContext(), myOccView);
-        VisualizeEdges(vInterpoalteTangentArray2, myOccView->getContext(), myOccView, Quantity_NOC_RED);
+        Visualize(vInterpoalteTangentArray, myOccView->getContext(), myOccView, Quantity_NOC_GOLD);
+        Visualize(vInterpoalteTangentArray2, myOccView->getContext(), myOccView, Quantity_NOC_GOLD);
         //VisualizeBSplineSurface({surfacecoons}, myOccView->getContext(), myOccView, Quantity_NOC_BLUE1);
         for(auto interPoints : vInterpolatePoints)
-            VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+            Visualize(interPoints, myOccView->getContext(), myOccView, Quantity_NOC_RED);
 
+        Visualize(aBoundarycurveArray, myOccView->getContext(), myOccView);
+        Visualize(vISOcurvesArray_New, myOccView->getContext(), myOccView);
+        Visualize(uISOcurvesArray_New, myOccView->getContext(), myOccView);
 
         // 生成新等参线
         {
@@ -1400,15 +1314,25 @@ void occQt::GenerateIsoCurves(void)
             SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf2, surfaceArray);
             SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
             SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
-            VisualizeBSplineSurface(surfaceArray, myOccView->getContext(), myOccView);
-            SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uInterpolatePoints, vInterpolatePoints,isoCount, surfaceArray);
+            Visualize(surfaceArray, myOccView->getContext(), myOccView);
+            SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, uISOcurvesArray_Final, vISOcurvesArray_Final, uInterpolatePoints, vInterpolatePoints,isoCount,surfaceArray);
+            Visualize(TangentArray, myOccView->getContext(), myOccView, Quantity_NOC_RED);
 
             SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
+            
+            for (auto boundaryPoint : boundaryPoints)
+            {
+                interPoints.push_back(boundaryPoint);
+            }
+            interPoints.push_back(uISOcurvesArray_Final[0]->StartPoint());
+            interPoints.push_back(uISOcurvesArray_Final[0]->EndPoint());
+            interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->StartPoint());
+            interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
 
-
-            VisualizeBSplineCurves(aBoundarycurveArray, myOccView->getContext(), myOccView);
-            VisualizeBSplineCurves(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
-            VisualizeBSplineCurves(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
+            //VisualizePoints(interPoints, myOccView->getContext(), myOccView);
+            // 遍历 u(v)ISOcurvesArray_Final 进行可视化
+            Visualize(uISOcurvesArray_Final, myOccView->getContext(), myOccView);
+            Visualize(vISOcurvesArray_Final, myOccView->getContext(), myOccView);
             auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
                 {
                     // 创建一个复合体以存储所有顶点
