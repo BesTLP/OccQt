@@ -36,8 +36,10 @@ public:
     //! constructor/destructor.
     occQt(QWidget *parent = nullptr);
     ~occQt();
-
-
+    template <typename T>
+    void Visualize(const T& object, const Quantity_Color& color = Quantity_NOC_RED);
+    template <typename T>
+    void Visualize(const std::vector<T>& object, const Quantity_Color& color = Quantity_NOC_RED);
 protected:
     //! create all the actions.
     void createActions(void);
