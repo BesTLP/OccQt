@@ -1504,7 +1504,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			}
 			debugPoints.push_back(aPntsVector);
 			GeomAPI_Interpolate interpolate(points, Standard_False, 0.1);
-			interpolate.Load(FirstD1, LastD1, Standard_True);
+			//interpolate.Load(FirstD1, LastD1, Standard_True);
 			// 执行插值计算
 			interpolate.Perform();
 			// 检查是否成功完成插值
@@ -1976,7 +1976,7 @@ void ProcessISOCurvesWithTangent(
 				// 获取权重值
 				double w1 = weights.first;
 				double w2 = weights.second;
-
+				w1 = w2 = 0.5;
 				gp_Pnt midPoint;
 				double x = (P1.X() * w1 + P2.X() * w2);
 				double y = (P1.Y() * w1 + P2.Y() * w2);
@@ -2100,7 +2100,7 @@ void ProcessISOCurvesWithTangent(
 		if (!surfaceArr[1].IsNull())
 		{
 			Standard_Real uMin, uMax, vMin, vMax;
-			surfaceArr[0]->Bounds(uMin, uMax, vMin, vMax); // 获取参数范围
+			surfaceArr[1]->Bounds(uMin, uMax, vMin, vMax); // 获取参数范围
 			GeomAPI_ProjectPointOnSurf projector(intersectionPoints.back(), surfaceArr[1]);
 			if (projector.NbPoints() > 0)
 			{

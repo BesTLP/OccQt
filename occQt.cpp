@@ -1123,13 +1123,13 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 12; i <= 12; i++)
+    for (int i = 34; i <= 36; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // ∂¡»Î±ﬂΩÁœﬂ
         std::vector<Handle(Geom_BSplineCurve)> tempArray;
         tempArray.clear();
-        std::string filename = "E:/Models/Constraint/test";
+        std::string filename = "D:/GordenModels/Constraint/test";
         filename += std::to_string(i);
         filename += "/";
         std::string boundaryPath = filename + "boundary.brep";
