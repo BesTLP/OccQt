@@ -24,7 +24,7 @@
 #include "Geom_BoundedCurve.hxx"
 #include "AIS_Shape.hxx"
 #include "../../OpenCASCADE-7.7.0-vc14-64/qt5.11.2-vc14-64/include/QtWidgets/qtextbrowser.h"
-#include <mutex>
+
 class OccView;
 
 //! Qt main window which include OpenCASCADE for its central widget.
