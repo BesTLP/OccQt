@@ -37,9 +37,9 @@ public:
     occQt(QWidget *parent = nullptr);
     ~occQt();
     template <typename T>
-    void Visualize(const T& object, const Quantity_Color& color = Quantity_NOC_RED);
+    void Visualize(const T& object, const Quantity_Color& color = Quantity_NOC_BISQUE);
     template <typename T>
-    void Visualize(const std::vector<T>& object, const Quantity_Color& color = Quantity_NOC_RED);
+    void Visualize(const std::vector<T>& object, const Quantity_Color& color = Quantity_NOC_BISQUE);
 protected:
     //! create all the actions.
     void createActions(void);

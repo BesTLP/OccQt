@@ -172,6 +172,10 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
         {
             aisShape = new AIS_Shape(object);
         }
+        else if constexpr (std::is_same<T, TopoDS_Edge>::value)
+        {
+            aisShape = new AIS_Shape(object);
+        }
         else if constexpr (std::is_same<T, std::pair<gp_Pnt, double>>::value)
         {
             const gp_Pnt& point = object.first;
@@ -246,6 +250,10 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
                 aisShape = new AIS_Shape(face);
             }
             else if constexpr (std::is_same<T, TopoDS_Shape>::value)
+            {
+                aisShape = new AIS_Shape(obj);
+            }
+            else if constexpr (std::is_same<T, TopoDS_Edge>::value)
             {
                 aisShape = new AIS_Shape(obj);
             }
