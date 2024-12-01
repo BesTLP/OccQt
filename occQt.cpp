@@ -138,7 +138,6 @@
 #include <STEPControl_Writer.hxx>
 #include <GeomFill_BSplineCurves.hxx>
 #include <AIS_TextLabel.hxx>
-
 template <typename T>
 void occQt::Visualize(const T& object, const Quantity_Color& color)
 {
@@ -296,9 +295,7 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
     {
         myOccView->fitAll();
     }
-}
-
-void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
+}void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
 {
     // 获取曲面的参数范围
     Standard_Real uMin, uMax, vMin, vMax;

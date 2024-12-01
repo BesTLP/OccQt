@@ -40,6 +40,7 @@ public:
     void Visualize(const T& object, const Quantity_Color& color = Quantity_NOC_BISQUE);
     template <typename T>
     void Visualize(const std::vector<T>& object, const Quantity_Color& color = Quantity_NOC_BISQUE);
+
 protected:
     //! create all the actions.
     void createActions(void);
@@ -88,9 +89,8 @@ private slots:
 
 private:
     Ui::occQtClass ui;
-
-    // wrapped the widget for occ.
     Handle(Geom_BoundedCurve) boundedCurve;
+    // wrapped the widget for occ.
     OccView* myOccView;
     TopoDS_Shape shape1, shape2;
     std::vector<TopoDS_Face> faceList[2];
