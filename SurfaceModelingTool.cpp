@@ -1884,6 +1884,13 @@ void ProcessISOCurvesWithTangent(
 			}
 		}
 
+		intersectionPoints.insert(intersectionPoints.end(), isoInterpolatePoints[i].begin() + 1, isoInterpolatePoints[i].end() - 1);
+		interPoints.insert(interPoints.end(), isoInterpolatePoints[i].begin() + 1, isoInterpolatePoints[i].end() - 1);
+		std::sort(interPoints.begin(), interPoints.end(),
+			[&startPoint](const gp_Pnt& p1, const gp_Pnt& p2)
+			{
+				return p1.Distance(startPoint) < p2.Distance(startPoint);
+			});
 		std::sort(intersectionPoints.begin(), intersectionPoints.end(),
 			[&startPoint](const gp_Pnt& p1, const gp_Pnt& p2)
 			{
