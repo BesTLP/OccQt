@@ -44,6 +44,7 @@
 #include <GeomAPI_ProjectPointOnSurf.hxx>
 
 #include <filesystem>
+#include <BRepBuilderAPI_MakeFace.hxx>
 //=======================================================================
 //function : SetSameDistribution
 //purpose  : Internal Use Only
@@ -689,7 +690,7 @@ double ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const
 	}
 }
 // 计算曲线的采样点平均坐标
-gp_Pnt ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int numSamples) {
+gp_Pnt SurfaceModelingTool::ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int numSamples) {
 	GeomAdaptor_Curve adaptor(curve);
 	double startParam = adaptor.FirstParameter();
 	double endParam = adaptor.LastParameter();
@@ -707,6 +708,379 @@ gp_Pnt ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int num
 	Z /= numSamples;
 	return gp_Pnt(X, Y, Z);
 }
+
+double SurfaceModelingTool::ComputeAngleWithAxis(const gp_Vec& vec, const gp_Vec& axis)
+{
+	double dotProduct = vec.Dot(axis); // 点积
+	double magnitudeVec = vec.Magnitude(); // 向量的模
+	double magnitudeAxis = axis.Magnitude(); // 轴的模
+	double cosAngle = dotProduct / (magnitudeVec * magnitudeAxis); // 余弦值
+	// 防止数值误差导致超出 [-1, 1] 范围
+	cosAngle = std::max(-1.0, std::min(1.0, cosAngle));
+	return std::acos(cosAngle); // 返回夹角
+}
+
+void SurfaceModelingTool::CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)> theBSplineCurvesArray)
+
+{
+	for (int i = 0; i < theBSplineCurvesArray.size(); i++)
+	{
+		for (int j = i + 1; j < theBSplineCurvesArray.size(); j++)
+		{
+			double distance = SurfaceModelingTool::ComputeCurveCurveDistance(theBSplineCurvesArray[i], theBSplineCurvesArray[j]);
+			double angle = SurfaceModelingTool::ComputeAngleBetweenCurves(theBSplineCurvesArray[i], theBSplineCurvesArray[j]);
+			if (distance < 1e-3 || angle > 10)
+			{
+				// 曲线自交，保留距离主平面更近的曲线
+				gp_Pnt pnt1 = SurfaceModelingTool::ComputeAverageSamplePoint(theBSplineCurvesArray[i], 10);
+				gp_Pnt pnt2 = SurfaceModelingTool::ComputeAverageSamplePoint(theBSplineCurvesArray[j], 10);
+
+				// 计算曲线到原点的向量
+				gp_Vec vec1 = pnt1.XYZ() - gp_Pnt(0, 0, 0).XYZ();
+				gp_Vec vec2 = pnt2.XYZ() - gp_Pnt(0, 0, 0).XYZ();
+
+				// 定义x轴、y轴、z轴
+				gp_Vec xAxis(1, 0, 0);
+				gp_Vec yAxis(0, 1, 0);
+				gp_Vec zAxis(0, 0, 1);
+
+				// 计算两个向量与x、y、z轴的夹角
+				double angle1_x = ComputeAngleWithAxis(vec1, xAxis);
+				double angle2_x = ComputeAngleWithAxis(vec2, xAxis);
+				double angle1_y = ComputeAngleWithAxis(vec1, yAxis);
+				double angle2_y = ComputeAngleWithAxis(vec2, yAxis);
+				double angle1_z = ComputeAngleWithAxis(vec1, zAxis);
+				double angle2_z = ComputeAngleWithAxis(vec2, zAxis);
+
+				// 比较与各轴的夹角，保留夹角更小的曲线
+				if (angle1_x < angle2_x || angle1_y < angle2_y || angle1_z < angle2_z)
+				{
+					// 保留 theBSplineCurvesArray[i]，移除 theBSplineCurvesArray[j]
+					theBSplineCurvesArray.erase(theBSplineCurvesArray.begin() + j);
+					j--; // 保证不跳过下一个元素
+				}
+				else
+				{
+					// 保留 theBSplineCurvesArray[j]，移除 theBSplineCurvesArray[i]
+					theBSplineCurvesArray.erase(theBSplineCurvesArray.begin() + i);
+					i--; // 保证不跳过下一个元素
+					break; // 退出内层循环，因为 i 已经改变
+				}
+			}
+			// 还要处理如果distance没有达到阈值，但是两个曲线的夹角很大的情况
+		}
+	}
+}
+
+Handle(Geom_BSplineCurve) SurfaceModelingTool::CreateStraightBSplineCurve(const gp_Pnt& startPoint, const gp_Pnt& endPoint)
+{
+	// 定义控制点数组（从1开始）
+	TColgp_Array1OfPnt poles(1, 2);
+	poles(1) = startPoint;
+	poles(2) = endPoint;
+
+	// 定义节点向量
+	// 对于一次多项式（线性），节点数 = 控制点数 + 多项式度数 + 1 = 2 + 1 + 1 = 4
+	TColStd_Array1OfReal knots(1, 4);
+	knots(1) = 0.0;
+	knots(2) = 1.0;
+	knots(3) = 1.0;
+	knots(4) = 2.0;  // 适当修改节点向量的结束点
+
+	// 定义节点的重数（端点的重数通常设置为多项式度数+1）
+	TColStd_Array1OfInteger multiplicities(1, 4);
+	multiplicities(1) = 2;  // 起点
+	multiplicities(2) = 1;
+	multiplicities(3) = 1;
+	multiplicities(4) = 2;  // 终点
+
+	// 定义曲线的多项式度数
+	Standard_Integer degree = 1;  // 一次多项式
+
+	// 创建 B 样条曲线
+	Handle(Geom_BSplineCurve) bsplineCurve = new Geom_BSplineCurve(
+		poles,         // 控制点
+		knots,         // 节点向量
+		multiplicities,// 节点重数
+		degree,        // 多项式度数
+		false           // 非周期性曲线
+	);
+
+	return bsplineCurve;
+}
+
+double SurfaceModelingTool::ComputePointToPlaneDistance(const gp_Pnt& p, const gp_Pln& plane)
+{
+	// 获取平面的法向量和点
+	gp_Dir normal = plane.Axis().Direction();
+	gp_Pnt planeP = plane.Location();
+
+	// 向量 (p - planeP)
+	gp_Vec vec(p.X() - planeP.X(), p.Y() - planeP.Y(), p.Z() - planeP.Z());
+
+	// 点到平面的距离 = |vec . normal| / |normal|
+	// 由于 normal 是单位向量，分母为1
+	double distance = std::abs(vec.Dot(normal));
+	return distance;
+}
+
+double SurfaceModelingTool::ComputeAngleBetweenPlanes(const gp_Pln& plane1, const gp_Pln& plane2)
+{
+	// 获取平面的法向量
+	gp_Dir normal1 = plane1.Axis().Direction();
+	gp_Dir normal2 = plane2.Axis().Direction();
+
+	// 计算法向量之间的点积
+	double dotProduct = normal1.Dot(normal2);
+
+	// 限制 dotProduct 的范围在 [-1, 1] 之间，以防止数值误差导致的 acos 计算错误
+	dotProduct = std::max(-1.0, std::min(1.0, dotProduct));
+
+	// 计算夹角的弧度值
+	double angleRad = std::acos(dotProduct);
+
+	// 将弧度转换为度数
+	double angleDeg = angleRad * 180.0 / M_PI;
+
+	// 获取锐角（0°到90°）
+	if (angleDeg > 90.0)
+	{
+		angleDeg = 180.0 - angleDeg;
+	}
+
+	return angleDeg;
+}
+
+
+
+bool SurfaceModelingTool::IsPlanarCurve(const Handle(Geom_BSplineCurve)& theCurve, gp_Pln& plane)
+{
+	// 检查曲线是否为空
+	if (theCurve.IsNull())
+	{
+		std::cerr << "输入的曲线为空。" << std::endl;
+		return false;
+	}
+
+	// 采样曲线上的点
+	std::vector<gp_Pnt> boundary_Sampling;
+	int numSamples = 100; // 采样点数量，可根据需要调整
+	Standard_Real firstParam = theCurve->FirstParameter();
+	Standard_Real lastParam = theCurve->LastParameter();
+	Standard_Real step = (lastParam - firstParam) / (numSamples - 1);
+
+	boundary_Sampling.reserve(numSamples);
+	for (int i = 0; i < numSamples; ++i) 
+	{
+		Standard_Real param = firstParam + i * step;
+		gp_Pnt pnt;
+		theCurve->D0(param, pnt); // 获取曲线上的点
+		boundary_Sampling.push_back(pnt);
+	}
+
+	// 检查是否成功采样
+	if (boundary_Sampling.empty()) 
+	{
+		std::cerr << "曲线采样失败，没有采样到任何点。" << std::endl;
+		return false;
+	}
+
+	// 声明法向量和坐标轴
+	gp_XYZ N, X, Y;
+	// 计算质心 P	
+	gp_Pnt P;
+	P.SetCoord(0, 0, 0);
+	int num = boundary_Sampling.size();
+	for (const auto& point : boundary_Sampling)
+	{
+		P.SetCoord(P.X() + point.X(), P.Y() + point.Y(), P.Z() + point.Z());
+	}
+	P.SetCoord(P.X() / num, P.Y() / num, P.Z() / num);
+
+	// 替换协方差矩阵构建和特征值分解部分
+	int m = 3;
+	Eigen::MatrixXd A1 = Eigen::MatrixXd::Zero(m, m);
+
+	double c00 = 0, c01 = 0, c02 = 0, c11 = 0, c12 = 0, c22 = 0;
+	gp_Pnt point; // 声明 'point'
+
+	for (int i = 0; i < num; i++)
+	{
+		point = boundary_Sampling[i];
+
+		c00 += (point.X() - P.X()) * (point.X() - P.X());
+		c01 += (point.X() - P.X()) * (point.Y() - P.Y());
+		c02 += (point.X() - P.X()) * (point.Z() - P.Z());
+
+		c11 += (point.Y() - P.Y()) * (point.Y() - P.Y());
+		c12 += (point.Y() - P.Y()) * (point.Z() - P.Z());
+
+		c22 += (point.Z() - P.Z()) * (point.Z() - P.Z());
+	}
+
+	A1(0, 0) = c00;
+	A1(0, 1) = c01;
+	A1(0, 2) = c02;
+
+	A1(1, 0) = c01;
+	A1(1, 1) = c11;
+	A1(1, 2) = c12;
+
+	A1(2, 0) = c02;
+	A1(2, 1) = c12;
+	A1(2, 2) = c22;
+
+
+	Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(A1);
+	Eigen::VectorXcd E1 = eigensolver.eigenvalues();
+	auto  E2 = eigensolver.eigenvectors();
+
+	auto eigen1 = E1.col(0)[0];
+	auto eigen2 = E1.col(0)[1];
+	auto eigen3 = E1.col(0)[2];
+
+	double eigenvalue1 = E1.col(0)[0].real();
+	double eigenvalue2 = E1.col(0)[1].real();
+	double eigenvalue3 = E1.col(0)[2].real();
+
+	// 根据最小特征值确定法向量和坐标轴
+	if (eigenvalue1 < eigenvalue2 && eigenvalue1 < eigenvalue3)
+	{
+		N.SetCoord(E2.col(0)[0].real(), E2.col(0)[1].real(), E2.col(0)[2].real());
+		X.SetCoord(E2.col(1)[0].real(), E2.col(1)[1].real(), E2.col(1)[2].real());
+		Y.SetCoord(E2.col(2)[0].real(), E2.col(2)[1].real(), E2.col(2)[2].real());
+	}
+	else if (eigenvalue2 < eigenvalue1 && eigenvalue2 < eigenvalue3)
+	{
+		N.SetCoord(E2.col(1)[0].real(), E2.col(1)[1].real(), E2.col(1)[2].real());
+		Y.SetCoord(E2.col(0)[0].real(), E2.col(0)[1].real(), E2.col(0)[2].real());
+		X.SetCoord(E2.col(2)[0].real(), E2.col(2)[1].real(), E2.col(2)[2].real());
+	}
+	else
+	{
+		N.SetCoord(E2.col(2)[0].real(), E2.col(2)[1].real(), E2.col(2)[2].real());
+		Y.SetCoord(E2.col(1)[0].real(), E2.col(1)[1].real(), E2.col(1)[2].real());
+		X.SetCoord(E2.col(0)[0].real(), E2.col(0)[1].real(), E2.col(0)[2].real());
+	}
+
+	// 创建 gp_Dir 对象用于 gp_pln
+	gp_Dir dirN(N);
+
+	// 创建 gp_pln 对象
+	plane = gp_Pln(P, dirN);
+
+	// 评估平面性
+	double maxDistance = 0.0;
+	double sumDistance = 0.0;
+	for (const auto& point : boundary_Sampling) 
+	{
+		double distance = ComputePointToPlaneDistance(point, plane);
+		sumDistance += distance;
+		if (distance > maxDistance)
+		{
+			maxDistance = distance;
+		}
+	}
+
+	double averageDistance = sumDistance / boundary_Sampling.size();
+
+	// 设置平面性阈值（根据具体需求调整）
+	double tolerance = 1e-3; // 例如 0.001 单位
+
+	// 输出评估结果（可选）
+	std::cout << "平面质心 P: (" << P.X() << ", " << P.Y() << ", " << P.Z() << ")" << std::endl;
+	std::cout << "平面法向量 N: (" << N.X() << ", " << N.Y() << ", " << N.Z() << ")" << std::endl;
+	std::cout << "平均距离: " << averageDistance << std::endl;
+	std::cout << "最大距离: " << maxDistance << std::endl;
+
+	if (maxDistance < tolerance) 
+	{
+		std::cout << "该 BSpline 曲线是平面曲线。" << std::endl;
+		return true;
+	}
+	else
+	{
+		std::cout << "该 BSpline 曲线不是平面曲线。" << std::endl;
+		std::cout << "最大距离: " << maxDistance << " (阈值: " << tolerance << ")" << std::endl;
+		return false;
+	}
+}
+
+Handle(Geom_BSplineSurface) Interpolate(const std::vector<gp_Pnt>& Pnts, const std::vector<gp_Pnt2d>& PntParams,
+	std::vector<double>& UKnots, std::vector<double>& VKnots, std::vector<int>& UMuti, std::vector<int>& VMuti, int Udegree, int Vdegree) 
+{
+	return nullptr;
+}
+
+Handle(Geom_BSplineSurface) Loft(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, int perpendDegree) 
+{
+	return nullptr;
+}
+
+
+void SurfaceModelingTool::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)> uCurves, std::vector<Handle(Geom_BSplineCurve)> vCurves, TopoDS_Face& face)
+{
+	return;
+}
+
+gp_Dir SurfaceModelingTool::ComputeAverageTangent(const Handle(Geom_BSplineCurve)& curve, int numSamples)
+{
+	if (curve.IsNull()) 
+	{
+		throw std::invalid_argument("Curve is null.");
+	}
+	if (numSamples <= 0) 
+	{
+		throw std::invalid_argument("Number of samples must be positive.");
+	}
+
+	Standard_Real firstParam = curve->FirstParameter();
+	Standard_Real lastParam = curve->LastParameter();
+	Standard_Real step = (lastParam - firstParam) / (numSamples - 1);
+
+	gp_Vec sumTangent(0.0, 0.0, 0.0);
+	int validSamples = 0;
+
+	for (int i = 0; i < numSamples; ++i) 
+	{
+		Standard_Real param = firstParam + i * step;
+		gp_Pnt pnt;
+		gp_Vec tangent;
+		curve->D1(param, pnt, tangent); // D1 获取点和一阶导数
+		sumTangent += tangent;
+		++validSamples;
+	}
+
+	if (validSamples == 0) 
+	{
+		throw std::runtime_error("No valid samples were taken from the curve.");
+	}
+
+	gp_Vec averageTangent = sumTangent / validSamples;
+	gp_Dir averageDir(averageTangent);
+
+	return averageDir;
+}
+
+double SurfaceModelingTool::ComputeAngleBetweenCurves(const Handle(Geom_BSplineCurve)& curve1,
+	const Handle(Geom_BSplineCurve)& curve2,
+	int numSamples)
+{
+	gp_Dir avgDir1 = ComputeAverageTangent(curve1, numSamples);
+	gp_Dir avgDir2 = ComputeAverageTangent(curve2, numSamples);
+
+	double dotProduct = avgDir1.Dot(avgDir2);
+
+	// 确保点积在 [-1, 1] 范围内，以避免数值误差
+	dotProduct = std::max(-1.0, std::min(1.0, dotProduct));
+
+	double angleRad = std::acos(dotProduct);
+	double angleDeg = angleRad * 180.0 / M_PI;
+
+	return angleDeg;
+}
+
+
 
 void SurfaceModelingTool::ClassifyAndSortISOcurves(const std::vector<Handle(Geom_BSplineCurve)>&
 	anISOcurvesArray,
@@ -1884,7 +2258,6 @@ void ProcessISOCurvesWithTangent(
 			}
 		}
 
-		intersectionPoints.insert(intersectionPoints.end(), isoInterpolatePoints[i].begin() + 1, isoInterpolatePoints[i].end() - 1);
 		interPoints.insert(interPoints.end(), isoInterpolatePoints[i].begin() + 1, isoInterpolatePoints[i].end() - 1);
 		std::sort(interPoints.begin(), interPoints.end(),
 			[&startPoint](const gp_Pnt& p1, const gp_Pnt& p2)
@@ -2416,7 +2789,9 @@ void SurfaceModelingTool::LoadBSplineSurfaces(const std::string& filePath, std::
 		throw;
 	}
 }
-void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface)& surfacecoons, std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Initial, std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Initial, std::vector<gp_Vec>& normalsOfUISOLines, std::vector<gp_Vec>& normalsOfVISOLines, int numIsoCurves)
+void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface)& surfacecoons, 
+	std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Initial, 
+	std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Initial, std::vector<gp_Vec>& normalsOfUISOLines, std::vector<gp_Vec>& normalsOfVISOLines, int numIsoCurves)
 {
 	auto IsPointOnSurface = [](const gp_Pnt& point, const Handle(Geom_Surface)& surface)
 	{
@@ -2547,6 +2922,76 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 	}
 }
 
+double SurfaceModelingTool::ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const Handle(Geom_BSplineCurve)& boundaryCurve)
+{ // 使用曲线的几何表示
+	GeomAPI_ExtremaCurveCurve extrema(curve, boundaryCurve);
+	// 检查是否找到了极值点
+	if (extrema.NbExtrema() > 0)
+	{
+		// 遍历所有极值点，找到最小距离
+		double minDistance = RealLast();
+		for (int i = 1; i <= extrema.NbExtrema(); ++i)
+		{
+			Standard_Real dist = extrema.Distance(i);
+			if (dist < minDistance)
+			{
+				minDistance = dist;
+			}
+		}
+		return minDistance;
+	}
+}
+bool SurfaceModelingTool::ExportBSplineCurves(const std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_Final,
+	const std::string& Filename)
+{
+	// 创建 TopoDS_Compound 对象
+	TopoDS_Compound Result;
+	BRep_Builder builder;
+	builder.MakeCompound(Result);
+
+	// 遍历曲线数组，转换为 TopoDS_Edge 并添加到 Result
+	for (const auto& curve : ISOcurvesArray_Final)
+	{
+		if (curve.IsNull())
+		{
+			std::cerr << "警告：发现空的 BSpline 曲线，跳过。" << std::endl;
+			continue;
+		}
+
+		// 创建 TopoDS_Edge
+		TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(curve);
+
+		// 检查边是否有效
+		if (edge.IsNull())
+		{
+			std::cerr << "警告：无法创建边，从曲线跳过。" << std::endl;
+			continue;
+		}
+
+		// 将边添加到复合体
+		builder.Add(Result, edge);
+	}
+
+	// 检查是否有有效的边添加到复合体
+	if (Result.IsNull())
+	{
+		std::cerr << "错误：没有有效的曲线被添加到复合体。" << std::endl;
+		return false;
+	}
+
+	// 导出复合体到文件
+	if (!BRepTools::Write(Result, Filename.c_str()))
+	{
+		std::cerr << "错误：无法将曲线导出到文件 " << Filename << std::endl;
+		return false;
+	}
+	else
+	{
+		std::cout << "成功：曲线已导出到文件 " << Filename << std::endl;
+	}
+
+	return true;
+}
 void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum)
 {
 	for (auto& curve : curves) 

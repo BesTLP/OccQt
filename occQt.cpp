@@ -1224,9 +1224,13 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
     return bsplineSurface;
 }
 
+
+
+
+
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 99; i <= 99; i++)
+    for (int i = 13; i <= 21; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1281,11 +1285,11 @@ void occQt::GenerateIsoCurves(void)
             gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
 
             auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
-            {
-                double dotProduct = v1.Dot(v2);
-                double magnitudes = v1.Magnitude() * v2.Magnitude();
-                return std::acos(dotProduct / magnitudes);  // 返回角度
-            };
+                {
+                    double dotProduct = v1.Dot(v2);
+                    double magnitudes = v1.Magnitude() * v2.Magnitude();
+                    return std::acos(dotProduct / magnitudes);  // 返回角度
+                };
 
             // 计算三个角的夹角
             double angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
@@ -1299,22 +1303,22 @@ void occQt::GenerateIsoCurves(void)
             else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
 
             // 构造退化边
-            auto CreateDegenerateEdge = [](const gp_Pnt & point)
-            {
-                TColgp_Array1OfPnt poles(1, 2);
-                poles.SetValue(1, point);
-                poles.SetValue(2, point);
+            auto CreateDegenerateEdge = [](const gp_Pnt& point)
+                {
+                    TColgp_Array1OfPnt poles(1, 2);
+                    poles.SetValue(1, point);
+                    poles.SetValue(2, point);
 
-                TColStd_Array1OfReal knots(1, 2);
-                knots.SetValue(1, 0.0);
-                knots.SetValue(2, 1.0);
+                    TColStd_Array1OfReal knots(1, 2);
+                    knots.SetValue(1, 0.0);
+                    knots.SetValue(2, 1.0);
 
-                TColStd_Array1OfInteger multiplicities(1, 2);
-                multiplicities.SetValue(1, 2);
-                multiplicities.SetValue(2, 2);
+                    TColStd_Array1OfInteger multiplicities(1, 2);
+                    multiplicities.SetValue(1, 2);
+                    multiplicities.SetValue(2, 2);
 
-                return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
-            };
+                    return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
+                };
 
             //maxAngleIndex = 0;
             //maxAngleIndex = 1;
@@ -1329,45 +1333,284 @@ void occQt::GenerateIsoCurves(void)
             }
         }
 
-        Handle(Geom_BSplineCurve) bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4;
-        SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4,10, Standard_True);
         // 存储边界曲线
+        Handle(Geom_BSplineCurve) bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4;
+        SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, 10, Standard_True);
         std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray = { bslpineCurve1 , bslpineCurve2, bslpineCurve3, bslpineCurve4 };
-
-        // 显示边界曲线
-        myOccView->getContext()->RemoveAll(Standard_True);
-        Visualize(aBoundarycurveArray);
-
-        // 获取Coons曲面
-        Handle(Geom_BSplineSurface) surfacecoons;
-        surfacecoons = GenerateCoonsSurface(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4);
-        std::string SurfaceCoonsFilename = filename + "SurfaceCoons_OCC.step";
-        ExportBSplineSurface(surfacecoons, SurfaceCoonsFilename);
-
-        SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, surfacecoons);
-        SurfaceCoonsFilename = filename + "SurfaceCoons_y.step";
-        ExportBSplineSurface(surfacecoons, SurfaceCoonsFilename);  
-
-        // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
-        std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
-        std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        int isoCount = 20;
-        SurfaceModelingTool::GetISOCurveWithNormal(surfacecoons, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines,isoCount);
-
-        // 可视化阶段结果
-        Visualize(uISOcurvesArray_Initial);
-        Visualize(vISOcurvesArray_Initial);
-
-        //构造Lofting曲面
-        std::vector<TopoDS_Shape>  uLoftingSur, vLoftingSur;
-        SurfaceModelingTool::CreateLoftingSurface(uISOcurvesArray_Initial, normalsOfUISOLines, uLoftingSur);
-        SurfaceModelingTool::CreateLoftingSurface(vISOcurvesArray_Initial, normalsOfVISOLines, vLoftingSur);
-
+        bool CurveUse[5] = { false };
         //读入内部线
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
-        myOccView->getContext()->RemoveAll(Standard_True);
+
+        // TODO::判断bslpineCurve1 , bslpineCurve2, bslpineCurve3, bslpineCurve4是否都不是平面曲线
+        gp_Pln uPlane[2], vPlane[2];
+        bool canUseInternalLines = true;
+        if (!SurfaceModelingTool::IsPlanarCurve(bslpineCurve1, uPlane[0]) || !SurfaceModelingTool::IsPlanarCurve(bslpineCurve2, vPlane[0])
+            || !SurfaceModelingTool::IsPlanarCurve(bslpineCurve1, uPlane[1]) || !SurfaceModelingTool::IsPlanarCurve(bslpineCurve2, vPlane[1]))
+        {
+            canUseInternalLines = false;
+        }
+
+        // InternalCurve[0] -> u; AngleSum[0] -> u
+        // InternalCurve[1] -> v; AngleSum[1] -> v
+        std::vector<Handle(Geom_BSplineCurve)> InternalCurve[2];
+        double AngleSum[2];
+        if (canUseInternalLines) 
+        {
+            // 计算u方向可用型值线数量
+            // 将bslpineCurve1,bslpineCurve3作为 u 方向
+            // 将bslpineCurve2,bslpineCurve4作为 v 方向
+            for (auto& internalCurve : anInternalBSplineCurves)
+            {
+                gp_Pln internalPlane;
+                if (!SurfaceModelingTool::IsPlanarCurve(internalCurve, internalPlane))
+                {
+                    // 内部线必须是平面曲线
+                    continue;
+                }
+                double distance1 = SurfaceModelingTool::ComputeCurveCurveDistance(internalCurve, bslpineCurve1);
+                double distance2 = SurfaceModelingTool::ComputeCurveCurveDistance(internalCurve, bslpineCurve2);
+                double distance3 = SurfaceModelingTool::ComputeCurveCurveDistance(internalCurve, bslpineCurve3);
+                double distance4 = SurfaceModelingTool::ComputeCurveCurveDistance(internalCurve, bslpineCurve4);
+                double SplitPointParameters[2];
+                if (distance1 < 1 && distance3 < 1)
+                {
+                    GeomAPI_ExtremaCurveCurve extrema1(internalCurve, bslpineCurve1);
+                    if (extrema1.NbExtrema() > 0)
+                    {
+                        double U;
+                        extrema1.LowerDistanceParameters(SplitPointParameters[0], U);
+                    }
+                    GeomAPI_ExtremaCurveCurve extrema2(internalCurve, bslpineCurve3);
+                    if (extrema2.NbExtrema() > 0)
+                    {
+                        double U;
+                        extrema2.LowerDistanceParameters(SplitPointParameters[1], U);
+                    }
+                }
+                else if (distance2 < 1 && distance4 < 1)
+                {
+                    GeomAPI_ExtremaCurveCurve extrema1(internalCurve, bslpineCurve2);
+                    if (extrema1.NbExtrema() > 0)
+                    {
+                        double U;
+                        extrema1.LowerDistanceParameters(SplitPointParameters[0], U);
+                    }
+                    GeomAPI_ExtremaCurveCurve extrema2(internalCurve, bslpineCurve4);
+                    if (extrema2.NbExtrema() > 0)
+                    {
+                        double U;
+                        extrema2.LowerDistanceParameters(SplitPointParameters[1], U);
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+                // TODO::根据SplitPoints对internalCurve进行打断
+                if (SplitPointParameters[0] > SplitPointParameters[1])
+                {
+                    std::swap(SplitPointParameters[1], SplitPointParameters[0]);
+                }
+                Handle(Geom_TrimmedCurve) trimmedCurve = new Geom_TrimmedCurve(internalCurve, SplitPointParameters[0], SplitPointParameters[1]);
+                internalCurve = GeomConvert::CurveToBSplineCurve(trimmedCurve, Convert_TgtThetaOver2);
+                double angle1 = SurfaceModelingTool::ComputeAngleBetweenPlanes(internalPlane, uPlane[0]);
+                double angle3 = SurfaceModelingTool::ComputeAngleBetweenPlanes(internalPlane, uPlane[1]);
+                if (std::abs(angle1) < 5.0 && std::abs(angle3) < 5.0)
+                {
+                    AngleSum[0] += (std::abs(angle1) + std::abs(angle3)) / 2;
+                    InternalCurve[0].push_back(internalCurve);
+                    continue;
+                }
+                
+                double angle2 = SurfaceModelingTool::ComputeAngleBetweenPlanes(internalPlane, vPlane[0]);
+                double angle4 = SurfaceModelingTool::ComputeAngleBetweenPlanes(internalPlane, vPlane[1]);
+                if (std::abs(angle2) < 5.0 && std::abs(angle4) < 5.0)
+                {
+                    AngleSum[1] += (std::abs(angle2) + std::abs(angle4)) / 2;
+                    InternalCurve[1].push_back(internalCurve);
+                }
+            }
+        }
+        InternalCurve[0].insert(InternalCurve[0].begin(), bslpineCurve1);
+        InternalCurve[0].insert(InternalCurve[0].end(), bslpineCurve3);
+        InternalCurve[1].insert(InternalCurve[1].begin(), bslpineCurve2);
+        InternalCurve[1].insert(InternalCurve[1].end(), bslpineCurve4);
+
+        gp_Pnt referencePoint = SurfaceModelingTool::ComputeAverageSamplePoint(InternalCurve[0][0], 10);
+        std::sort(InternalCurve[0].begin(), InternalCurve[0].end(),
+            [&](const Handle(Geom_BSplineCurve)& a, const Handle(Geom_BSplineCurve)& b) -> bool
+            {
+                gp_Pnt aAvg = SurfaceModelingTool::ComputeAverageSamplePoint(a, 10);
+                gp_Pnt bAvg = SurfaceModelingTool::ComputeAverageSamplePoint(b, 10);
+                double distA = referencePoint.Distance(aAvg);
+                double distB = referencePoint.Distance(bAvg);
+
+                // 按照距离从小到大排序
+                return distA < distB;
+            });
+
+        referencePoint = SurfaceModelingTool::ComputeAverageSamplePoint(InternalCurve[1][0], 10);
+        std::sort(InternalCurve[1].begin(), InternalCurve[1].end(),
+            [&](const Handle(Geom_BSplineCurve)& a, const Handle(Geom_BSplineCurve)& b) -> bool
+            {
+                gp_Pnt aAvg = SurfaceModelingTool::ComputeAverageSamplePoint(a, 10);
+                gp_Pnt bAvg = SurfaceModelingTool::ComputeAverageSamplePoint(b, 10);
+                double distA = referencePoint.Distance(aAvg);
+                double distB = referencePoint.Distance(bAvg);
+
+                // 按照距离从小到大排序
+                return distA < distB;
+            });
+
+        // 检查选取的内部线是否自交
+        SurfaceModelingTool::CheckSelfIntersect(InternalCurve[0]);
+        SurfaceModelingTool::CheckSelfIntersect(InternalCurve[1]);
+
+        myOccView->getContext()->RemoveAll(true);
+        Visualize(InternalCurve[0], Quantity_NOC_RED);
+        Visualize(InternalCurve[1], Quantity_NOC_BLUE);
+        std::vector<Handle(Geom_BSplineCurve)> GordenISOCurves;
+        bool useNewAlgorithm = true;
+        if (InternalCurve[0].size() > InternalCurve[1].size() && InternalCurve[0].size() >= 2) 
+        {
+            // 选择u方向的内部线和边界先来构造Gorden曲面
+            GordenISOCurves.push_back(bslpineCurve1);
+            CurveUse[1] = true;
+            GordenISOCurves.insert(GordenISOCurves.end(), InternalCurve[0].begin(), InternalCurve[0].end());
+            GordenISOCurves.push_back(bslpineCurve3);
+            CurveUse[3] = true;
+        }
+        else if (InternalCurve[1].size() > InternalCurve[0].size() && InternalCurve[1].size() >= 2) 
+        {
+            // 选择v方向的内部线和边界来构造Gorden曲面
+            GordenISOCurves.push_back(bslpineCurve2);
+            CurveUse[2] = true;
+            GordenISOCurves.insert(GordenISOCurves.end(), InternalCurve[1].begin(), InternalCurve[1].end());
+            GordenISOCurves.push_back(bslpineCurve4);
+            CurveUse[4] = true;
+
+        }
+        else if (InternalCurve[0].size() == InternalCurve[1].size() && InternalCurve[0].size() >= 2)
+        {
+            if (AngleSum[0] < AngleSum[1])
+            {
+                // 选择u方向的内部线来构造Gorden曲面
+                GordenISOCurves.push_back(bslpineCurve1);
+                CurveUse[1] = true;
+                GordenISOCurves.insert(GordenISOCurves.end(), InternalCurve[0].begin(), InternalCurve[0].end());
+                GordenISOCurves.push_back(bslpineCurve3);
+                CurveUse[3] = true;
+            }
+            else
+            {
+                // 选择v方向的内部线来构造Gorden曲面
+                GordenISOCurves.push_back(bslpineCurve2);
+                CurveUse[2] = true;
+                GordenISOCurves.insert(GordenISOCurves.end(), InternalCurve[1].begin(), InternalCurve[1].end());
+                GordenISOCurves.push_back(bslpineCurve4);
+                CurveUse[4] = true;
+            }
+        }
+        else
+        {
+            // 回退到现有算法
+            useNewAlgorithm = false;
+        }
+        continue;
+        std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
+        std::vector<gp_Vec> normalsOfUISOLines;
+        std::vector<gp_Vec> normalsOfVISOLines;
+        int isoCount = 20;
+        Handle(Geom_BSplineSurface) referSurface;
+        Visualize(GordenISOCurves);
+        if (useNewAlgorithm)
+        {
+            SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, referSurface);
+            // 从Coons曲面获取初始等参线，并且计算每条等参线所对应的法向
+            std::vector<Handle(Geom_BSplineCurve)> uCreateGordenCurves, vCreateGordenCurves;
+            SurfaceModelingTool::GetISOCurveWithNormal(referSurface, uCreateGordenCurves, vCreateGordenCurves, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+            double AngleUwithG = SurfaceModelingTool::ComputeAngleBetweenCurves(uCreateGordenCurves[0], GordenISOCurves[0], 10);
+            double AngleVwithG = SurfaceModelingTool::ComputeAngleBetweenCurves(vCreateGordenCurves[0], GordenISOCurves[0], 10);
+            if (AngleUwithG > AngleVwithG)
+            {
+                vCreateGordenCurves.clear();
+                vCreateGordenCurves.insert(vCreateGordenCurves.begin(), GordenISOCurves.begin(), GordenISOCurves.end());
+                if (CurveUse[1] == false && CurveUse[3] == false)
+                {
+                    uCreateGordenCurves.insert(uCreateGordenCurves.begin(), bslpineCurve1);
+                    uCreateGordenCurves.insert(uCreateGordenCurves.end(), bslpineCurve3);
+                }
+                else if(CurveUse[2] == false && CurveUse[4] == false)
+                {
+                    uCreateGordenCurves.insert(uCreateGordenCurves.begin(), bslpineCurve2);
+                    uCreateGordenCurves.insert(uCreateGordenCurves.end(), bslpineCurve4);
+                }
+            }
+            else
+            {
+                uCreateGordenCurves.clear();
+                uCreateGordenCurves.insert(uCreateGordenCurves.begin(), GordenISOCurves.begin(), GordenISOCurves.end());
+                if (CurveUse[1] == false && CurveUse[3] == false)
+                {
+                    vCreateGordenCurves.insert(vCreateGordenCurves.begin(), bslpineCurve1);
+                    vCreateGordenCurves.insert(vCreateGordenCurves.end(), bslpineCurve3);
+                }
+                else if (CurveUse[2] == false && CurveUse[4] == false)
+                {
+                    vCreateGordenCurves.insert(vCreateGordenCurves.begin(), bslpineCurve2);
+                    vCreateGordenCurves.insert(vCreateGordenCurves.end(), bslpineCurve4);
+                }
+            }
+
+            
+
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(uCreateGordenCurves);
+            Visualize(vCreateGordenCurves);
+            SurfaceModelingTool::ExportBSplineCurves(uCreateGordenCurves, filename + "uCreateGordenCurves.brep");
+            SurfaceModelingTool::ExportBSplineCurves(vCreateGordenCurves, filename + "vCreateGordenCurves.brep");
+            // 利用uCreateGordenCurves和vCreateGordenCurves生成Gorden曲面
+            //TopoDS_Face GordenFace;
+            //SurfaceModelingTool::BuildMyGordonSurf(uCreateGordenCurves, vCreateGordenCurves, GordenFace);
+            //// 将GordenFace转换成Handle(Geom_BSplineSurface)
+            //try
+            //{
+            //    // 从 TopoDS_Face 提取 Geom_Surface
+            //    Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
+            //    Handle(Geom_BSplineSurface) bsplineSurface = Handle(Geom_BSplineSurface)::DownCast(geomSurface);
+
+            //    if (bsplineSurface.IsNull())
+            //        std::cerr << "Error::GordenFace is not Geom_BSplineSurface type." << std::endl;
+            //}
+            //catch (Standard_Failure& e)
+            //{
+            //    std::cerr << "Error::Failed to convert to BSplineSurface." << e.GetMessageString() << std::endl;
+            //}
+
+            std::vector<Handle(Geom_BSplineSurface)> surfaceArray;
+            SurfaceModelingTool::LoadBSplineSurfaces("E:/Models/Constraint/test1/gordonSurf.step", surfaceArray);
+            referSurface = surfaceArray[0];
+            normalsOfUISOLines.clear();
+            normalsOfVISOLines.clear();
+            SurfaceModelingTool::GetISOCurveWithNormal(surfaceArray[0], uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+        }
+        else
+        {
+            referSurface = GenerateCoonsSurface(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4);
+            std::string SurfaceCoonsFilename = filename + "SurfaceCoons_OCC.step";
+            ExportBSplineSurface(referSurface, SurfaceCoonsFilename);
+
+            SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, referSurface);
+            SurfaceCoonsFilename = filename + "SurfaceCoons_y.step";
+            ExportBSplineSurface(referSurface, SurfaceCoonsFilename);
+            SurfaceModelingTool::GetISOCurveWithNormal(referSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+        }
+        //构造Lofting曲面
+        std::vector<TopoDS_Shape>  uLoftingSur, vLoftingSur;
+        SurfaceModelingTool::CreateLoftingSurface(uISOcurvesArray_Initial, normalsOfUISOLines, uLoftingSur);
+        SurfaceModelingTool::CreateLoftingSurface(vISOcurvesArray_Initial, normalsOfVISOLines, vLoftingSur);
 
         // 生成修正的等参线
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_New, vISOcurvesArray_New;
@@ -1379,35 +1622,35 @@ void occQt::GenerateIsoCurves(void)
 
         std::vector<std::vector<gp_Pnt>> uInterpolatePoints;
         std::vector<std::vector<gp_Pnt>> vInterpolatePoints;
-        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves, 
-            uISOcurvesArray_New, isoCount, 
-            uInterpolatePoints, 
-            uInterpoalteTangentArray, uInterpoalteTangentArray2,surfacecoons);
-        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves, 
-            vISOcurvesArray_New, isoCount, 
-            vInterpolatePoints, 
-            vInterpoalteTangentArray, vInterpoalteTangentArray2,surfacecoons);
-       
+        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves,
+            uISOcurvesArray_New, isoCount,
+            uInterpolatePoints,
+            uInterpoalteTangentArray, uInterpoalteTangentArray2, referSurface);
+        SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves,
+            vISOcurvesArray_New, isoCount,
+            vInterpolatePoints,
+            vInterpoalteTangentArray, vInterpoalteTangentArray2, referSurface);
+
         // 可视化
         {
             Visualize(uInterpoalteTangentArray, Quantity_NOC_GOLD);
             Visualize(uInterpoalteTangentArray2, Quantity_NOC_GOLD);
             for (auto interPoints : uInterpolatePoints)
-                Visualize(interPoints, Quantity_NOC_RED);
+                //Visualize(interPoints, Quantity_NOC_RED);
 
-            Visualize(vInterpoalteTangentArray, Quantity_NOC_GOLD);
+                Visualize(vInterpoalteTangentArray, Quantity_NOC_GOLD);
             Visualize(vInterpoalteTangentArray2, Quantity_NOC_GOLD);
             //VisualizeBSplineSurface({surfacecoons}, Quantity_NOC_BLUE1);
             for (auto interPoints : vInterpolatePoints)
-                Visualize(interPoints, Quantity_NOC_RED);
+                //Visualize(interPoints, Quantity_NOC_RED);
 
-            Visualize(aBoundarycurveArray);
+                Visualize(aBoundarycurveArray);
             Visualize(vISOcurvesArray_New);
             Visualize(uISOcurvesArray_New);
         }
 
         // 生成新等参线
-       
+
         //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
         myOccView->getContext()->RemoveAll(Standard_True);
         // 根据u、v等参线之间的交点，生成最终等参线
@@ -1424,17 +1667,17 @@ void occQt::GenerateIsoCurves(void)
         SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf3, surfaceArray);
         SurfaceModelingTool::LoadBSplineSurfaces(gordenSurf4, surfaceArray);
         Visualize(surfaceArray);
-        SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New, 
-            uISOcurvesArray_Final, vISOcurvesArray_Final, 
+        SurfaceModelingTool::CreateFinalISOCurves(uISOcurvesArray_New, vISOcurvesArray_New,
+            uISOcurvesArray_Final, vISOcurvesArray_Final,
             uInterpolatePoints, vInterpolatePoints,
-            uKnots, vKnots, 
-            boundaryPoints, interPoints, 
-            isoCount, 
+            uKnots, vKnots,
+            boundaryPoints, interPoints,
+            isoCount,
             TangentArray, surfaceArray);
         Visualize(TangentArray, Quantity_NOC_RED);
 
         SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
-            
+
         for (auto boundaryPoint : boundaryPoints)
         {
             interPoints.push_back(boundaryPoint);
@@ -1444,7 +1687,7 @@ void occQt::GenerateIsoCurves(void)
         interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->StartPoint());
         interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
 
-        Visualize(interPoints, Quantity_NOC_GOLD);
+        //Visualize(interPoints, Quantity_NOC_GOLD);
         // 遍历 u(v)ISOcurvesArray_Final 进行可视化
         Visualize(uISOcurvesArray_Final);
         Visualize(vISOcurvesArray_Final);
@@ -1515,5 +1758,5 @@ void occQt::GenerateIsoCurves(void)
         tool.ContextToTxt("------------------------------\nV:");
         for (auto debugKnots : vKnots)
             tool.KnotsToTxt(debugKnots);
-    }
+        }
 }

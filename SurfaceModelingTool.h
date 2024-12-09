@@ -4,6 +4,8 @@
 #include "TopoDS_Shape.hxx"
 #include "TopoDS_Edge.hxx"
 #include "vector"
+#include "gp_Pln.hxx"
+#include "TopoDS_Face.hxx"
 class SurfaceModelingTool
 {
 public:
@@ -92,6 +94,7 @@ public:
 		std::vector<gp_Vec>& normalsOfVISOLines,
 		int numIsoCurves = 10);
 
+
 	void setKnotsOutputPath(std::string knotsOuputPath)
 	{
 		this->knotsOutputPath = knotsOuputPath;
@@ -147,8 +150,29 @@ public:
 		return Standard_True;
 	}
 
-	static void ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum = 50);
+	// 函数声明
+	static bool ExportBSplineCurves(
+		const std::vector<Handle(Geom_BSplineCurve)>& ISOcurvesArray_Final,
+		const std::string& Filename);
 
+	static void ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum = 50);
+	static double ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const Handle(Geom_BSplineCurve)& boundaryCurve);
+	static gp_Pnt ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int numSamples);
+	static double ComputeAngleWithAxis(const gp_Vec& vec, const gp_Vec& axis);
+	static void CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)> theBSplineCurvesArray);
+	static Handle(Geom_BSplineCurve) CreateStraightBSplineCurve(const gp_Pnt& startPoint, const gp_Pnt& endPoint);
+	static bool IsPlanarCurve(const Handle(Geom_BSplineCurve)& theCurve, gp_Pln& plane);
+	static void BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)> uCurves, std::vector<Handle(Geom_BSplineCurve)> vCurves, TopoDS_Face& face);
+
+	// 计算曲线的平均切线向量
+	static gp_Dir ComputeAverageTangent(const Handle(Geom_BSplineCurve)& curve, int numSamples);
+	// 计算两条曲线的夹角（以度为单位）
+	static double ComputeAngleBetweenCurves(const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2, int numSamples = 10);
+	static double ComputePointToPlaneDistance(const gp_Pnt& p, const gp_Pln& plane);
+	// 计算两个平面之间的夹角，返回值为度数
+	static double ComputeAngleBetweenPlanes(const gp_Pln& plane1, const gp_Pln& plane2);
+	// 用于根据分割点 SplitPoints 保留曲线的某个区间部分
+	static void KeepCurveSegment(const Handle(Geom_BSplineCurve)& internalCurve, const gp_Pnt SplitPoints[2]);
 private:
 
 	std::string knotsOutputPath;
