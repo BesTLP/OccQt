@@ -2915,7 +2915,7 @@ bool SurfaceModelingTool::GetInternalCurves(
 	uInternalCurve.clear();
 	vInternalCurve.clear();
 
-	// 步骤4：遍历内部BSpline曲线
+	// 遍历内部BSpline曲线
 	for (auto& internalCurve : anInternalBSplineCurves)
 	{
 		PlanarCurve InternalPlanarCurve(internalCurve);
@@ -2997,6 +2997,9 @@ bool SurfaceModelingTool::GetInternalCurves(
 	SurfaceModelingTool::CheckSelfIntersect(vInternalCurve);
 
 	// 如果uInternalCurve和vInternalCurve的曲线数有一个大于4，则返回true
+	SurfaceModelingTool tool;
+	tool.CompatibleWithInterPoints(uInternalCurve, vInternalCurve);
+	tool.CompatibleWithInterPoints(vInternalCurve, uInternalCurve);
 	return uInternalCurve.size() > 4 || vInternalCurve.size() > 4;
 }
 
@@ -3108,16 +3111,509 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 			// 将生成的面转换为BSplineSurface
 			Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
 			referSurface = Handle(Geom_BSplineSurface)::DownCast(geomSurface);
-
-			// 清理法向量数据
-			normalsOfUISOLines.clear();
-			normalsOfVISOLines.clear();
 		}
 
 		// 返回生成的参考曲面
 		return referSurface;
 	}
 }
+
+// 结构体用于存储节点及其重复度
+struct KnotMultiplicity 
+{
+	Standard_Real knot;
+	int multiplicity;
+};
+
+// 辅助函数：判断两个点是否几乎相同（距离小于给定的容差）
+bool ArePointsEqual(const gp_Pnt& p1, const gp_Pnt& p2, Standard_Real tolerance = 1e-6) {
+	return p1.Distance(p2) <= tolerance;
+}
+
+// 辅助函数：判断两个值是否在容差范围内相等
+bool AreValuesEqual(Standard_Real a, Standard_Real b, Standard_Real tolerance = 0.01) {
+	return std::fabs(a - b) <= tolerance;
+}
+
+std::vector<Standard_Real> SurfaceModelingTool::CalSameKnotFromCurves(std::vector< Handle(Geom_BSplineCurve) >& curves, Standard_Real toler) {
+	// 如果没有曲线则返回空
+	if (curves.empty()) {
+		return {};
+	}
+
+	std::vector<KnotMultiplicity> allKnots;
+
+	// 1. 收集所有节点及重复度
+	for (auto& curve : curves) {
+		if (curve.IsNull()) {
+			continue;
+		}
+
+		Standard_Integer nbKnots = curve->NbKnots();
+		for (Standard_Integer i = 1; i <= nbKnots; ++i) {
+			KnotMultiplicity km;
+			km.knot = curve->Knot(i);
+			km.multiplicity = curve->Multiplicity(i);
+			allKnots.push_back(km);
+		}
+	}
+
+	// 如果没有节点直接返回空
+	if (allKnots.empty()) {
+		return {};
+	}
+
+	// 2. 按knot值排序
+	std::sort(allKnots.begin(), allKnots.end(), [](const KnotMultiplicity& a, const KnotMultiplicity& b) {
+		return a.knot < b.knot;
+		});
+
+	// 3. 合并相近节点
+	std::vector<KnotMultiplicity> mergedKnots;
+	{
+		KnotMultiplicity current = allKnots.front();
+
+		for (size_t i = 1; i < allKnots.size(); ++i) {
+			const auto& next = allKnots[i];
+			// 检查节点差值
+			Standard_Real diff = next.knot - current.knot;
+
+			// 如果两个节点的距离小于等于给定公差toler，则视为同一节点
+			if (std::fabs(diff) <= toler) {
+				// 同一节点，以最大重复度为准
+				current.multiplicity = std::max(current.multiplicity, next.multiplicity);
+			}
+			else {
+				// 不同节点，先保存当前节点
+				mergedKnots.push_back(current);
+				current = next; // 开始处理下一个
+			}
+		}
+		// 将最后一个节点加入结果
+		mergedKnots.push_back(current);
+	}
+
+	// 4. 将(节点,重复度)展开成仅有节点的vector
+	std::vector<Standard_Real> result;
+	for (auto& mk : mergedKnots) {
+		// 重复mk.multiplicity次
+		for (int i = 0; i < mk.multiplicity; ++i) {
+			result.push_back(mk.knot);
+		}
+	}
+
+	return result;
+}
+
+
+// 函数实现
+std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPointsParamsToCurve(
+	const std::vector<Handle(Geom_BSplineCurve)>& curves,
+	const Handle(Geom_BSplineCurve)& theCurve,
+	Standard_Real tolerance = 0.1) {
+	std::vector<gp_Pnt> pointsOnTheCurve;
+	std::vector<Standard_Real> paramsOnTheCurve;
+	const Standard_Real intersectionToleranceSq = tolerance * tolerance; // 容差的平方，用于距离比较
+
+	// 检查输入是否有效
+	if (theCurve.IsNull()) {
+		std::cerr << "Error: theCurve is null." << std::endl;
+		return std::make_tuple(pointsOnTheCurve, paramsOnTheCurve);
+	}
+
+	// 遍历每条曲线
+	for (const auto& curve : curves) {
+		if (curve.IsNull()) {
+			// 跳过空曲线
+			continue;
+		}
+
+		try {
+			// 使用 GeomAPI_ExtremaCurveCurve 计算两条曲线之间的极值点
+			GeomAPI_ExtremaCurveCurve extrema(theCurve, curve);
+
+			if (extrema.NbExtrema() > 0) {
+				bool hasIntersection = false;
+				std::vector<gp_Pnt> intersectionsForThisCurve;
+				std::vector<Standard_Real> paramsForThisCurve;
+
+				// 遍历所有极值点，查找交点
+				for (int i = 1; i <= extrema.NbExtrema(); ++i) {
+					Standard_Real distanceSq = extrema.Distance(i);
+					if (distanceSq <= intersectionToleranceSq) { // 判断是否为交点
+						Standard_Real U1, U2;
+						extrema.Parameters(i, U1, U2); // 获取 theCurve 和 curve 上的参数值
+
+						gp_Pnt p1 = theCurve->Value(U1); // 获取 theCurve 上的点
+
+						// 检查是否已经存在几乎相同的点，避免重复
+						bool alreadyExists = false;
+						for (const auto& existingPnt : intersectionsForThisCurve) {
+							if (ArePointsEqual(p1, existingPnt, tolerance)) {
+								alreadyExists = true;
+								break;
+							}
+						}
+
+						if (!alreadyExists) {
+							intersectionsForThisCurve.emplace_back(p1);
+							paramsForThisCurve.emplace_back(U1);
+							hasIntersection = true;
+						}
+					}
+				}
+
+				if (hasIntersection) {
+					// 添加所有找到的交点
+					pointsOnTheCurve.insert(pointsOnTheCurve.end(), intersectionsForThisCurve.begin(), intersectionsForThisCurve.end());
+					paramsOnTheCurve.insert(paramsOnTheCurve.end(), paramsForThisCurve.begin(), paramsForThisCurve.end());
+				}
+				else {
+					// 没有交点，找到最近点
+					Standard_Real U1, U2;
+					bool hasNearest = extrema.TotalLowerDistanceParameters(U1, U2);
+					if (hasNearest) {
+						gp_Pnt nearestP1 = theCurve->Value(U1);
+
+						// 检查是否已经存在几乎相同的点，避免重复
+						bool alreadyExists = false;
+						for (const auto& existingPnt : pointsOnTheCurve) {
+							if (ArePointsEqual(nearestP1, existingPnt, tolerance)) {
+								alreadyExists = true;
+								break;
+							}
+						}
+
+						if (!alreadyExists) {
+							pointsOnTheCurve.emplace_back(nearestP1);
+							paramsOnTheCurve.emplace_back(U1);
+						}
+					}
+					else {
+						// 无法找到最近点
+						std::cerr << "Warning: Unable to find nearest point parameters between two curves." << std::endl;
+					}
+				}
+			}
+			else {
+				// NbExtrema == 0，没有极值，尝试找到最近点
+				Standard_Real U1, U2;
+				bool hasNearest = extrema.TotalLowerDistanceParameters(U1, U2);
+				if (hasNearest) {
+					gp_Pnt nearestP1 = theCurve->Value(U1);
+
+					// 检查是否已经存在几乎相同的点，避免重复
+					bool alreadyExists = false;
+					for (const auto& existingPnt : pointsOnTheCurve) {
+						if (ArePointsEqual(nearestP1, existingPnt, tolerance)) {
+							alreadyExists = true;
+							break;
+						}
+					}
+
+					if (!alreadyExists) {
+						pointsOnTheCurve.emplace_back(nearestP1);
+						paramsOnTheCurve.emplace_back(U1);
+					}
+				}
+				else {
+					// 无法找到最近点
+					std::cerr << "Warning: Unable to find nearest point parameters between two curves." << std::endl;
+				}
+			}
+		}
+		catch (Standard_Failure& failure) {
+			// 捕捉异常，继续处理下一条曲线
+			std::cerr << "Exception: " << failure.GetMessageString() << std::endl;
+			continue;
+		}
+	}
+
+	return std::make_tuple(pointsOnTheCurve, paramsOnTheCurve);
+}
+
+std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> DenseSampling(const Handle(Geom_BSplineCurve)& theCurve,
+	std::vector<Standard_Real>& originParams, Standard_Integer samplingNum) {
+	std::vector<gp_Pnt> sampledPoints;
+	std::vector<Standard_Real> sampledParams;
+
+	// 检查 originParams 的合法性
+	if (originParams.size() < 2) {
+		Standard_Failure::Raise("DenseSampling Error: originParams must contain at least two parameters.");
+	}
+
+	// 获取曲线的参数域
+	Standard_Real firstParam = theCurve->FirstParameter();
+	Standard_Real lastParam = theCurve->LastParameter();
+
+	// 检查 originParams 的第一个和最后一个参数是否在容差范围内
+	if (!AreValuesEqual(originParams.front(), firstParam, 0.01)) {
+		Standard_Failure::Raise("DenseSampling Error: The first element of originParams is not within tolerance of theCurve's first parameter.");
+	}
+
+	if (!AreValuesEqual(originParams.back(), lastParam, 0.01)) {
+		Standard_Failure::Raise("DenseSampling Error: The last element of originParams is not within tolerance of theCurve's last parameter.");
+	}
+	originParams.front() = firstParam;
+	originParams.back() = lastParam;
+
+	// 检查 originParams 是否按升序排列
+	for (size_t i = 1; i < originParams.size(); ++i) {
+		if (originParams[i] < originParams[i - 1]) {
+			Standard_Failure::Raise("DenseSampling Error: originParams must be in ascending order.");
+		}
+	}
+
+	// 进行加密采样
+	for (size_t i = 0; i < originParams.size() - 1; ++i) {
+		Standard_Real U_start = originParams[i];
+		Standard_Real U_end = originParams[i + 1];
+		Standard_Real interval = U_end - U_start;
+
+		// 将起始参数加入采样结果
+		if (i == 0) { // 仅在第一次循环时添加第一个起始点
+			sampledParams.emplace_back(U_start);
+			sampledPoints.emplace_back(theCurve->Value(U_start));
+		}
+
+		// 计算每个区间内的采样步长
+		Standard_Real step = interval / (samplingNum + 1);
+
+		// 生成采样点
+		for (Standard_Integer j = 1; j <= samplingNum; ++j) {
+			Standard_Real U_sample = U_start + j * step;
+			gp_Pnt P_sample = theCurve->Value(U_sample);
+			sampledParams.emplace_back(U_sample);
+			sampledPoints.emplace_back(P_sample);
+		}
+
+		// 将结束参数加入采样结果
+		sampledParams.emplace_back(U_end);
+		sampledPoints.emplace_back(theCurve->Value(U_end));
+	}
+
+	return std::make_tuple(sampledPoints, sampledParams);
+}
+
+std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_Real>& baseParams, Standard_Integer baseIndex, std::vector<Standard_Real>& params) {
+	std::vector<Standard_Real> scaledParams;
+
+	// 检查 (params.size() + 1) 是否能被 baseIndex 整除
+	if ((params.size() + 1) % baseIndex != 0) {
+		throw std::invalid_argument("ScalingParamsByBaseParams Error: (params.size() + 1) is not divisible by baseIndex.");
+	}
+
+	// 计算期望的 baseParams 大小
+	size_t expectedBaseSize = (params.size() + 1) / baseIndex;
+	if (baseParams.size() != expectedBaseSize) {
+		throw std::invalid_argument("ScalingParamsByBaseParams Error: baseParams size does not match the expected number of intervals.");
+	}
+
+	// 检查 baseParams 的第一个元素是否与 params 的第一个元素在容差范围内相等
+	if (!AreValuesEqual(baseParams.front(), params.front(), 0.01)) {
+		throw std::invalid_argument("ScalingParamsByBaseParams Error: The first element of baseParams is not within tolerance of params[0].");
+	}
+
+	// 检查 baseParams 的最后一个元素是否与 params 的最后一个基准元素在容差范围内相等
+	// 基准元素的位置为 (baseParams.size() -1) * baseIndex
+	size_t lastParamPos = (baseParams.size() - 1) * baseIndex;
+	if (lastParamPos >= params.size()) {
+		throw std::invalid_argument("ScalingParamsByBaseParams Error: baseIndex exceeds params size.");
+	}
+	if (!AreValuesEqual(baseParams.back(), params[lastParamPos], 0.01)) {
+		throw std::invalid_argument("ScalingParamsByBaseParams Error: The last element of baseParams is not within tolerance of params[" + std::to_string(lastParamPos) + "].");
+	}
+
+	// 进行缩放处理
+	for (size_t i = 0; i < baseParams.size() - 1; ++i) {
+		Standard_Real baseStart = baseParams[i];
+		Standard_Real baseEnd = baseParams[i + 1];
+		Standard_Real baseInterval = baseEnd - baseStart;
+
+		size_t paramStartPos = i * baseIndex;
+		size_t paramEndPos = (i + 1) * baseIndex;
+		Standard_Real paramStart = params[paramStartPos];
+		Standard_Real paramEnd = params[paramEndPos];
+		Standard_Real paramInterval = paramEnd - paramStart;
+
+		if (paramInterval == 0) {
+			throw std::invalid_argument("ScalingParamsByBaseParams Error: Zero interval in params between positions " +
+				std::to_string(paramStartPos) + " and " + std::to_string(paramEndPos));
+		}
+
+		// 缩放每个区间内的参数
+		for (size_t j = paramStartPos; j <= paramEndPos; ++j) {
+			Standard_Real scaledParam = baseStart + (params[j] - paramStart) * baseInterval / paramInterval;
+			scaledParams.push_back(scaledParam);
+		}
+	}
+
+	return scaledParams;
+}
+
+bool SurfaceModelingTool::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& interCurves, std::vector<Handle(Geom_BSplineCurve)>& compatibleCurves, Standard_Real toler) 
+{
+	//1.获取交点以及交点参数化
+	std::vector<std::vector<gp_Pnt>> interPoints;
+	std::vector<std::vector<Standard_Real>> interPointOrgParams;
+	interPoints.reserve(compatibleCurves.size());
+	interPointOrgParams.reserve(compatibleCurves.size());
+	for (const auto& curve : compatibleCurves) {
+		try {
+			std::vector<gp_Pnt> pointsOnTheCurve;
+			std::vector<Standard_Real> paramsOnTheCurve;
+			std::tie(pointsOnTheCurve, paramsOnTheCurve) = CalCurvesInterPointsParamsToCurve(interCurves, curve);
+
+			// 检查 pointsOnTheCurve 和 paramsOnTheCurve 的大小是否一致
+			if (pointsOnTheCurve.size() != paramsOnTheCurve.size()) {
+				std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
+				std::cerr << "Points size: " << pointsOnTheCurve.size()
+					<< ", Parameters size: " << paramsOnTheCurve.size() << std::endl;
+				continue;
+			}
+			interPoints.emplace_back(std::move(pointsOnTheCurve));
+			interPointOrgParams.emplace_back(std::move(paramsOnTheCurve));
+		}
+		catch (const std::exception& e) {
+			// 捕捉标准异常
+			std::cerr << "Exception caught while processing a curve: " << e.what() << std::endl;
+			continue;
+		}
+		catch (...) {
+			// 捕捉所有其他异常
+			std::cerr << "Unknown exception caught while processing a curve." << std::endl;
+			continue;
+		}
+	}
+	//2.在compatibleCurves上加密采样
+	Standard_Integer denseSamplingNum = 10;
+	std::vector<std::vector<gp_Pnt>> denseSamplingPoints;
+	std::vector<std::vector<Standard_Real>> denseSamplingPointsParams;
+	denseSamplingPoints.reserve(compatibleCurves.size());
+	denseSamplingPointsParams.reserve(compatibleCurves.size());
+	for (Standard_Integer i = 0; i < compatibleCurves.size(); i++) {
+		try {
+			std::vector<gp_Pnt> densePoints;
+			std::vector<Standard_Real> denseParams;
+			std::tie(densePoints, denseParams) = DenseSampling(compatibleCurves[i], interPointOrgParams[i], denseSamplingNum);
+			// 检查 pointsOnTheCurve 和 paramsOnTheCurve 的大小是否一致
+			if (densePoints.size() != denseParams.size()) {
+				std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
+				std::cerr << "Points size: " << densePoints.size()
+					<< ", Parameters size: " << denseParams.size() << std::endl;
+				continue;
+			}
+			denseSamplingPoints.emplace_back(std::move(densePoints));
+			denseSamplingPointsParams.emplace_back(std::move(denseParams));
+		}
+		catch (const std::exception& e) {
+			// 捕捉标准异常
+			std::cerr << "Exception caught while processing a curve: " << e.what() << std::endl;
+			continue;
+		}
+		catch (...) {
+			// 捕捉所有其他异常
+			std::cerr << "Unknown exception caught while processing a curve." << std::endl;
+			continue;
+		}
+	}
+	//3.对所有参数化取平均
+	if (interPointOrgParams.empty()) {
+		throw std::runtime_error("interPointOrgParams is empty, cannot compute average parameters.");
+	}
+	size_t paramSize = interPointOrgParams[0].size();
+	for (const auto& paramVec : interPointOrgParams) {
+		if (paramVec.size() != paramSize) {
+			throw std::runtime_error("interPointOrgParams contains vectors of differing sizes.");
+		}
+	}
+	std::vector<Standard_Real> avgParams(interPointOrgParams[0].size(), 0.0);
+	for (const auto& paramVec : interPointOrgParams) {
+		for (size_t i = 0; i < paramVec.size(); ++i) {
+			avgParams[i] += paramVec[i];
+		}
+	}
+	for (auto& val : avgParams) {
+		val /= interPointOrgParams.size();
+	}
+	//4.对所有参数重新参数化
+	for (size_t i = 0; i < denseSamplingPointsParams.size(); ++i) {
+		try {
+			denseSamplingPointsParams[i] = ScalingParamsByBaseParams(avgParams, denseSamplingNum + 1, denseSamplingPointsParams[i]);
+		}
+		catch (const std::exception& e) {
+			std::cerr << "Exception caught while scaling parameters for curve " << i << ": " << e.what() << std::endl;
+			continue;
+		}
+		catch (...) {
+			std::cerr << "Unknown exception caught while scaling parameters for curve " << i << "." << std::endl;
+			continue;
+		}
+	}
+	//5.合并节点向量
+	std::vector<Standard_Real> knots;
+	try {
+		knots = CalSameKnotFromCurves(compatibleCurves, 0.01);
+	}
+	catch (const std::exception& e) 
+	{
+		std::cerr << "Exception caught while calculating knots: " << e.what() << std::endl;
+		return false;
+	}
+	catch (...) 
+	{
+		std::cerr << "Unknown exception caught while calculating knots." << std::endl;
+		return false;
+	}
+	//6.找到最大次数
+	Standard_Integer aDegree = 0;
+	try {
+		auto maxCurve = std::max_element(compatibleCurves.begin(), compatibleCurves.end(),
+			[](const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2) -> bool 
+			{
+				if (curve1.IsNull()) return true;  // 将空曲线视为较小
+				if (curve2.IsNull()) return false;
+				return curve1->Degree() < curve2->Degree();
+			}
+		);
+
+		if (maxCurve != compatibleCurves.end() && !(*maxCurve).IsNull()) 
+		{
+			aDegree = (*maxCurve)->Degree();
+		}
+		else {
+			std::cerr << "Error: No valid curves found in compatibleCurves." << std::endl;
+			return false;
+		}
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Exception caught while finding max degree: " << e.what() << std::endl;
+		return false;
+	}
+	catch (...) {
+		std::cerr << "Unknown exception caught while finding max degree." << std::endl;
+		return false;
+	}
+
+	//7.进行拟合
+	for (size_t i = 0; i < compatibleCurves.size(); ++i) {
+		try {
+			compatibleCurves[i] = ApproximateC(denseSamplingPoints[i], denseSamplingPointsParams[i], knots, aDegree);
+		}
+		catch (const std::exception& e) {
+			std::cerr << "Exception caught while approximating curve " << i << ": " << e.what() << std::endl;
+			continue;
+		}
+		catch (...) {
+			std::cerr << "Unknown exception caught while approximating curve " << i << "." << std::endl;
+			continue;
+		}
+	}
+
+	return true;
+}
+
+
 
 
 void GeomLib_ChangeUBounds(Handle(Geom_BSplineSurface)& aSurface,

@@ -1227,7 +1227,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 }
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 1; i <= 21; i++)
+    for (int i = 34; i <= 36; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1340,24 +1340,17 @@ void occQt::GenerateIsoCurves(void)
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
-
         std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
         double uAngleSum = 0, vAngleSum = 0;
         if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum))
         {
-            // 从两个方向（u 和 v）上选取所有内部线
-            // - uInternalCurve 对应 u 方向上的内部线
-            // - vInternalCurve 对应 v 方向上的内部线
-            // TODO: 根据具体的算法实现选择并生成初始面
+
             myOccView->getContext()->RemoveAll(true);
             Visualize(uInternalCurve, Quantity_NOC_WHITE);
             Visualize(vInternalCurve, Quantity_NOC_GOLD);
-
             referSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, ReferSurfaceType::GORDEN_ONE_DIRECTION);
             Visualize(referSurface, Quantity_NOC_GOLD);
         }
-        normalsOfUISOLines.clear();
-        normalsOfVISOLines.clear();
         // referSurface为null说明没有成功使用新算法获取Gorden面
         if (referSurface.IsNull())
         {

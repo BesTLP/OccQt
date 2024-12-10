@@ -13,9 +13,7 @@
 
 enum ReferSurfaceType
 {
-	GORDEN_ONE_DIRECTION,
-	GORDEN_TWO_DIRECTION,
-	LOFT
+	GORDEN_ONE_DIRECTION
 };
 
 class SurfaceModelingTool
@@ -169,6 +167,7 @@ public:
 
 	static void ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum = 50);
 
+
 	static double ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const Handle(Geom_BSplineCurve)& boundaryCurve);
 	static gp_Pnt ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int numSamples);
 	static double ComputeAngleWithAxis(const gp_Vec& vec, const gp_Vec& axis);
@@ -193,6 +192,10 @@ public:
 		double vAngleSum,
 		int isoCount,
 		ReferSurfaceType referSurfaceType);
+
+	bool CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& interCurves, std::vector<Handle(Geom_BSplineCurve)>& compatibleCurves, Standard_Real toler = 1.e-3);
+	std::vector<Standard_Real> CalSameKnotFromCurves(std::vector< Handle(Geom_BSplineCurve) >& curves, Standard_Real toler = 0.1);
+
 private:
 	std::string knotsOutputPath;
 	
