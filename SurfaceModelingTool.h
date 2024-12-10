@@ -4,8 +4,20 @@
 #include "TopoDS_Shape.hxx"
 #include "TopoDS_Edge.hxx"
 #include "vector"
+
+
 #include "gp_Pln.hxx"
 #include "TopoDS_Face.hxx"
+#include <Interpolate.h>
+#include <PlanarCurve.h>
+
+enum ReferSurfaceType
+{
+	GORDEN_ONE_DIRECTION,
+	GORDEN_TWO_DIRECTION,
+	LOFT
+};
+
 class SurfaceModelingTool
 {
 public:
@@ -156,26 +168,32 @@ public:
 		const std::string& Filename);
 
 	static void ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum = 50);
+
 	static double ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const Handle(Geom_BSplineCurve)& boundaryCurve);
 	static gp_Pnt ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int numSamples);
 	static double ComputeAngleWithAxis(const gp_Vec& vec, const gp_Vec& axis);
 	static void CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)> theBSplineCurvesArray);
-	static Handle(Geom_BSplineCurve) CreateStraightBSplineCurve(const gp_Pnt& startPoint, const gp_Pnt& endPoint);
-	static bool IsPlanarCurve(const Handle(Geom_BSplineCurve)& theCurve, gp_Pln& plane);
 	static void BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)> uCurves, std::vector<Handle(Geom_BSplineCurve)> vCurves, TopoDS_Face& face);
-
-	// 计算曲线的平均切线向量
 	static gp_Dir ComputeAverageTangent(const Handle(Geom_BSplineCurve)& curve, int numSamples);
-	// 计算两条曲线的夹角（以度为单位）
 	static double ComputeAngleBetweenCurves(const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2, int numSamples = 10);
-	static double ComputePointToPlaneDistance(const gp_Pnt& p, const gp_Pln& plane);
-	// 计算两个平面之间的夹角，返回值为度数
-	static double ComputeAngleBetweenPlanes(const gp_Pln& plane1, const gp_Pln& plane2);
-	// 用于根据分割点 SplitPoints 保留曲线的某个区间部分
-	static void KeepCurveSegment(const Handle(Geom_BSplineCurve)& internalCurve, const gp_Pnt SplitPoints[2]);
+	static void SortBSplineCurves(std::vector<Handle(Geom_BSplineCurve)>& theCurves, Handle(Geom_BSplineCurve) referCurve);
+	static bool GetInternalCurves(
+		std::vector<Handle(Geom_BSplineCurve)>& aBoundarycurveArray,
+		std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves,
+		std::vector<Handle(Geom_BSplineCurve)>& uInternalCurve,
+		std::vector<Handle(Geom_BSplineCurve)>& vInternalCurve,
+		double& uAngleSum,
+		double& vAngleSum,
+		double AngleTolerance = 5);
+	static Handle(Geom_BSplineSurface) GenerateReferSurface(
+		std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray,
+		const std::vector<Handle(Geom_BSplineCurve)>& uInternalCurve,
+		const std::vector<Handle(Geom_BSplineCurve)>& vInternalCurve,
+		double uAngleSum,
+		double vAngleSum,
+		int isoCount,
+		ReferSurfaceType referSurfaceType);
 private:
-
 	std::string knotsOutputPath;
 	
 };
-
