@@ -1227,7 +1227,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 }
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 34; i <= 36; i++)
+    for (int i = 1; i <= 21; i++)
     {
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1238,15 +1238,6 @@ void occQt::GenerateIsoCurves(void)
         filename += "/";
         std::string boundaryPath = filename + "boundary.brep";
         SurfaceModelingTool::LoadBSplineCurves(boundaryPath.c_str(), tempArray);
-        Visualize(tempArray);
-
-        std::vector<std::vector<double>> uKnots;
-        std::vector<std::vector<double>> vKnots;
-        std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Final, vISOcurvesArray_Final;
-        std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
-        std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        Handle(Geom_BSplineSurface) referSurface;
-        int isoCount = 20;
         SurfaceModelingTool::ApproximateBoundaryCurves(tempArray);
         if (tempArray.size() == 3)
         {
@@ -1332,19 +1323,26 @@ void occQt::GenerateIsoCurves(void)
                 tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
             }
         }
-        // 存储边界曲线
+        
         Handle(Geom_BSplineCurve) bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4;
         SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, 10, Standard_True);
         std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray = { bslpineCurve1 , bslpineCurve2, bslpineCurve3, bslpineCurve4 };
-        //读入内部线
+        Visualize(tempArray);
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
+        int isoCount = 20;
+        std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
+        std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Final, vISOcurvesArray_Final;
+        std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
+        std::vector<std::vector<double>> uKnots;
+        std::vector<std::vector<double>> vKnots;
+
+        Handle(Geom_BSplineSurface) referSurface;
         std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
         double uAngleSum = 0, vAngleSum = 0;
         if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum))
         {
-
             myOccView->getContext()->RemoveAll(true);
             Visualize(uInternalCurve, Quantity_NOC_WHITE);
             Visualize(vInternalCurve, Quantity_NOC_GOLD);
@@ -1355,15 +1353,24 @@ void occQt::GenerateIsoCurves(void)
         if (referSurface.IsNull())
         {
             SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, referSurface);
-            std::string SurfaceCoonsFilename = filename + "SurfaceCoons_y.step";
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(bslpineCurve1);
+            Visualize(bslpineCurve2);
+            Visualize(bslpineCurve3);
+            Visualize(bslpineCurve4);
+            std::string SurfaceCoonsFilename = filename + "SurfaceCoons_OCC.step";
             ExportBSplineSurface(referSurface, SurfaceCoonsFilename);
         }
 
+        Visualize(referSurface);
         SurfaceModelingTool::GetISOCurveWithNormal(referSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+
         //构造Lofting曲面
         std::vector<TopoDS_Shape>  uLoftingSur, vLoftingSur;
         SurfaceModelingTool::CreateLoftingSurface(uISOcurvesArray_Initial, normalsOfUISOLines, uLoftingSur);
         SurfaceModelingTool::CreateLoftingSurface(vISOcurvesArray_Initial, normalsOfVISOLines, vLoftingSur);
+        Visualize(uLoftingSur);
+        Visualize(vLoftingSur);
 
         // 生成修正的等参线
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_New, vISOcurvesArray_New;

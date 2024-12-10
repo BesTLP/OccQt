@@ -2679,6 +2679,8 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 	{
 		std::reverse(vISOcurvesArray_Final.begin(), vISOcurvesArray_Final.end());
 	}
+	SurfaceModelingTool::ReverseIfNeeded(uISOcurvesArray_Final);
+	SurfaceModelingTool::ReverseIfNeeded(vISOcurvesArray_Final);
 }
 
 double SurfaceModelingTool::ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const Handle(Geom_BSplineCurve)& boundaryCurve)
@@ -2996,10 +2998,10 @@ bool SurfaceModelingTool::GetInternalCurves(
 	SurfaceModelingTool::CheckSelfIntersect(uInternalCurve);
 	SurfaceModelingTool::CheckSelfIntersect(vInternalCurve);
 
+	//SurfaceModelingTool tool;
+	//tool.CompatibleWithInterPoints(uInternalCurve, vInternalCurve);
+	//tool.CompatibleWithInterPoints(vInternalCurve, uInternalCurve);
 	// 如果uInternalCurve和vInternalCurve的曲线数有一个大于4，则返回true
-	SurfaceModelingTool tool;
-	tool.CompatibleWithInterPoints(uInternalCurve, vInternalCurve);
-	tool.CompatibleWithInterPoints(vInternalCurve, uInternalCurve);
 	return uInternalCurve.size() > 4 || vInternalCurve.size() > 4;
 }
 
@@ -3203,6 +3205,51 @@ std::vector<Standard_Real> SurfaceModelingTool::CalSameKnotFromCurves(std::vecto
 	}
 
 	return result;
+}
+
+void SurfaceModelingTool::ReverseIfNeeded(std::vector<Handle(Geom_BSplineCurve)>& curves)
+{
+	// 检查曲线数组是否为空
+	if (curves.empty()) return;
+
+	// 获取第一条曲线作为初始参考
+	Handle(Geom_BSplineCurve) firstCurve = curves[0];
+	gp_Pnt firstStart = firstCurve->StartPoint();
+	gp_Pnt firstEnd = firstCurve->EndPoint();
+	gp_Vec firstDirection(firstStart, firstEnd); // 计算参考曲线的方向向量
+
+	// 如果第一条曲线是一个点（方向向量为零向量），则选择最后一条曲线作为参考
+	if (firstDirection.Magnitude() == 0)
+	{
+		if (curves.size() < 2)
+		{
+			return;
+		}
+		firstCurve = curves.back();
+		firstStart = firstCurve->StartPoint();
+		firstEnd = firstCurve->EndPoint();
+		firstDirection = gp_Vec(firstStart, firstEnd); // 重新计算参考曲线的方向向量
+
+		// 再次检查方向向量是否为零向量
+		if (firstDirection.Magnitude() == 0)
+		{
+			return;
+		}
+	}
+
+	// 遍历每条曲线，检查方向并反转
+	for (auto& curve : curves)
+	{
+		gp_Pnt start = curve->StartPoint();
+		gp_Pnt end = curve->EndPoint();
+		gp_Vec direction(start, end); // 计算当前曲线的方向向量
+
+		// 如果当前曲线的方向与参考方向相反，则反转曲线
+		if (direction.Dot(firstDirection) < 0)
+		{
+			curve->Reverse(); // 反转曲线方向
+		}
+	}
 }
 
 

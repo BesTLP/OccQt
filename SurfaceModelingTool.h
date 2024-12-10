@@ -168,14 +168,43 @@ public:
 	static void ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum = 50);
 
 
+	// 计算两条 B-Spline 曲线之间的最小距离
 	static double ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& curve, const Handle(Geom_BSplineCurve)& boundaryCurve);
+
+	// 计算曲线上采样点的平均坐标
 	static gp_Pnt ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& curve, int numSamples);
+
+	// 计算向量与轴之间的夹角（以弧度为单位）
 	static double ComputeAngleWithAxis(const gp_Vec& vec, const gp_Vec& axis);
+
+	// 检查一组 B-Spline 曲线是否存在自交
 	static void CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)> theBSplineCurvesArray);
+
+	// 根据给定的 u 和 v 方向曲线构建 Gordon 曲面
 	static void BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)> uCurves, std::vector<Handle(Geom_BSplineCurve)> vCurves, TopoDS_Face& face);
+
+	// 计算曲线的平均切向量方向
 	static gp_Dir ComputeAverageTangent(const Handle(Geom_BSplineCurve)& curve, int numSamples);
+
+	// 计算两条曲线之间的夹角（以弧度为单位）
 	static double ComputeAngleBetweenCurves(const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2, int numSamples = 10);
+
+	// 根据参考曲线对 B-Spline 曲线进行排序
 	static void SortBSplineCurves(std::vector<Handle(Geom_BSplineCurve)>& theCurves, Handle(Geom_BSplineCurve) referCurve);
+
+	/**
+	 * @brief 获取并分类内部曲线，根据与边界曲线的角度和距离进行分类。
+	 *
+	 * @param aBoundarycurveArray 边界曲线数组。
+	 * @param anInternalBSplineCurves 内部 B-Spline 曲线数组。
+	 * @param uInternalCurve 分类后的 u 方向内部曲线数组。
+	 * @param vInternalCurve 分类后的 v 方向内部曲线数组。
+	 * @param uAngleSum 累计的 u 方向角度和。
+	 * @param vAngleSum 累计的 v 方向角度和。
+	 * @param AngleTolerance 角度容差值，默认值为 5。
+	 * @return true 如果成功获取并分类内部曲线。
+	 * @return false 如果无法满足条件。
+	 */
 	static bool GetInternalCurves(
 		std::vector<Handle(Geom_BSplineCurve)>& aBoundarycurveArray,
 		std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves,
@@ -184,6 +213,8 @@ public:
 		double& uAngleSum,
 		double& vAngleSum,
 		double AngleTolerance = 5);
+
+	// 根据 ReferSurfaceType 生成参考 B-Spline 曲面，根据边界曲线和内部曲线构造
 	static Handle(Geom_BSplineSurface) GenerateReferSurface(
 		std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray,
 		const std::vector<Handle(Geom_BSplineCurve)>& uInternalCurve,
@@ -193,8 +224,14 @@ public:
 		int isoCount,
 		ReferSurfaceType referSurfaceType);
 
+	// 根据需要反转曲线的方向，以确保一致性
+	static void ReverseIfNeeded(std::vector<Handle(Geom_BSplineCurve)>& curves);
+
 	bool CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& interCurves, std::vector<Handle(Geom_BSplineCurve)>& compatibleCurves, Standard_Real toler = 1.e-3);
+
 	std::vector<Standard_Real> CalSameKnotFromCurves(std::vector< Handle(Geom_BSplineCurve) >& curves, Standard_Real toler = 0.1);
+
+
 
 private:
 	std::string knotsOutputPath;
