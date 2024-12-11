@@ -1225,10 +1225,14 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
     return bsplineSurface;
 }
+
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 1; i <= 21; i++)
+    for (int i = 1; i <= 99; i++)
     {
+        if (i >= 22 && i <= 29) continue;
+        if (i >= 31 && i <= 33) continue;
+        if (i >= 37 && i <= 98) continue;
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
         std::vector<Handle(Geom_BSplineCurve)> tempArray;
@@ -1344,11 +1348,16 @@ void occQt::GenerateIsoCurves(void)
         if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum))
         {
             myOccView->getContext()->RemoveAll(true);
+
+            referSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, 
+                uInternalCurve, vInternalCurve, 
+                uAngleSum, vAngleSum, 
+                isoCount, ReferSurfaceType::GORDEN_ONE_DIRECTION_COONS);
             Visualize(uInternalCurve, Quantity_NOC_WHITE);
-            Visualize(vInternalCurve, Quantity_NOC_GOLD);
-            referSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, ReferSurfaceType::GORDEN_ONE_DIRECTION);
+            Visualize(vInternalCurve, Quantity_NOC_GOLD); 
             Visualize(referSurface, Quantity_NOC_GOLD);
         }
+        continue;
         // referSurface为null说明没有成功使用新算法获取Gorden面
         if (referSurface.IsNull())
         {
@@ -1361,7 +1370,6 @@ void occQt::GenerateIsoCurves(void)
             std::string SurfaceCoonsFilename = filename + "SurfaceCoons_OCC.step";
             ExportBSplineSurface(referSurface, SurfaceCoonsFilename);
         }
-
         Visualize(referSurface);
         SurfaceModelingTool::GetISOCurveWithNormal(referSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
 
@@ -1391,7 +1399,7 @@ void occQt::GenerateIsoCurves(void)
             vInterpolatePoints,
             vInterpoalteTangentArray, vInterpoalteTangentArray2, referSurface);
 
-        //// 可视化
+        ////// 可视化
         //{
         //    Visualize(uInterpoalteTangentArray, Quantity_NOC_GOLD);
         //    Visualize(uInterpoalteTangentArray2, Quantity_NOC_GOLD);

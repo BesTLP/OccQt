@@ -1,9 +1,9 @@
 #include "PlanarCurve.h"
-
+#include "MathTool.h"
 PlanarCurve::PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, double tolerance)
 	: curveType(CurveType::NOTPLANAR), curve(theCurve), line(), plane()
 {
-	IsPlanarCurve(curve, 50);
+	IsPlanarCurve(curve);
 }
 
 PlanarCurve::PlanarCurve()
@@ -11,6 +11,7 @@ PlanarCurve::PlanarCurve()
 {
 	curveType = CurveType::NOTPLANAR;
 }
+
 bool PlanarCurve::IsPlanarCurve(Handle(Geom_BSplineCurve)& theCurve, double tolerance)
 {
 	// 检查曲线是否为空
@@ -146,7 +147,7 @@ bool PlanarCurve::IsPlanarCurve(Handle(Geom_BSplineCurve)& theCurve, double tole
 	double sumDistance = 0.0;
 	for (const auto& point : boundary_Sampling)
 	{
-		double distance = ComputeDistancePointToPlane(point, plane);
+		double distance = MathTool::ComputeDistancePointToPlane(point, plane);
 		sumDistance += distance;
 		if (distance > maxDistance)
 		{
@@ -234,154 +235,4 @@ bool PlanarCurve::IsBSplineCurvePoint(const Handle(Geom_BSplineCurve)& theCurve,
 		return true;
 	}
 	return false;
-}
-
-double PlanarCurve::ComputeAngleBetweenPlanarCurves(const PlanarCurve& curve1, const PlanarCurve& curve2)
-{
-	double angle = INT_MAX;
-	double distance = INT_MAX;
-	if (curve1.GetCurveType() == CurveType::LINEAR && curve2.GetCurveType() == CurveType::LINEAR)
-	{
-		// 调用直线直线求交
-		angle = ComputeAngleBetweenLines(curve1.GetLine(), curve2.GetLine());
-	}
-	else if (curve1.GetCurveType() == CurveType::PLANAR && curve2.GetCurveType() == CurveType::PLANAR)
-	{
-		// 调用平面平面求交
-		angle = ComputeAngleBetweenPlanes(curve1.plane, curve2.plane);
-	}
-	else if (curve1.GetCurveType() == CurveType::PLANAR && curve2.GetCurveType() == CurveType::LINEAR)
-	{
-		// 调用平面和直线求交
-		angle = ComputeAngleBetweenLineAndPlane(curve2.line, curve1.plane);
-	}
-	else if (curve1.GetCurveType() == CurveType::LINEAR && curve2.GetCurveType() == CurveType::PLANAR)
-	{
-		// 调用平面和直线求交
-		angle = ComputeAngleBetweenLineAndPlane(curve1.line, curve2.plane);
-	}
-	else if (curve1.GetCurveType() == CurveType::POINT && curve2.GetCurveType() == CurveType::POINT)
-	{
-		distance = curve1.pnt.Distance(curve2.pnt);
-	}
-	else if (curve1.GetCurveType() == CurveType::POINT && curve2.GetCurveType() == CurveType::PLANAR)
-	{
-		distance = ComputeDistancePointToPlane(curve1.pnt, curve2.GetPlane());
-	}
-	else if (curve1.GetCurveType() == CurveType::POINT && curve2.GetCurveType() == CurveType::LINEAR)
-	{
-		distance = ComputeDistancePointToLine(curve1.pnt, curve2.GetLine());
-	}
-	else if (curve1.GetCurveType() == CurveType::PLANAR && curve2.GetCurveType() == CurveType::POINT)
-	{
-		distance = ComputeDistancePointToPlane(curve2.pnt, curve1.GetPlane());
-	}
-	else if (curve1.GetCurveType() == CurveType::LINEAR && curve2.GetCurveType() == CurveType::POINT)
-	{
-		distance = ComputeDistancePointToLine(curve2.pnt, curve1.GetLine());
-	}
-	
-	if (distance < 1e-3) angle = 0.0;
-
-	return angle;
-}
-
-double PlanarCurve::ComputeAngleBetweenLineAndPlane(const gp_Lin& line, const gp_Pln& plane)
-{
-	// 获取直线的方向向量
-	gp_Vec lineDirection = line.Direction();  // 直线方向向量
-
-	// 获取平面的法向量
-	gp_Vec planeNormal = plane.Axis().Direction();  // 平面法向量
-
-	// 计算直线方向向量与平面法向量的点积
-	double dotProduct = lineDirection.Dot(planeNormal);
-
-	// 计算直线方向向量和法向量的模长
-	double lineMagnitude = lineDirection.Magnitude();
-	double planeNormalMagnitude = planeNormal.Magnitude();
-
-	// 计算夹角（弧度）
-	double angle = std::acos(dotProduct / (lineMagnitude * planeNormalMagnitude));
-
-	return angle;
-}
-
-double PlanarCurve::ComputeAngleBetweenLines(const gp_Lin& line1, const gp_Lin& line2)
-{
-	// 获取两条直线的方向向量
-	gp_Vec direction1 = line1.Direction();
-	gp_Vec direction2 = line2.Direction();
-
-	// 计算方向向量的点积
-	double dotProduct = direction1.Dot(direction2);
-
-	// 计算方向向量的模长
-	double magnitude1 = direction1.Magnitude();
-	double magnitude2 = direction2.Magnitude();
-
-	// 计算夹角（弧度）
-	double angle = std::acos(dotProduct / (magnitude1 * magnitude2));
-
-	return angle;
-}
-
-double PlanarCurve::ComputeAngleBetweenPlanes(const gp_Pln& plane1, const gp_Pln& plane2)
-{
-	// 获取平面的法向量
-	gp_Dir normal1 = plane1.Axis().Direction();
-	gp_Dir normal2 = plane2.Axis().Direction();
-
-	// 计算法向量之间的点积
-	double dotProduct = normal1.Dot(normal2);
-
-	// 限制 dotProduct 的范围在 [-1, 1] 之间，以防止数值误差导致的 acos 计算错误
-	dotProduct = std::max(-1.0, std::min(1.0, dotProduct));
-
-	// 计算夹角的弧度值
-	double angleRad = std::acos(dotProduct);
-
-	// 将弧度转换为度数
-	double angleDeg = angleRad * 180.0 / M_PI;
-
-	// 获取锐角（0°到90°）
-	if (angleDeg > 90.0)
-	{
-		angleDeg = 180.0 - angleDeg;
-	}
-
-	return angleDeg;
-}
-
-double PlanarCurve::ComputeDistancePointToLine(const gp_Pnt& point, const gp_Lin& line)
-{
-	// 直线的方向向量
-	gp_Vec lineDirection = line.Direction();
-
-	// 点到直线上的任意一点（我们选择直线上的一个点作为参考点）
-	gp_Pnt linePoint = line.Location(); // 直线上的一个点
-
-	// 点与直线上的点的向量
-	gp_Vec pointToLine = point.XYZ() - linePoint.XYZ();
-
-	// 计算点到直线的垂直距离
-	gp_Vec crossProduct = pointToLine.Crossed(lineDirection);
-
-	// 返回距离，使用叉乘的模长除以方向向量的模长
-	return crossProduct.Magnitude() / lineDirection.Magnitude();
-}
-
-double PlanarCurve::ComputeDistancePointToPlane(const gp_Pnt& p, const gp_Pln& plane)
-{
-	// 获取平面的法向量和点
-	gp_Dir normal = plane.Axis().Direction();
-	gp_Pnt planeP = plane.Location();
-
-	// 向量 (p - planeP)
-	gp_Vec vec(p.X() - planeP.X(), p.Y() - planeP.Y(), p.Z() - planeP.Z());
-
-	// 点到平面的距离 = |vec . normal| / |normal|
-	// 由于 normal 是单位向量，分母为1
-	double distance = std::abs(vec.Dot(normal));
-	return distance;
 }

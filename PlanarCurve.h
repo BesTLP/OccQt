@@ -12,7 +12,6 @@
 #include <gp_Pln.hxx>
 #include <gp_Dir.hxx>
 #include <iostream>
-
 // 枚举类型，表示曲线的不同类型
 enum class CurveType
 {
@@ -32,24 +31,6 @@ public:
     // 带参数的构造函数，接受一个 B-Spline 曲线句柄和容差值
     PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, double tolerance = 0.1);
 
-    // 计算两个平面曲线之间的夹角
-    static double ComputeAngleBetweenPlanarCurves(const PlanarCurve& curve1, const PlanarCurve& curve2);
-
-    // 计算点到平面的距离
-    static double ComputeDistancePointToPlane(const gp_Pnt& p, const gp_Pln& plane);
-
-    // 计算直线和平面之间的夹角
-    static double ComputeAngleBetweenLineAndPlane(const gp_Lin& line, const gp_Pln& plane);
-
-    // 计算两条直线之间的夹角
-    static double ComputeAngleBetweenLines(const gp_Lin& line1, const gp_Lin& line2);
-
-    // 计算两个平面之间的夹角
-    static double ComputeAngleBetweenPlanes(const gp_Pln& plane1, const gp_Pln& plane2);
-
-    // 计算点到直线的距离
-    static double ComputeDistancePointToLine(const gp_Pnt& point, const gp_Lin& line);
-
     // 获取当前曲线的类型
     CurveType GetCurveType() const { return curveType; }
 
@@ -66,7 +47,11 @@ public:
     Handle(Geom_BSplineCurve) GetCurve() const { return curve; }
 
     // 设置 B-Spline 曲线
-    void SetCurve(Handle(Geom_BSplineCurve) theCurve) { curve = theCurve; }
+    void SetCurve(Handle(Geom_BSplineCurve) theCurve)
+    {
+        curve = theCurve;
+        IsPlanarCurve(theCurve); 
+    }
 
 private:
     CurveType curveType; // 当前曲线的类型
