@@ -286,8 +286,12 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 	//--------------- 构造三张曲面 ---------------
 	Handle(Geom_BSplineSurface) L1, L2, T;
 
-	L1 = InterPolateTool::Loft(uCurves, 3);
-	L2 = InterPolateTool::Loft(vCurves, 3);
+	int uDegree1 = usize <= 3 ? 1 : 3;
+	int vDegree1 = vsize <= 3 ? 1 : 3;
+
+	// chenxin's loft
+	L1 = InterPolateTool::Loft(vCurves, vDegree1);
+	L2 = InterPolateTool::Loft(uCurves, uDegree1);
 
 	if (L1.IsNull() || L2.IsNull())
 	{
@@ -295,10 +299,10 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 		return;
 	}
 
-	TColStd_Array1OfReal uKnotsTCol = L1->VKnots();
-	TColStd_Array1OfInteger uMultsTCol = L1->VMultiplicities();
-	TColStd_Array1OfReal vKnotsTCol = L2->VKnots();
-	TColStd_Array1OfInteger vMultsTCol = L2->VMultiplicities();
+	TColStd_Array1OfReal uKnotsTCol = L2->VKnots();
+	TColStd_Array1OfInteger uMultsTCol = L2->VMultiplicities();
+	TColStd_Array1OfReal vKnotsTCol = L1->VKnots();
+	TColStd_Array1OfInteger vMultsTCol = L1->VMultiplicities();
 	std::vector<double> uKnots;
 	std::vector<double> vKnots;
 	std::vector<int> uMults;
@@ -320,7 +324,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 		vMults.push_back(vMultsTCol(i));
 	}
 
-	T = InterPolateTool::Interpolate(Pnts, PntParams, uKnots, vKnots, uMults, vMults, 3, 3);
+	T = InterPolateTool::Interpolate(Pnts, PntParams, uKnots, vKnots, uMults, vMults, uDegree1, vDegree1);
 
 	L1->IncreaseDegree(uCurves[0]->Degree(), vCurves[0]->Degree());
 	L2->IncreaseDegree(uCurves[0]->Degree(), vCurves[0]->Degree());
