@@ -237,7 +237,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 			{
 				interPoints(i + 1, j + 1) = uCurves[i]->StartPoint();
 				Pnts.push_back(uCurves[i]->StartPoint());
-				gp_Pnt2d Pnt2d(1, (j + 1.0) / vsize);
+				gp_Pnt2d Pnt2d((j + 1.0) / vsize, 1);
 				PntParams.push_back(Pnt2d);
 				continue;
 			}
@@ -246,7 +246,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 			{
 				interPoints(i + 1, j + 1) = vCurves[j]->StartPoint();
 				Pnts.push_back(vCurves[j]->StartPoint());
-				gp_Pnt2d Pnt2d((i + 1.0) / usize, 1);
+				gp_Pnt2d Pnt2d(1, (i + 1.0) / usize);
 				PntParams.push_back(Pnt2d);
 				continue;
 			}
@@ -271,7 +271,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 			interPoints(i + 1, j + 1) = interPnt;
 
 			Pnts.push_back(interPnt);
-			gp_Pnt2d Pnt2d(para2, para1);
+			gp_Pnt2d Pnt2d(para1, para2);
 			PntParams.push_back(Pnt2d);
 		}
 	}
@@ -290,8 +290,8 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 	int vDegree1 = vsize <= 3 ? 1 : 3;
 
 	// chenxin's loft
-	L1 = InterPolateTool::Loft(vCurves, vDegree1);
-	L2 = InterPolateTool::Loft(uCurves, uDegree1);
+	L1 = InterPolateTool::Loft(uCurves, uDegree1);
+	L2 = InterPolateTool::LoftV(vCurves, vDegree1);
 
 	if (L1.IsNull() || L2.IsNull())
 	{
@@ -299,8 +299,8 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 		return;
 	}
 
-	TColStd_Array1OfReal uKnotsTCol = L2->VKnots();
-	TColStd_Array1OfInteger uMultsTCol = L2->VMultiplicities();
+	TColStd_Array1OfReal uKnotsTCol = L2->UKnots();
+	TColStd_Array1OfInteger uMultsTCol = L2->UMultiplicities();
 	TColStd_Array1OfReal vKnotsTCol = L1->VKnots();
 	TColStd_Array1OfInteger vMultsTCol = L1->VMultiplicities();
 	std::vector<double> uKnots;
@@ -324,7 +324,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 		vMults.push_back(vMultsTCol(i));
 	}
 
-	T = InterPolateTool::Interpolate(Pnts, PntParams, uKnots, vKnots, uMults, vMults, uDegree1, vDegree1);
+	T = InterPolateTool::Interpolate(Pnts, PntParams, uKnots, vKnots, uMults, vMults, vDegree1, uDegree1);
 
 	L1->IncreaseDegree(uCurves[0]->Degree(), vCurves[0]->Degree());
 	L2->IncreaseDegree(uCurves[0]->Degree(), vCurves[0]->Degree());

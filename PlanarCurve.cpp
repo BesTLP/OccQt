@@ -3,7 +3,7 @@
 PlanarCurve::PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, double tolerance)
 	: curveType(CurveType::NOTPLANAR), curve(theCurve), line(), plane()
 {
-	IsPlanarCurve(curve);
+	IsPlanarCurve(curve, 10);
 }
 
 PlanarCurve::PlanarCurve()

@@ -3035,13 +3035,13 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 			MathTool::SortBSplineCurves(uCreateGordenCurves, uCreateGordenCurves[0]);
 			MathTool::SortBSplineCurves(vCreateGordenCurves, vCreateGordenCurves[0]);
 			TopoDS_Face GordenFace;
-			//GordenSurface::BuildMyGordonSurf(uCreateGordenCurves, vCreateGordenCurves, GordenFace);
-			//Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
-			//referSurface = Handle(Geom_BSplineSurface)::DownCast(geomSurface);
-			uInternalCurve.clear();
+			GordenSurface::BuildMyGordonSurf(uCreateGordenCurves, vCreateGordenCurves, GordenFace);
+			Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
+			referSurface = Handle(Geom_BSplineSurface)::DownCast(geomSurface);
+			/*uInternalCurve.clear();
 			vInternalCurve.clear();
 			uInternalCurve = uCreateGordenCurves;
-			vInternalCurve = vCreateGordenCurves;
+			vInternalCurve = vCreateGordenCurves;*/
 			// 将生成的面转换为BSplineSurface
 
 		}

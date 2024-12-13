@@ -1345,14 +1345,14 @@ void occQt::GenerateIsoCurves(void)
         Handle(Geom_BSplineSurface) referSurface;
         std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
         double uAngleSum = 0, vAngleSum = 0;
-        if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum))
+        if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 20))
         {
             myOccView->getContext()->RemoveAll(true);
 
             referSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, 
                 uInternalCurve, vInternalCurve, 
                 uAngleSum, vAngleSum, 
-                isoCount, ReferSurfaceType::GORDEN_ONE_DIRECTION_COONS);
+                isoCount, ReferSurfaceType::GORDEN_TWO_DIRECTION);
             Visualize(uInternalCurve, Quantity_NOC_WHITE);
             Visualize(vInternalCurve, Quantity_NOC_GOLD); 
             Visualize(referSurface, Quantity_NOC_GOLD);

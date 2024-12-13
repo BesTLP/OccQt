@@ -60,7 +60,7 @@ namespace InterPolateTool
 
 	Eigen::MatrixXd composeTensowMat(const Eigen::MatrixXd& matA, const Eigen::MatrixXd& matB);
 	TColgp_Array2OfPnt vectorToOCCMatrix(const std::vector<gp_Pnt>& pnts, int m);
-
+	Handle(Geom_BSplineSurface) LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, int perpendDegree);
 	bool isEqual(double x, double y, double epsilon = 0.0000000000001);
 	bool isGreaterThan(double x, double y, double epsilon = 0.0000000000001);
 	bool isLessThan(double x, double y, double epsilon = 0.0000000000001);
