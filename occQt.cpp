@@ -138,6 +138,7 @@
 #include <STEPControl_Writer.hxx>
 #include <GeomFill_BSplineCurves.hxx>
 #include <AIS_TextLabel.hxx>
+#include <GordenSurface.h>
 
 template <typename T>
 void occQt::Visualize(const T& object, const Quantity_Color& color)
@@ -176,12 +177,12 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
         {
             aisShape = new AIS_Shape(object);
         }
-        else if constexpr (std::is_same<T, std::pair<gp_Pnt, double>>::value)
+        else if constexpr (std::is_same<T, std::pair<gp_Pnt, Standard_Real>>::value)
         {
             const gp_Pnt& point = object.first;
-            double value = object.second;
+            Standard_Real value = object.second;
 
-            // 格式化double，保留两位小数
+            // 格式化Standard_Real，保留两位小数
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2) << value;
             TCollection_AsciiString textString(oss.str().c_str());
@@ -257,12 +258,12 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
             {
                 aisShape = new AIS_Shape(obj);
             }
-            else if constexpr (std::is_same<T, std::pair<gp_Pnt, double>>::value)
+            else if constexpr (std::is_same<T, std::pair<gp_Pnt, Standard_Real>>::value)
             {
                 const gp_Pnt& point = obj.first;
-                double value = obj.second;
+                Standard_Real value = obj.second;
 
-                // 格式化double，保留两位小数
+                // 格式化Standard_Real，保留两位小数
                 std::ostringstream oss;
                 oss << std::fixed << std::setprecision(2) << value;
                 TCollection_AsciiString textString(oss.str().c_str());
@@ -508,17 +509,17 @@ void M_ExtendCurveToPoint(Handle(Geom_BoundedCurve)& Curve,
 }
 gp_Ax2 getCoordinateSystemFromUserInput(bool ok)
 {
-    double xOrigin = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for origin:", 0, -1000, 1000, 8, &ok);
-    double yOrigin = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for origin:", 0, -1000, 1000, 8, &ok);
-    double zOrigin = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for origin:", 0, -1000, 1000, 8, &ok);
+    Standard_Real xOrigin = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for origin:", 0, -1000, 1000, 8, &ok);
+    Standard_Real yOrigin = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for origin:", 0, -1000, 1000, 8, &ok);
+    Standard_Real zOrigin = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for origin:", 0, -1000, 1000, 8, &ok);
 
-    double zDirX = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for Z direction:", 0, -1000, 1000, 8, &ok);
-    double zDirY = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for Z direction:", 0, -1000, 1000, 8, &ok);
-    double zDirZ = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for Z direction:", 0, -1000, 1000, 8, &ok);
+    Standard_Real zDirX = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for Z direction:", 0, -1000, 1000, 8, &ok);
+    Standard_Real zDirY = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for Z direction:", 0, -1000, 1000, 8, &ok);
+    Standard_Real zDirZ = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for Z direction:", 0, -1000, 1000, 8, &ok);
 
-    double xDirX = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for X direction:", 0, -1000, 1000, 8, &ok);
-    double xDirY = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for X direction:", 0, -1000, 1000, 8, &ok);
-    double xDirZ = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for X direction:", 0, -1000, 1000, 8, &ok);
+    Standard_Real xDirX = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for X direction:", 0, -1000, 1000, 8, &ok);
+    Standard_Real xDirY = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for X direction:", 0, -1000, 1000, 8, &ok);
+    Standard_Real xDirZ = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for X direction:", 0, -1000, 1000, 8, &ok);
 
     // Create gp_Ax2 with user-provided values
     gp_Ax2 coordinateSystemAx2 = gp_Ax2(gp_Pnt(xOrigin, yOrigin, zOrigin), gp_Dir(zDirX, zDirY, zDirZ), gp_Dir(xDirX, xDirY, xDirZ));
@@ -536,7 +537,7 @@ TopoDS_Shape createCurve(const QString& curveType)
         // Create gp_Ax2 with user-provided values
         gp_Ax2 circleAx2 = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
 
         gp_Circ cir(circleAx2, radius);
         BRepBuilderAPI_MakeEdge edgeMaker(cir);
@@ -550,8 +551,8 @@ TopoDS_Shape createCurve(const QString& curveType)
         // Create gp_Ax2 with user-provided values
         gp_Ax2 ellipseAx2 = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
-        double minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
 
 
 
@@ -570,7 +571,7 @@ TopoDS_Shape createCurve(const QString& curveType)
         // Create gp_Ax2 with user-provided values
         gp_Ax2 parabolaAx2 = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double theFocal = QInputDialog::getDouble(nullptr, "Input", "Enter the Focal:", 0, -1000, 1000, 8, &ok);
+        Standard_Real theFocal = QInputDialog::getDouble(nullptr, "Input", "Enter the Focal:", 0, -1000, 1000, 8, &ok);
 
         gp_Parab parabola(parabolaAx2, theFocal);
         BRepBuilderAPI_MakeEdge edgeMaker(parabola);
@@ -585,8 +586,8 @@ TopoDS_Shape createCurve(const QString& curveType)
         // Get user input for origin coordinates
         gp_Ax2 hyperbolaAx2 = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
-        double minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
 
         // 在正半轴上创建双曲线
         gp_Hypr hyperbolaPositive(hyperbolaAx2, majorRadius, minorRadius);
@@ -614,14 +615,14 @@ TopoDS_Shape createCurve(const QString& curveType)
         // Create a line here
         // ...
         // Get user input for origin coordinates
-        double xStart = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for Start Point:", 0, -1000, 1000, 8, &ok);
-        double yStart = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for Start Point:", 0, -1000, 1000, 8, &ok);
-        double zStart = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for Start Point:", 0, -1000, 1000, 8, &ok);
+        Standard_Real xStart = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for Start Point:", 0, -1000, 1000, 8, &ok);
+        Standard_Real yStart = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for Start Point:", 0, -1000, 1000, 8, &ok);
+        Standard_Real zStart = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for Start Point:", 0, -1000, 1000, 8, &ok);
 
         // Get user input for Z direction coordinates
-        double DirX = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for direction:", 0, -1000, 1000, 8, &ok);
-        double DirY = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for direction:", 0, -1000, 1000, 8, &ok);
-        double DirZ = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for direction:", 0, -1000, 1000, 8, &ok);
+        Standard_Real DirX = QInputDialog::getDouble(nullptr, "Input", "Enter X coordinate for direction:", 0, -1000, 1000, 8, &ok);
+        Standard_Real DirY = QInputDialog::getDouble(nullptr, "Input", "Enter Y coordinate for direction:", 0, -1000, 1000, 8, &ok);
+        Standard_Real DirZ = QInputDialog::getDouble(nullptr, "Input", "Enter Z coordinate for direction:", 0, -1000, 1000, 8, &ok);
 
         gp_Pnt startPoint(xStart, yStart, zStart);
         gp_Dir dir(DirX, DirY, DirZ);
@@ -642,8 +643,8 @@ TopoDS_Shape createSurface(const QString& surfaceType)
     if (surfaceType.toLower() == "plane")
     {
         gp_Ax2 planeAxis = getCoordinateSystemFromUserInput(ok);
-        double length = QInputDialog::getDouble(nullptr, "Input", "Enter length:", 0, -1000, 1000, 8, &ok);
-        double width = QInputDialog::getDouble(nullptr, "Input", "Enter width:", 0, -1000, 1000, 8, &ok);
+        Standard_Real length = QInputDialog::getDouble(nullptr, "Input", "Enter length:", 0, -1000, 1000, 8, &ok);
+        Standard_Real width = QInputDialog::getDouble(nullptr, "Input", "Enter width:", 0, -1000, 1000, 8, &ok);
 
         return MakeShape::MakePlane(planeAxis.Location(), planeAxis.XDirection() ^ planeAxis.YDirection(), planeAxis.XDirection(), length, width);
 
@@ -653,8 +654,8 @@ TopoDS_Shape createSurface(const QString& surfaceType)
         // Create gp_Ax2 with user-provided values
         gp_Ax2 cylinderAxis = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
-        double height = QInputDialog::getDouble(nullptr, "Input", "Enter Height:", 0, -1000, 1000, 8, &ok);
+        Standard_Real radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real height = QInputDialog::getDouble(nullptr, "Input", "Enter Height:", 0, -1000, 1000, 8, &ok);
 
         return MakeShape::MakeCylinder(cylinderAxis.Location(), cylinderAxis.XDirection() ^ cylinderAxis.YDirection(), cylinderAxis.XDirection(), radius, height);
     }
@@ -662,7 +663,7 @@ TopoDS_Shape createSurface(const QString& surfaceType)
     {
         gp_Ax2 sphereAxis = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
 
         return MakeShape::MakeSphere(sphereAxis.Location(), sphereAxis.XDirection() ^ sphereAxis.YDirection(), sphereAxis.XDirection(), radius);
 
@@ -672,8 +673,8 @@ TopoDS_Shape createSurface(const QString& surfaceType)
         // Create gp_Ax2 with user-provided values
         gp_Ax2 coneAxis = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
-        double height = QInputDialog::getDouble(nullptr, "Input", "Enter Height:", 0, -1000, 1000, 8, &ok);
+        Standard_Real radius = QInputDialog::getDouble(nullptr, "Input", "Enter Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real height = QInputDialog::getDouble(nullptr, "Input", "Enter Height:", 0, -1000, 1000, 8, &ok);
 
         return MakeShape::MakeCone(coneAxis.Location(), coneAxis.XDirection() ^ coneAxis.YDirection(), coneAxis.XDirection(), radius, height);
     }
@@ -682,8 +683,8 @@ TopoDS_Shape createSurface(const QString& surfaceType)
         // Create gp_Ax2 with user-provided values
         gp_Ax2 torusAxis = getCoordinateSystemFromUserInput(ok);
         // Get user input for major and minor radii
-        double majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
-        double minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
+        Standard_Real minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
 
         return MakeShape::MakeTorus(torusAxis.Location(), torusAxis.XDirection() ^ torusAxis.YDirection(), torusAxis.XDirection(), majorRadius, minorRadius);
     }
@@ -799,7 +800,7 @@ void occQt::importFile()
         shape = reader.OneShape();
     }
     TopExp_Explorer exp;
-    int cnt = 0;
+    Standard_Integer cnt = 0;
     for (exp.Init(shape, TopAbs_FACE); exp.More(); exp.Next()) 
     {
         if (!cnt) {
@@ -827,7 +828,7 @@ void occQt::importFile()
 void occQt::Triangulation()
 {
     std::vector<TopoDS_Shape> shapes;
-    int choice;
+    Standard_Integer choice;
 
     if (shape1.IsNull() && shape2.IsNull())
     {
@@ -852,7 +853,7 @@ void occQt::Triangulation()
     aShape2->SetColor(Quantity_NOC_BISQUE);
     myOccView->getContext()->Display(aShape2, Standard_True);
 
-    int cnt = 0;
+    Standard_Integer cnt = 0;
     // Store triangulated results and build R-trees
     for (auto shape : shapes)
     {
@@ -867,7 +868,7 @@ void occQt::Triangulation()
         std::vector<std::future<void>> futures;
         std::mutex displayMutex;
 
-        for (int j = 0; j <= 1; j++)
+        for (Standard_Integer j = 0; j <= 1; j++)
         {
             for (size_t i = 0; i < faceList[j].size(); ++i)
             {
@@ -903,10 +904,10 @@ void occQt::TriangulationIntersection()
 
         auto end_time1 = std::chrono::high_resolution_clock::now();
         // 计算程序执行时间，单位为秒
-        std::chrono::duration<double> execution_time1 = end_time1 - start_time1;
+        std::chrono::duration<Standard_Real> execution_time1 = end_time1 - start_time1;
 
         // 将执行时间转换为毫秒
-        double execution_time_ms1 = execution_time1.count() * 1000.0;
+        Standard_Real execution_time_ms1 = execution_time1.count() * 1000.0;
 
         std::cout << "程序执行时间为：" << execution_time_ms1 << " 毫秒" << std::endl;
         // 初始化结果
@@ -992,7 +993,7 @@ void occQt::PrintInfo()
     // 在文本框中输出顶点信息
     QString outputText;
     TopExp_Explorer exp;
-    int cnt = 1;
+    Standard_Integer cnt = 1;
     for (exp.Init(result, TopAbs_EDGE); exp.More(); exp.Next()) {
         TopoDS_Edge edge = TopoDS::Edge(exp.Current());
         // 获取边的起始和结束顶点
@@ -1047,7 +1048,7 @@ void occQt::RandomExport()
     bool ok;
     QString string1 = QInputDialog::getText(nullptr, "Input", "Enter String 1: (Basic Model Type: plane, cone, cylinder, sphere, torus)", QLineEdit::Normal, "", &ok);
     QString string2 = QInputDialog::getText(nullptr, "Input", "Enter String 2: (Basic Model Type: plane, cone, cylinder, sphere, torus)", QLineEdit::Normal, "", &ok);
-    int value = QInputDialog::getInt(nullptr, "Input", "Enter an Integer:", 0, 0, 100, 1, &ok);
+    Standard_Integer value = QInputDialog::getInt(nullptr, "Input", "Enter an Integer:", 0, 0, 100, 1, &ok);
      
 
     // 使用用户输入调用RandomExport::randomRotateAndExport()
@@ -1059,9 +1060,9 @@ void occQt::MakePoint()
 {
     bool ok;
 
-    double x = QInputDialog::getDouble(nullptr, "Input", "Enter X for point:", 0, -1000, 1000, 8, &ok);
-    double y = QInputDialog::getDouble(nullptr, "Input", "Enter Y for point:", 0, -1000, 1000, 8, &ok);
-    double z = QInputDialog::getDouble(nullptr, "Input", "Enter Z for point:", 0, -1000, 1000, 8, &ok);
+    Standard_Real x = QInputDialog::getDouble(nullptr, "Input", "Enter X for point:", 0, -1000, 1000, 8, &ok);
+    Standard_Real y = QInputDialog::getDouble(nullptr, "Input", "Enter Y for point:", 0, -1000, 1000, 8, &ok);
+    Standard_Real z = QInputDialog::getDouble(nullptr, "Input", "Enter Z for point:", 0, -1000, 1000, 8, &ok);
 
     TopoDS_Shape point = MakeShape::MakePoint(x, y, z);
     if (!point.IsNull())
@@ -1137,7 +1138,7 @@ void occQt::ExportFile()
     QFileInfo fileInfo(filePath);
 
     // 如果文件已存在，则自动添加后缀
-    int suffix = 1;
+    Standard_Integer suffix = 1;
     while (fileInfo.exists()) {
         filePath = folderPath + QString("/exportModel_%1.step").arg(suffix);
         fileInfo.setFile(filePath);
@@ -1162,13 +1163,13 @@ void occQt::ExportFile()
 }
 
 // 对单条等参线进行等距采样并计算弧长
-std::vector<std::pair<gp_Pnt, double>> SampleIsoCurveWithArcLength(const Handle(Geom_BSplineCurve)& bsplineCurve, int numSamples) 
+std::vector<std::pair<gp_Pnt, Standard_Real>> SampleIsoCurveWithArcLength(const Handle(Geom_BSplineCurve)& bsplineCurve, Standard_Integer numSamples) 
 {
     Handle(GeomAdaptor_Curve) curve = new GeomAdaptor_Curve(bsplineCurve);
     GCPnts_QuasiUniformAbscissa sampler(*curve, numSamples);
-    std::vector<std::pair<gp_Pnt, double>> sampledPointsWithArcLength;
+    std::vector<std::pair<gp_Pnt, Standard_Real>> sampledPointsWithArcLength;
 
-    for (int i = 1; i <= sampler.NbPoints(); ++i)
+    for (Standard_Integer i = 1; i <= sampler.NbPoints(); ++i)
     {
         Standard_Real param = sampler.Parameter(i);
         gp_Pnt point = curve->Value(param); // 获取点坐标
@@ -1183,11 +1184,11 @@ std::vector<std::pair<gp_Pnt, double>> SampleIsoCurveWithArcLength(const Handle(
     return sampledPointsWithArcLength;
 }
 // 输出采样点和对应弧长的函数
-void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, double>>& sampledPoints) {
+void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, Standard_Real>>& sampledPoints) {
     for (const auto& pair : sampledPoints)
     {
         const gp_Pnt& point = pair.first;
-        double arcLength = pair.second;
+        Standard_Real arcLength = pair.second;
         std::cout << "Point: (" << point.X() << ", " << point.Y() << ", " << point.Z() << "), Arc Length: " << arcLength << std::endl;
     }
 }
@@ -1227,8 +1228,9 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 
 void occQt::GenerateIsoCurves(void)
 {
-    for (int i = 1; i <= 99; i++)
+    for (Standard_Integer i = 1; i <= 99; i++)
     {
+        if (i == 20) continue; // 三边
         if (i >= 22 && i <= 29) continue;
         if (i >= 31 && i <= 33) continue;
         if (i >= 37 && i <= 98) continue;
@@ -1247,7 +1249,7 @@ void occQt::GenerateIsoCurves(void)
             gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
             gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
 
-            double tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
+            Standard_Real tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
             if (tempArray[1]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
             {
                 tempArray[1]->Reverse();
@@ -1280,19 +1282,19 @@ void occQt::GenerateIsoCurves(void)
 
             auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
                 {
-                    double dotProduct = v1.Dot(v2);
-                    double magnitudes = v1.Magnitude() * v2.Magnitude();
+                    Standard_Real dotProduct = v1.Dot(v2);
+                    Standard_Real magnitudes = v1.Magnitude() * v2.Magnitude();
                     return std::acos(dotProduct / magnitudes);  // 返回角度
                 };
 
             // 计算三个角的夹角
-            double angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
-            double angleAtPoint1 = calculateAngle(-line_01, line_12);  // 点1的夹角
-            double angleAtPoint2 = calculateAngle(-line_12, line_20);  // 点2的夹角
+            Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
+            Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // 点1的夹角
+            Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // 点2的夹角
 
             // 找出最大角度
-            double maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
-            int maxAngleIndex = 0;
+            Standard_Real maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
+            Standard_Integer maxAngleIndex = 0;
             if (maxAngle == angleAtPoint1) maxAngleIndex = 1;
             else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
 
@@ -1334,51 +1336,25 @@ void occQt::GenerateIsoCurves(void)
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
-        int isoCount = 20;
+        Standard_Integer isoCount = 20;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Final, vISOcurvesArray_Final;
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-        std::vector<std::vector<double>> uKnots;
-        std::vector<std::vector<double>> vKnots;
+        std::vector<std::vector<Standard_Real>> uKnots;
+        std::vector<std::vector<Standard_Real>> vKnots;
 
-        Handle(Geom_BSplineSurface) referSurface;
-        std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
-        double uAngleSum = 0, vAngleSum = 0;
-        if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5))
-        {
-            myOccView->getContext()->RemoveAll(true);
-
-            referSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, 
-                uInternalCurve, vInternalCurve, 
-                uAngleSum, vAngleSum, 
-                isoCount, ReferSurfaceType::GORDEN_TWO_DIRECTION_GORDEN);
-            Visualize(uInternalCurve, Quantity_NOC_WHITE);
-            Visualize(vInternalCurve, Quantity_NOC_GOLD); 
-            Visualize(referSurface, Quantity_NOC_GOLD);
-        }
-        continue;
-        // referSurface为null说明没有成功使用新算法获取Gorden面
-        if (referSurface.IsNull())
-        {
-            SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, referSurface);
-            myOccView->getContext()->RemoveAll(true);
-            Visualize(bslpineCurve1);
-            Visualize(bslpineCurve2);
-            Visualize(bslpineCurve3);
-            Visualize(bslpineCurve4);
-            std::string SurfaceCoonsFilename = filename + "SurfaceCoons_OCC.step";
-            ExportBSplineSurface(referSurface, SurfaceCoonsFilename);
-        }
-        Visualize(referSurface);
-        SurfaceModelingTool::GetISOCurveWithNormal(referSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
-
+        Handle(Geom_BSplineSurface) aResSurface;
+        SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
+        SurfaceModelingTool::GetISOCurveWithNormal(aResSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+        myOccView->getContext()->RemoveAll(true);
+        Visualize(uISOcurvesArray_Initial, Quantity_NOC_RED);
+        Visualize(vISOcurvesArray_Initial, Quantity_NOC_RED);
         //构造Lofting曲面
         std::vector<TopoDS_Shape>  uLoftingSur, vLoftingSur;
         SurfaceModelingTool::CreateLoftingSurface(uISOcurvesArray_Initial, normalsOfUISOLines, uLoftingSur);
         SurfaceModelingTool::CreateLoftingSurface(vISOcurvesArray_Initial, normalsOfVISOLines, vLoftingSur);
         Visualize(uLoftingSur);
         Visualize(vLoftingSur);
-
         // 生成修正的等参线
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_New, vISOcurvesArray_New;
         std::vector<gp_Pnt> interPoints;
@@ -1392,33 +1368,68 @@ void occQt::GenerateIsoCurves(void)
         SurfaceModelingTool::LoftSurfaceIntersectWithCurve(uLoftingSur, uISOcurvesArray_Initial, anInternalBSplineCurves,
             uISOcurvesArray_New, isoCount,
             uInterpolatePoints,
-            uInterpoalteTangentArray, uInterpoalteTangentArray2, referSurface);
+            uInterpoalteTangentArray, uInterpoalteTangentArray2, aResSurface);
         SurfaceModelingTool::LoftSurfaceIntersectWithCurve(vLoftingSur, vISOcurvesArray_Initial, anInternalBSplineCurves,
             vISOcurvesArray_New, isoCount,
             vInterpolatePoints,
-            vInterpoalteTangentArray, vInterpoalteTangentArray2, referSurface);
+            vInterpoalteTangentArray, vInterpoalteTangentArray2, aResSurface);
 
-        ////// 可视化
-        //{
-        //    Visualize(uInterpoalteTangentArray, Quantity_NOC_GOLD);
-        //    Visualize(uInterpoalteTangentArray2, Quantity_NOC_GOLD);
-        //    for (auto interPoints : uInterpolatePoints)
-        //        //Visualize(interPoints, Quantity_NOC_RED);
+        {
+            // 新添加代码
+            std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
+            Standard_Real uAngleSum = 0, vAngleSum = 0;
+            SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5);
+            // 大于 4 是因为包含了边界
+            if (uInternalCurve.size() >= 4 || vInternalCurve.size() >= 4)
+            {
+                // 可能出现退化边的情况，所以计算和两个对边的夹角
+                if (MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[0]) > 10 ||
+                    MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
+                {
+                    std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
+                }
 
-        //        Visualize(vInterpoalteTangentArray, Quantity_NOC_GOLD);
-        //    Visualize(vInterpoalteTangentArray2, Quantity_NOC_GOLD);
-        //    //VisualizeBSplineSurface({surfacecoons}, Quantity_NOC_BLUE1);
-        //    for (auto interPoints : vInterpolatePoints)
-        //        //Visualize(interPoints, Quantity_NOC_RED);
+                // 保留线多的方向
+                if (uInternalCurve.size() > vInternalCurve.size())
+                {
+                    uISOcurvesArray_New.clear();
+                    uISOcurvesArray_New = uInternalCurve;
+                    vISOcurvesArray_New.insert(vISOcurvesArray_New.begin(), bslpineCurve2);
+                    vISOcurvesArray_New.insert(vISOcurvesArray_New.end(), bslpineCurve4);
+                }
+                else
+                {
+                    vISOcurvesArray_New.clear();
+                    vISOcurvesArray_New = vInternalCurve;
+                    uISOcurvesArray_New.insert(uISOcurvesArray_New.begin(), bslpineCurve1);
+                    uISOcurvesArray_New.insert(uISOcurvesArray_New.end(), bslpineCurve3);
+                }
 
-        //        Visualize(aBoundarycurveArray);
-        //    Visualize(vISOcurvesArray_New);
-        //    Visualize(uISOcurvesArray_New);
-        //}
+                MathTool::SortBSplineCurves(uISOcurvesArray_New, uISOcurvesArray_New[0]);
+                MathTool::SortBSplineCurves(vISOcurvesArray_New, vISOcurvesArray_New[0]);
+                MathTool::ReverseIfNeeded(uISOcurvesArray_New);
+                MathTool::ReverseIfNeeded(vISOcurvesArray_New);
+                myOccView->getContext()->RemoveAll(true);
+                Visualize(vISOcurvesArray_New);
+                Visualize(uISOcurvesArray_New);
+                
+                // 调用陈鑫的 Compatible
+                SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
+                SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
 
-        // 生成新等参线
+                // 调用胡新宇的 Gorden
+                TopoDS_Face aGordenFace;
+                GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, aGordenFace);
+                Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
+                Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
+                Visualize(aBSplineSurface);
 
-        //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+                // 直接不进行后面的操作，计算下一个case
+                continue;
+            }
+        }
+
+        continue;
         myOccView->getContext()->RemoveAll(Standard_True);
         // 根据u、v等参线之间的交点，生成最终等参线
         interPoints.clear();

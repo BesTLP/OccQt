@@ -317,6 +317,8 @@ public:
 		int isoCount,
 		ReferSurfaceType referSurfaceType);
 
+	static Standard_Boolean CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance = 0.01);
+
 private:
 	std::string knotsOutputPath;
 	
