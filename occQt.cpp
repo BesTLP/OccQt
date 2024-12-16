@@ -1226,10 +1226,13 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
     return bsplineSurface;
 }
 
+//Uniform Curve Knot to [0,1]
+void UniformCurve(Handle(Geom_BSplineCurve)& curve);
 void occQt::GenerateIsoCurves(void)
 {
-    for (Standard_Integer i = 1; i <= 99; i++)
+    for (Standard_Integer i = 5; i <= 99; i++)
     {
+        if (i == 2 || i == 3) continue;
         if (i == 20) continue; // 三边
         if (i >= 22 && i <= 29) continue;
         if (i >= 31 && i <= 33) continue;
@@ -1336,6 +1339,7 @@ void occQt::GenerateIsoCurves(void)
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
+        Visualize(anInternalBSplineCurves);
         Standard_Integer isoCount = 20;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Final, vISOcurvesArray_Final;
@@ -1343,8 +1347,31 @@ void occQt::GenerateIsoCurves(void)
         std::vector<std::vector<Standard_Real>> uKnots;
         std::vector<std::vector<Standard_Real>> vKnots;
 
+        // 新添加代码
+        std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
+        Standard_Real uAngleSum = 0, vAngleSum = 0;
         Handle(Geom_BSplineSurface) aResSurface;
-        SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
+        if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5))
+        {
+            if (uInternalCurve.size() >= 4 && vInternalCurve.size() >= 4)
+            {
+                aResSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, GORDEN_TWO_DIRECTION_GORDEN);
+            }
+            else
+            {
+                aResSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, GORDEN_ONE_DIRECTION_GORDEN);
+            }
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(uInternalCurve, Quantity_NOC_AZURE);
+            Visualize(vInternalCurve, Quantity_NOC_AZURE);
+            Visualize(aResSurface);
+        }
+        if (aResSurface.IsNull())
+        {
+            // 生成不了Gorden，不适用新算法，继续生成Coons
+            SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
+        }
+
         SurfaceModelingTool::GetISOCurveWithNormal(aResSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
         myOccView->getContext()->RemoveAll(true);
         Visualize(uISOcurvesArray_Initial, Quantity_NOC_RED);
@@ -1374,59 +1401,60 @@ void occQt::GenerateIsoCurves(void)
             vInterpolatePoints,
             vInterpoalteTangentArray, vInterpoalteTangentArray2, aResSurface);
 
+        // 大于 4 是因为包含了边界
+        if (uInternalCurve.size() >= 4 || vInternalCurve.size() >= 4)
         {
-            // 新添加代码
-            std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
-            Standard_Real uAngleSum = 0, vAngleSum = 0;
-            SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5);
-            // 大于 4 是因为包含了边界
-            if (uInternalCurve.size() >= 4 || vInternalCurve.size() >= 4)
+            // 可能出现退化边的情况，所以计算和两个对边的夹角
+            if (MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[0]) > 10 ||
+                MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
             {
-                // 可能出现退化边的情况，所以计算和两个对边的夹角
-                if (MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[0]) > 10 ||
-                    MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
-                {
-                    std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
-                }
-
-                // 保留线多的方向
-                if (uInternalCurve.size() > vInternalCurve.size())
-                {
-                    uISOcurvesArray_New.clear();
-                    uISOcurvesArray_New = uInternalCurve;
-                    vISOcurvesArray_New.insert(vISOcurvesArray_New.begin(), bslpineCurve2);
-                    vISOcurvesArray_New.insert(vISOcurvesArray_New.end(), bslpineCurve4);
-                }
-                else
-                {
-                    vISOcurvesArray_New.clear();
-                    vISOcurvesArray_New = vInternalCurve;
-                    uISOcurvesArray_New.insert(uISOcurvesArray_New.begin(), bslpineCurve1);
-                    uISOcurvesArray_New.insert(uISOcurvesArray_New.end(), bslpineCurve3);
-                }
-
-                MathTool::SortBSplineCurves(uISOcurvesArray_New, uISOcurvesArray_New[0]);
-                MathTool::SortBSplineCurves(vISOcurvesArray_New, vISOcurvesArray_New[0]);
-                MathTool::ReverseIfNeeded(uISOcurvesArray_New);
-                MathTool::ReverseIfNeeded(vISOcurvesArray_New);
-                myOccView->getContext()->RemoveAll(true);
-                Visualize(vISOcurvesArray_New);
-                Visualize(uISOcurvesArray_New);
-                
-                // 调用陈鑫的 Compatible
-                SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
-                SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
-
-                // 调用胡新宇的 Gorden
-                TopoDS_Face aGordenFace;
-                GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, aGordenFace);
-                Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
-                Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
-                Visualize(aBSplineSurface);
-
-                // 直接不进行后面的操作，计算下一个case
-                continue;
+                std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
             }
+
+            // 保留线多的方向
+            if (uInternalCurve.size() > vInternalCurve.size())
+            {
+                uISOcurvesArray_New.clear();
+                uISOcurvesArray_New = uInternalCurve;
+                vISOcurvesArray_New.insert(vISOcurvesArray_New.begin(), bslpineCurve2);
+                vISOcurvesArray_New.emplace_back(bslpineCurve4);
+            }
+            else
+            {
+                vISOcurvesArray_New.clear();
+                vISOcurvesArray_New = vInternalCurve;
+                uISOcurvesArray_New.insert(uISOcurvesArray_New.begin(), bslpineCurve1);
+                uISOcurvesArray_New.emplace_back (bslpineCurve3);
+            }
+
+            MathTool::SortBSplineCurves(uISOcurvesArray_New, uISOcurvesArray_New[0]);
+            MathTool::SortBSplineCurves(vISOcurvesArray_New, vISOcurvesArray_New[0]);
+            MathTool::ReverseIfNeeded(uISOcurvesArray_New);
+            MathTool::ReverseIfNeeded(vISOcurvesArray_New);
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(vISOcurvesArray_New);
+            Visualize(uISOcurvesArray_New);
+            // 调用陈鑫的 Compatible
+            for (auto curve : uISOcurvesArray_New)
+            {
+                UniformCurve(curve);
+            }
+            for (auto curve : vISOcurvesArray_New)
+            {
+                UniformCurve(curve);
+            }
+            SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
+            SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
+
+            // 调用胡新宇的 Gorden
+            TopoDS_Face aGordenFace;
+            GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, aGordenFace);
+            Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
+            Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
+            Visualize(aBSplineSurface);
+
+            // 直接不进行后面的操作，计算下一个case
+            continue;
         }
 
         continue;
