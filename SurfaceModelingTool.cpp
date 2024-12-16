@@ -2762,7 +2762,7 @@ bool SurfaceModelingTool::GetInternalCurves(
 			{
 				double U;
 				extrema2.LowerDistanceParameters(SplitPointParameters[1], U);
-				extrema1.NearestPoints(internalPnt, replacePnt2);
+				extrema2.NearestPoints(internalPnt, replacePnt2);
 			}
 
 			// 确保分割点参数正确排序
@@ -2775,22 +2775,22 @@ bool SurfaceModelingTool::GetInternalCurves(
 			// 对内部曲线进行裁剪
 			Handle(Geom_TrimmedCurve) trimmedCurve = new Geom_TrimmedCurve(InternalPlanarCurve.GetCurve(), SplitPointParameters[0], SplitPointParameters[1]);
 			Handle(Geom_BSplineCurve) aBsplineCurve = GeomConvert::CurveToBSplineCurve(trimmedCurve, Convert_TgtThetaOver2);
-			InternalPlanarCurve.SetCurve(aBsplineCurve);
-			/*
+			//UniformCurve(aBsplineCurve);
 			aBsplineCurve->SetPole(1, replacePnt1);
-			aBsplineCurve->SetPole(InternalPlanarCurve.GetCurve()->NbPoles(), replacePnt2);
-			distance1 = aBsplineCurve->StartPoint().Distance(replacePnt1);
-			distance2 = aBsplineCurve->EndPoint().Distance(replacePnt2);
-			std::vector<gp_Pnt> ApproximatePoints = MathTool::GetSamplePointsOnCurve(InternalPlanarCurve.GetCurve(), 100);
-			ApproximatePoints[0] = replacePnt1;
-			ApproximatePoints[ApproximatePoints.size() - 1] = replacePnt2;
-			MathTool::SortPoints(ApproximatePoints, ApproximatePoints[0]);
-			std::vector<double> params = ComputeUniformParam(ApproximatePoints.size(), 0., 1.);
-			std::vector<double> tempKnots = KnotGernerationByParams(params, 3, InternalPlanarCurve.GetCurve()->Degree());
-			std::vector<double> insertKnots;
-			Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, ApproximatePoints, params, tempKnots, InternalPlanarCurve.GetCurve()->Degree(), 50, 0.01);
-			InternalPlanarCurve.SetCurve(aBSplineCurve);
-			*/
+			aBsplineCurve->SetPole(aBsplineCurve->NbPoles(), replacePnt2);
+			InternalPlanarCurve.SetCurve(aBsplineCurve);
+			
+			//distance1 = aBsplineCurve->StartPoint().Distance(replacePnt1);
+			//distance2 = aBsplineCurve->EndPoint().Distance(replacePnt2);
+			//std::vector<gp_Pnt> ApproximatePoints = MathTool::GetSamplePointsOnCurve(aBsplineCurve, 100);
+			//ApproximatePoints[0] = replacePnt1;
+			//MathTool::SortPoints(ApproximatePoints, ApproximatePoints[0]);
+			//ApproximatePoints[ApproximatePoints.size() - 1] = replacePnt2;
+			//std::vector<double> params = ComputeUniformParam(ApproximatePoints.size(), 0., 1.);
+			//std::vector<double> tempKnots = KnotGernerationByParams(params, 3, InternalPlanarCurve.GetCurve()->Degree());
+			//std::vector<double> insertKnots;
+			//Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, ApproximatePoints, params, tempKnots, InternalPlanarCurve.GetCurve()->Degree(), 50, 0.01);
+			//InternalPlanarCurve.SetCurve(aBSplineCurve);
 
 			// 计算角度并分类曲线
 			double angle1, angle3, angle2, angle4;

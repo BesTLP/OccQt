@@ -50,7 +50,7 @@ public:
     void SetCurve(Handle(Geom_BSplineCurve) theCurve)
     {
         curve = theCurve;
-        IsPlanarCurve(theCurve); 
+        IsPlanarCurve(theCurve, 10); 
     }
 
 private:
