@@ -138,7 +138,6 @@
 #include <STEPControl_Writer.hxx>
 #include <GeomFill_BSplineCurves.hxx>
 #include <AIS_TextLabel.hxx>
-#include <PlanarCurve.h>
 
 template <typename T>
 void occQt::Visualize(const T& object, const Quantity_Color& color)
@@ -1345,14 +1344,14 @@ void occQt::GenerateIsoCurves(void)
         Handle(Geom_BSplineSurface) referSurface;
         std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
         double uAngleSum = 0, vAngleSum = 0;
-        if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 20))
+        if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5))
         {
             myOccView->getContext()->RemoveAll(true);
 
             referSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, 
                 uInternalCurve, vInternalCurve, 
                 uAngleSum, vAngleSum, 
-                isoCount, ReferSurfaceType::GORDEN_TWO_DIRECTION);
+                isoCount, ReferSurfaceType::GORDEN_TWO_DIRECTION_GORDEN);
             Visualize(uInternalCurve, Quantity_NOC_WHITE);
             Visualize(vInternalCurve, Quantity_NOC_GOLD); 
             Visualize(referSurface, Quantity_NOC_GOLD);
