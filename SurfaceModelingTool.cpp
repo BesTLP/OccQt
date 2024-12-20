@@ -2792,7 +2792,7 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 	MathTool::CheckSelfIntersect(theUInternalCurve);
 	MathTool::CheckSelfIntersect(theVInternalCurve);
 
-	return theUInternalCurve.size() > 4 || theVInternalCurve.size() > 4;
+	return theUInternalCurve.size() >= 4 || theVInternalCurve.size() >= 4;
 }
 
 
@@ -3996,7 +3996,7 @@ Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vecto
 	}
 
 	//2.在compatibleCurves上加密采样
-	Standard_Integer denseSamplingNum = 10;
+	Standard_Integer denseSamplingNum = 30;
 	std::vector<std::vector<gp_Pnt>> denseSamplingPoints;
 	std::vector<std::vector<Standard_Real>> denseSamplingPointsParams;
 	denseSamplingPoints.reserve(theCompatibleCurves.size());
