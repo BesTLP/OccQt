@@ -216,7 +216,7 @@ void SurfaceModelingTool::Coons_G0(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	// 
 	// 
 	// Set control points of the v ruled surface
-	for (int i = 1; i <= NbUPoles; i++)
+	for (Standard_Integer i = 1; i <= NbUPoles; i++)
 	{
 		Poles_vruled(i, 1) = curve1->Pole(i);
 		Poles_vruled(i, 2) = curve3->Pole(i);
@@ -231,7 +231,7 @@ void SurfaceModelingTool::Coons_G0(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	// Make the surface compatible with the result coons surface
 	mySurface_VRuled->IncreaseDegree(curve1->Degree(), curve2->Degree());
 
-	for (int i = 1; i <= NbVKnot; i++)
+	for (Standard_Integer i = 1; i <= NbVKnot; i++)
 		mySurface_VRuled->InsertVKnot(VKnots(i), VMults(i), Precision::Confusion());
 
 	// 
@@ -239,7 +239,7 @@ void SurfaceModelingTool::Coons_G0(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	// 
 
 	// Set control points of the u ruled surface
-	for (int i = 1; i <= NbVPoles; i++)
+	for (Standard_Integer i = 1; i <= NbVPoles; i++)
 	{
 		Poles_uruled(1, i) = curve4->Pole(i);
 		Poles_uruled(2, i) = curve2->Pole(i);
@@ -253,7 +253,7 @@ void SurfaceModelingTool::Coons_G0(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	//increase degree
 	mySurface_URuled->IncreaseDegree(curve1->Degree(), curve2->Degree());
 
-	for (int i = 1; i <= NbUKnot; i++)
+	for (Standard_Integer i = 1; i <= NbUKnot; i++)
 		mySurface_URuled->InsertUKnot(UKnots(i), UMults(i), Precision::Confusion());
 
 	// 
@@ -272,18 +272,18 @@ void SurfaceModelingTool::Coons_G0(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 
 	mySurface_RuledSurfaceof4CornerPoints->IncreaseDegree(curve1->Degree(), curve2->Degree());
 
-	for (int i = 1; i <= NbVKnot; i++)
+	for (Standard_Integer i = 1; i <= NbVKnot; i++)
 		mySurface_RuledSurfaceof4CornerPoints->InsertVKnot(VKnots(i), VMults(i), Precision::Confusion());
 
-	for (int i = 1; i <= NbUKnot; i++)
+	for (Standard_Integer i = 1; i <= NbUKnot; i++)
 		mySurface_RuledSurfaceof4CornerPoints->InsertUKnot(UKnots(i), UMults(i), Precision::Confusion());
 
 	//2.4 Generate the sum surface mySurface_VRuled + mySurface_URuled - mySurface_RuledSurfaceof4CornerPoints 
 	//increase degree
 
-	for (int i = 1; i <= NbUPoles; i++)
+	for (Standard_Integer i = 1; i <= NbUPoles; i++)
 	{
-		for (int j = 1; j <= NbVPoles; j++)
+		for (Standard_Integer j = 1; j <= NbVPoles; j++)
 		{
 			Poles_result(i, j).SetXYZ(mySurface_VRuled->Pole(i, j).XYZ() + mySurface_URuled->Pole(i, j).XYZ() - mySurface_RuledSurfaceof4CornerPoints->Pole(i, j).XYZ());
 		}
@@ -378,7 +378,7 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	// 
 	gp_Pnt p1, p2, p1d, p2d;
 	// Set control points of the v ruled surface
-	for (int i = 1; i <= NbUPoles; i++)
+	for (Standard_Integer i = 1; i <= NbUPoles; i++)
 	{
 		p1 = curve1->Pole(i);
 		p1d = curve1_derivative->Pole(i);
@@ -400,7 +400,7 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	// Make the surface compatible with the result coons surface
 	mySurface_V->IncreaseDegree(curve1->Degree(), curve2->Degree());
 
-	for (int i = 1; i <= NbVKnot; i++)
+	for (Standard_Integer i = 1; i <= NbVKnot; i++)
 		mySurface_V->InsertVKnot(VKnots(i), VMults(i), Precision::Confusion());
 
 	// 
@@ -408,7 +408,7 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	// 
 
 	// Set control points of the u ruled surface
-	for (int i = 1; i <= NbVPoles; i++)
+	for (Standard_Integer i = 1; i <= NbVPoles; i++)
 	{
 		p1 = curve4->Pole(i);
 		p1d = curve4_derivative->Pole(i);
@@ -429,7 +429,7 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 	//increase degree
 	mySurface_U->IncreaseDegree(curve1->Degree(), curve2->Degree());
 
-	for (int i = 1; i <= NbUKnot; i++)
+	for (Standard_Integer i = 1; i <= NbUKnot; i++)
 		mySurface_U->InsertUKnot(UKnots(i), UMults(i), Precision::Confusion());
 
 	// 
@@ -482,18 +482,18 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 
 	mySurface_G1Surfaceof4CornerPoints->IncreaseDegree(curve1->Degree(), curve2->Degree());
 
-	for (int i = 1; i <= NbVKnot; i++)
+	for (Standard_Integer i = 1; i <= NbVKnot; i++)
 		mySurface_G1Surfaceof4CornerPoints->InsertVKnot(VKnots(i), VMults(i), Precision::Confusion());
 
-	for (int i = 1; i <= NbUKnot; i++)
+	for (Standard_Integer i = 1; i <= NbUKnot; i++)
 		mySurface_G1Surfaceof4CornerPoints->InsertUKnot(UKnots(i), UMults(i), Precision::Confusion());
 
 	//2.4 Generate the sum surface mySurface_VRuled + mySurface_URuled - mySurface_RuledSurfaceof4CornerPoints 
 	//increase degree
 
-	for (int i = 1; i <= NbUPoles; i++)
+	for (Standard_Integer i = 1; i <= NbUPoles; i++)
 	{
-		for (int j = 1; j <= NbVPoles; j++)
+		for (Standard_Integer j = 1; j <= NbVPoles; j++)
 		{
 			Poles_result(i, j).SetXYZ(mySurface_V->Pole(i, j).XYZ() + mySurface_U->Pole(i, j).XYZ() - mySurface_G1Surfaceof4CornerPoints->Pole(i, j).XYZ());
 		}
@@ -505,7 +505,7 @@ void SurfaceModelingTool::Coons_G1(Handle(Geom_BSplineCurve)& curve1, Handle(Geo
 		curve1->Degree(), curve2->Degree());
 }
 
-int SurfaceModelingTool:: Arrange_Coons_G0(std::vector<Handle(Geom_BSplineCurve)>& curveArray, Handle(Geom_BSplineCurve)& bslpineCurve1, Handle(Geom_BSplineCurve)& bslpineCurve2, Handle(Geom_BSplineCurve)& bslpineCurve3, Handle(Geom_BSplineCurve)& bslpineCurve4, double Tol, int IsModify)
+Standard_Integer SurfaceModelingTool:: Arrange_Coons_G0(std::vector<Handle(Geom_BSplineCurve)>& curveArray, Handle(Geom_BSplineCurve)& bslpineCurve1, Handle(Geom_BSplineCurve)& bslpineCurve2, Handle(Geom_BSplineCurve)& bslpineCurve3, Handle(Geom_BSplineCurve)& bslpineCurve4, double Tol, Standard_Integer IsModify)
 {
 	//Standard_Real Tol = 2;
 	//Currently only work for four curves
@@ -536,7 +536,7 @@ int SurfaceModelingTool:: Arrange_Coons_G0(std::vector<Handle(Geom_BSplineCurve)
 
 	gp_Pnt point;
 	//fine curve2
-	for (int i = 0; i < curveArraybak.size(); i++)
+	for (Standard_Integer i = 0; i < curveArraybak.size(); i++)
 	{
 		bslpineCurve2 = curveArraybak[i];
 
@@ -582,7 +582,7 @@ int SurfaceModelingTool:: Arrange_Coons_G0(std::vector<Handle(Geom_BSplineCurve)
 	}
 
 	//fine curve3
-	for (int i = 0; i < curveArraybak.size(); i++)
+	for (Standard_Integer i = 0; i < curveArraybak.size(); i++)
 	{
 		bslpineCurve3 = curveArraybak[i];
 
@@ -694,7 +694,7 @@ void SurfaceModelingTool::ClassifyAndSortISOcurves(const std::vector<Handle(Geom
 	// 取出第一条曲线来确定U方向
 	const Handle(Geom_BSplineCurve)& firstCurve = anISOcurvesArray.front();
 	uISOcurvesArray.push_back(firstCurve);
-	for (int i = 1; i < anISOcurvesArray.size(); i++)
+	for (Standard_Integer i = 1; i < anISOcurvesArray.size(); i++)
 	{
 		const auto& curve = anISOcurvesArray[i];
 		// 如果等参线之间的最小距离大于 0，那么代表为同向等参线，在这里为 u 向
@@ -768,7 +768,7 @@ double CompareCurve(const std::vector<gp_Pnt>& points, std::vector<double>& para
 	double maxError1 = 0;
 	double maxParam = 0;
 	bool NeedIter = false;
-	for (int i = 0; i < params.size(); i++) {
+	for (Standard_Integer i = 0; i < params.size(); i++) {
 		gp_Pnt pnt = BsplineCurve->Value(params[i]);
 		Standard_Real x, y, z;
 		pnt.Coord(x, y, z);
@@ -791,14 +791,14 @@ double CompareCurve(const std::vector<gp_Pnt>& points, std::vector<double>& para
 	return maxError1;
 }
 
-int FindSpan(int n, int p, double u, const std::vector<double>& Knots)
+Standard_Integer FindSpan(Standard_Integer n, Standard_Integer p, double u, const std::vector<double>& Knots)
 {
 	if (u == Knots[n + 1])
 		return n;
-	int low, hign;
+	Standard_Integer low, hign;
 	low = p;
 	hign = n + 1;
-	int mid = (low + hign) / 2;
+	Standard_Integer mid = (low + hign) / 2;
 	while (u < Knots[mid] || u >= Knots[mid + 1])
 	{
 		if (u < Knots[mid])
@@ -829,7 +829,7 @@ std::vector<double> KnotGernerationByMergeKnots(const std::vector<double>& Knots
 			TempB.push_back(KnotsB[i]);
 		}
 	}
-	int i = 0, j = 0;
+	Standard_Integer i = 0, j = 0;
 	while (i < KnotsA.size() && j < TempB.size()) {
 		if (islessequal(KnotsA[i], TempB[j])) {
 			C.push_back(KnotsA[i]);
@@ -867,10 +867,10 @@ void UniformCurve(Handle(Geom_BSplineCurve)& curve)
 }
 
 //To compute the value of a b-spline basic function value 
-double OneBasicFun(double u, int i, int p, std::vector<double>& Knots)
+double OneBasicFun(double u, Standard_Integer i, Standard_Integer p, std::vector<double>& Knots)
 {
 	double Nip, uleft, uright, saved, temp;
-	int m = Knots.size() - 1;
+	Standard_Integer m = Knots.size() - 1;
 	std::vector<double>N(p + 1);
 	if ((i == 0 && isEqual(u, Knots[0])) || (i == m - p - 1 && isEqual(u, Knots[m])))
 	{
@@ -924,8 +924,8 @@ double OneBasicFun(double u, int i, int p, std::vector<double>& Knots)
 }
 
 //To compute the Res Point Value
-gp_Vec CalResPnt(int k, const std::vector<gp_Pnt>& dataPoints, std::vector<double>& parameters, Standard_Integer p,
-	std::vector<double>& Knots, int CtrlPntNum) {
+gp_Vec CalResPnt(Standard_Integer k, const std::vector<gp_Pnt>& dataPoints, std::vector<double>& parameters, Standard_Integer p,
+	std::vector<double>& Knots, Standard_Integer CtrlPntNum) {
 	Standard_Real aCoeff1 = OneBasicFun(parameters[k], 0, p, Knots);
 	Standard_Real aCoeff2 = OneBasicFun(parameters[k], CtrlPntNum, p, Knots);
 	gp_Vec vecTemp0(dataPoints[0].Coord());
@@ -959,11 +959,11 @@ void ComputeChordLength(const std::vector<gp_Pnt>& points, std::vector<double>& 
 }
 
 //To trans Sequence to Knots
-void sequenceToKnots(const std::vector<double>& sequence, std::vector<double>& knots, std::vector<int>& multiplicities)
+void sequenceToKnots(const std::vector<double>& sequence, std::vector<double>& knots, std::vector<Standard_Integer>& multiplicities)
 {
 	if (sequence.empty()) return;
 
-	std::map<double, int> knotMap;
+	std::map<double, Standard_Integer> knotMap;
 
 	// 使用map来统计每个节点的重复次数
 	for (double value : sequence) 
@@ -996,10 +996,10 @@ void sequenceToKnots(const std::vector<double>& sequence, std::vector<double>& k
 //Assume there are m data points.We need to use n( CtrlPntNum)+1 to approximate the m data points .
 //CtrlPntNum n
 Handle(Geom_BSplineCurve) ApproximateC(const std::vector<gp_Pnt>& Pnts, std::vector<double>& PntParams, TColStd_Array1OfReal& Knots, TColStd_Array1OfInteger& Mutis, std::vector<double>& FKnots,
-	int degree)
+	Standard_Integer degree)
 {
-	int n = FKnots.size() - degree - 2;
-	int m = Pnts.size() - 1;
+	Standard_Integer n = FKnots.size() - degree - 2;
+	Standard_Integer m = Pnts.size() - 1;
 	//1.Chord Parameterized
 	if (PntParams.size() == 0)
 	{
@@ -1062,10 +1062,10 @@ Handle(Geom_BSplineCurve) ApproximateC(const std::vector<gp_Pnt>& Pnts, std::vec
 	//in this case, the knot vector(the number of contral point), the degree is known before approximate.
 	//Assume there are m data points.We need to use n( CtrlPntNum)+1 to approximate the m data points .
 	//CtrlPntNum n
-Handle(Geom_BSplineCurve) ApproximateC(const std::vector<gp_Pnt>& Pnts, std::vector<double>& params, std::vector<double>& FKnots, int degree)
+Handle(Geom_BSplineCurve) ApproximateC(const std::vector<gp_Pnt>& Pnts, std::vector<double>& params, std::vector<double>& FKnots, Standard_Integer degree)
 {
 	std::vector<double> Knots;
-	std::vector<int> Mutis;
+	std::vector<Standard_Integer> Mutis;
 	sequenceToKnots(FKnots, Knots, Mutis);
 	TColStd_Array1OfReal Knots_OCC(1, Knots.size());
 	TColStd_Array1OfInteger Mutis_OCC(1, Mutis.size());
@@ -1080,12 +1080,12 @@ Handle(Geom_BSplineCurve) ApproximateC(const std::vector<gp_Pnt>& Pnts, std::vec
 void SurfaceModelingTool::CreateLoftingSurface(const std::vector<Handle(Geom_BSplineCurve)>& curvesArray, const std::vector<gp_Vec>& normals, std::vector<TopoDS_Shape>& loftingSurfaces)
 {
 	double offsetDistance = 400;
-	for (int i = 0; i < curvesArray.size(); i++)
+	for (Standard_Integer i = 0; i < curvesArray.size(); i++)
 	{
 		TColgp_Array1OfPnt aPnts1(1, curvesArray[i]->NbPoles());
 		TColgp_Array1OfPnt aPnts2(1, curvesArray[i]->NbPoles());
 
-		for (int j = 0; j < curvesArray[i]->NbPoles(); j++)
+		for (Standard_Integer j = 0; j < curvesArray[i]->NbPoles(); j++)
 		{
 			aPnts1.SetValue(j + 1, curvesArray[i]->Pole(j + 1).Translated(normals[i] * offsetDistance));
 			aPnts2.SetValue(j + 1, curvesArray[i]->Pole(j + 1).Translated(-normals[i] * offsetDistance));
@@ -1138,9 +1138,9 @@ void SurfaceModelingTool::CreateLoftingSurface(const std::vector<Handle(Geom_BSp
 	}
 }
 
-Handle(Geom_BSplineCurve) IterateApproximate(std::vector<double>& InsertKnots, const std::vector<gp_Pnt>& Pnts, std::vector<double>& PntsParams, std::vector<double>& InitKnots, int degree, int MaxIterNum, double toler)
+Handle(Geom_BSplineCurve) IterateApproximate(std::vector<double>& InsertKnots, const std::vector<gp_Pnt>& Pnts, std::vector<double>& PntsParams, std::vector<double>& InitKnots, Standard_Integer degree, Standard_Integer MaxIterNum, double toler)
 {
-	int itNum = 1;
+	Standard_Integer itNum = 1;
 	double currentMaxError = 100;
 	Handle(Geom_BSplineCurve) IterBspineCurve;
 	std::vector<double> CurrentKnots = InitKnots;
@@ -1243,7 +1243,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 	Handle(Geom_BSplineSurface) CoonsSurface)
 {
 	std::vector<std::vector<gp_Pnt>> debugPoints;
-	for (int i = 0; i < LoftingSur.size(); i++)
+	for (Standard_Integer i = 0; i < LoftingSur.size(); i++)
 	{
 		std::vector<gp_Pnt> aPntsVector; // 动态存储交点和端点
 		std::vector<gp_Pnt> aInterPnts;  // 每个LoftingSur与内部线的交点
@@ -1259,14 +1259,14 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			if (!aLoftingSur.IsNull())
 			{
 				// 遍历内部的B样条曲线，计算交点
-				for (int j = 0; j < anInternalBSplineCurves.size(); j++)
+				for (Standard_Integer j = 0; j < anInternalBSplineCurves.size(); j++)
 				{
 					GeomAPI_IntCS anInterCS(anInternalBSplineCurves[j], aLoftingSur);
 					if (anInterCS.IsDone())
 					{
 						if (anInterCS.NbPoints())
 						{
-							for (int k = 1; k <= anInterCS.NbPoints(); k++)
+							for (Standard_Integer k = 1; k <= anInterCS.NbPoints(); k++)
 							{
 								aInterPnts.emplace_back(anInterCS.Point(k));
 							}
@@ -1292,7 +1292,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			aPntsVector.insert(aPntsVector.begin(), startPoint);  // 起点
 			aPntsVector.push_back(endPoint);    // 终点
 
-			for (int j = 1; j < aPntsVector.size() - 1; j++)
+			for (Standard_Integer j = 1; j < aPntsVector.size() - 1; j++)
 			{
 				gp_Pnt lastPnt = aPntsVector[j - 1];
 				gp_Pnt Pnt = aPntsVector[j];
@@ -1460,7 +1460,7 @@ void SurfaceModelingTool::LoftSurfaceIntersectWithCurve(const std::vector<TopoDS
 			endDirection.Multiply(CalPointsChordLen(aPntsVector) / endDirection.Magnitude());
 
 			Handle(TColgp_HArray1OfPnt) points = new TColgp_HArray1OfPnt(1, aPntsVector.size());
-			for (int j = 0; j < aPntsVector.size(); j++)
+			for (Standard_Integer j = 0; j < aPntsVector.size(); j++)
 			{
 				points->SetValue(j + 1, aPntsVector[j]);
 			}
@@ -1492,31 +1492,31 @@ std::vector<double> GetKnotsSequence(Handle(Geom_BSplineCurve) curve)
 {
 	std::vector<double> debugKnots;
 	TColStd_Array1OfReal KnotsSequence = curve->KnotSequence();
-	for (int i = KnotsSequence.Lower(); i <= KnotsSequence.Upper(); i++)
+	for (Standard_Integer i = KnotsSequence.Lower(); i <= KnotsSequence.Upper(); i++)
 	{
 		debugKnots.push_back(KnotsSequence.Value(i));
 	}
 	return debugKnots;
 }
 
-std::vector<double> ComputeUniformParam(int numSamples, double left, double right) {
+std::vector<double> ComputeUniformParam(Standard_Integer numSamples, double left, double right) {
 	std::vector<double> parameters;
 	if (numSamples == 0) {
 		return parameters;
 	}
-	for (int i = 1; i <= numSamples; i++) {
+	for (Standard_Integer i = 1; i <= numSamples; i++) {
 		Standard_Real param = left + (right - left) * (i - 1) / (numSamples - 1);
 		parameters.push_back(param);
 	}
 	return parameters;
 }
 
-std::vector<double> KnotGernerationByParams(const std::vector<double>& params, int n, int p)
+std::vector<double> KnotGernerationByParams(const std::vector<double>& params, Standard_Integer n, Standard_Integer p)
 {
-	int m = params.size() - 1;
+	Standard_Integer m = params.size() - 1;
 	double d = (m + 1) / (n - p + 1);
 	std::vector<double> Knots(n + p + 2);
-	int temp;
+	Standard_Integer temp;
 	double alpha;
 	for (size_t i = 0; i <= p; i++)
 	{
@@ -1524,7 +1524,7 @@ std::vector<double> KnotGernerationByParams(const std::vector<double>& params, i
 	}
 	for (size_t j = 1; j <= n - p; j++)
 	{
-		temp = int(j * d);
+		temp = Standard_Integer(j * d);
 		alpha = j * d - temp;
 		Knots[p + j] = (1 - alpha) * params[temp - 1] + alpha * params[temp];
 	}
@@ -1535,8 +1535,8 @@ std::vector<double> KnotGernerationByParams(const std::vector<double>& params, i
 	return Knots;
 }
 //To compute the Res Point Value - first d1 case
-gp_Vec CalResPnt(int k, const std::vector<gp_Pnt>& dataPoints, const gp_Pnt& SecondPoint, const gp_Pnt& LastSecondPoint, const std::vector<double>& parameters, Standard_Integer p,
-	std::vector<double>& Knots, int CtrlPntNum) {
+gp_Vec CalResPnt(Standard_Integer k, const std::vector<gp_Pnt>& dataPoints, const gp_Pnt& SecondPoint, const gp_Pnt& LastSecondPoint, const std::vector<double>& parameters, Standard_Integer p,
+	std::vector<double>& Knots, Standard_Integer CtrlPntNum) {
 	Standard_Real aCoeff0 = OneBasicFun(parameters[k], 0, p, Knots);
 	Standard_Real aCoeff1 = OneBasicFun(parameters[k], 1, p, Knots);
 	Standard_Real aCoeffms1 = OneBasicFun(parameters[k], CtrlPntNum - 1, p, Knots);
@@ -1551,7 +1551,7 @@ gp_Vec CalResPnt(int k, const std::vector<gp_Pnt>& dataPoints, const gp_Pnt& Sec
 }
 
 Handle(Geom_BSplineCurve) EndDerivaConstraintBsplineCurveAppro(const std::vector<gp_Pnt>& Pnts, const gp_Vec& FirstD1, const gp_Vec& LastD1,
-	std::vector<double>& Params, std::vector<double>& KnotSequences, int degree) {
+	std::vector<double>& Params, std::vector<double>& KnotSequences, Standard_Integer degree) {
 	//check the number must large than 3
 	if (Pnts.size() < 3) {
 		std::cerr << "the number of data points must great than 3!" << std::endl;
@@ -1563,25 +1563,25 @@ Handle(Geom_BSplineCurve) EndDerivaConstraintBsplineCurveAppro(const std::vector
 	gp_Pnt second_point = gp_Pnt(second_point_vectype.XYZ());
 
 	//compute the second point
-	int index = KnotSequences.size() - degree - 2;
+	Standard_Integer index = KnotSequences.size() - degree - 2;
 	gp_Vec last_point_vectype = gp_Vec(Pnts.back().XYZ());
 	gp_Vec last_second_point_vectype = last_point_vectype - ((1 - KnotSequences[index]) / (double)degree) * LastD1;
 	gp_Pnt last_second_point = gp_Pnt(last_second_point_vectype.XYZ());
 
-	int n = KnotSequences.size() - degree - 2;
-	int m = Pnts.size() - 1;
+	Standard_Integer n = KnotSequences.size() - degree - 2;
+	Standard_Integer m = Pnts.size() - 1;
 
 	// Construct matrix N
 	Eigen::MatrixXd matN = Eigen::MatrixXd::Zero(m - 1, n - 3);
-	for (int i = 0; i < m - 1; ++i) {
-		for (int j = 0; j < n - 3; ++j) {
+	for (Standard_Integer i = 0; i < m - 1; ++i) {
+		for (Standard_Integer j = 0; j < n - 3; ++j) {
 			matN(i, j) = OneBasicFun(Params[i + 1], j + 2, degree, KnotSequences);
 		}
 	}
 
 	// Construct matrix R for x, y, z components
 	Eigen::MatrixXd VR(3, m - 1);
-	for (int i = 1; i <= m - 1; ++i) {
+	for (Standard_Integer i = 1; i <= m - 1; ++i) {
 		gp_Vec VecTemp = CalResPnt(i, Pnts, second_point, last_second_point, Params, degree, KnotSequences, n);
 		double x, y, z;
 		VecTemp.Coord(x, y, z);
@@ -1599,13 +1599,13 @@ Handle(Geom_BSplineCurve) EndDerivaConstraintBsplineCurveAppro(const std::vector
 	ctrlPnts.SetValue(2, second_point);
 	ctrlPnts.SetValue(n, last_second_point);
 	ctrlPnts.SetValue(n + 1, Pnts[m]);
-	for (int i = 3; i <= n - 1; ++i) {
+	for (Standard_Integer i = 3; i <= n - 1; ++i) {
 		gp_Pnt pntTemp(S(0, i - 3), S(1, i - 3), S(2, i - 3));
 		ctrlPnts.SetValue(i, pntTemp);
 	}
 
 	std::vector<double> Knots;
-	std::vector<int> Mutis;
+	std::vector<Standard_Integer> Mutis;
 	sequenceToKnots(KnotSequences, Knots, Mutis);
 	TColStd_Array1OfReal Knots_OCC(1, Knots.size());
 	TColStd_Array1OfInteger Mutis_OCC(1, Mutis.size());
@@ -1621,8 +1621,8 @@ Handle(Geom_BSplineCurve) IterateApproximate(std::vector<double>& InsertKnots,
 	const std::vector<gp_Pnt>& Pnts, 
 	const gp_Vec& FirstD1, const gp_Vec& LastD1, 
 	std::vector<double>& PntsParams, std::vector<double>& InitKnots, 
-	int degree, int MaxIterNum, double toler) {
-	int itNum = 1;
+	Standard_Integer degree, Standard_Integer MaxIterNum, double toler) {
+	Standard_Integer itNum = 1;
 	double currentMaxError = 100;
 	Handle(Geom_BSplineCurve) IterBspineCurve;
 	std::vector<double> CurrentKnots = InitKnots;
@@ -1668,8 +1668,8 @@ Handle(Geom_BSplineCurve) IterateApproximate(std::vector<double>& InsertKnots,
 }
 
 //To compute the Res Point Value - first d1 case
-gp_Vec CalResPnt(int k, const std::vector<gp_Pnt>& dataPoints, const gp_Pnt& SecondPoint, const std::vector<double>& parameters, Standard_Integer p,
-	std::vector<double>& Knots, int CtrlPntNum) {
+gp_Vec CalResPnt(Standard_Integer k, const std::vector<gp_Pnt>& dataPoints, const gp_Pnt& SecondPoint, const std::vector<double>& parameters, Standard_Integer p,
+	std::vector<double>& Knots, Standard_Integer CtrlPntNum) {
 	Standard_Real aCoeff0 = OneBasicFun(parameters[k], 0, p, Knots);
 	Standard_Real aCoeff1 = OneBasicFun(parameters[k], 1, p, Knots);
 	Standard_Real aCoeffm = OneBasicFun(parameters[k], CtrlPntNum, p, Knots);
@@ -1709,7 +1709,7 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 	}
 
 	// 如果两点在同一侧，继续查找下一个点
-	int next = 2;
+	Standard_Integer next = 2;
 	while (!isOppositeSide && next < distancesP1.size())  // 检查索引是否越界
 	{
 		nearestPoint2_P1 = distancesP1[next++].second;
@@ -1750,7 +1750,7 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 	}
 
 	// 如果两点在同一侧，继续查找下一个点
-	int nextP2 = 2;
+	Standard_Integer nextP2 = 2;
 	while (!isOppositeSide_P2 && nextP2 < distancesP2.size())
 	{
 		nearestPoint2_P2 = distancesP2[nextP2++].second;
@@ -1769,7 +1769,7 @@ std::pair<double, double> processPoints(const gp_Pnt& P1, const gp_Pnt& P2, cons
 	double L2 = P2.Distance(nearestPoint1_P2) + P2.Distance(nearestPoint2_P2);
 	double searchRadius = (std::max(L1,L2) - std::min(L1, L2)) / 2;
 
-	int M = 0;
+	Standard_Integer M = 0;
 	double w1, w2;
 	if (L1 > L2)
 	{
@@ -1813,7 +1813,7 @@ void ProcessISOCurvesWithTangent(
 	const std::vector<Handle(Geom_BSplineSurface)>& surfaceArr)
 {
 	Standard_Integer degree = isoCurvesArray_New[0]->Degree();
-	for (int i = 0; i < isoCurvesArray_New.size(); i++)
+	for (Standard_Integer i = 0; i < isoCurvesArray_New.size(); i++)
 	{
 		auto curve = isoCurvesArray_New[i];
 
@@ -1824,7 +1824,7 @@ void ProcessISOCurvesWithTangent(
 		std::vector<gp_Pnt> intersectionPoints;
 
 		// 遍历相对方向的等参线，计算交点
-		for (int j = 0; j < oppsiteISOcurvesArray_New.size(); j++)
+		for (Standard_Integer j = 0; j < oppsiteISOcurvesArray_New.size(); j++)
 		{
 			Handle(Geom_BSplineCurve) oppositeCurve = oppsiteISOcurvesArray_New[j];
 			GeomAPI_ExtremaCurveCurve extrema(curve, oppositeCurve);
@@ -1861,7 +1861,7 @@ void ProcessISOCurvesWithTangent(
 		intersectionPoints.insert(intersectionPoints.begin(), startPoint);
 		intersectionPoints.push_back(endPoint);
 
-		for (int j = 1; j < intersectionPoints.size() - 1; j++)
+		for (Standard_Integer j = 1; j < intersectionPoints.size() - 1; j++)
 		{
 			if (intersectionPoints[j].Distance(intersectionPoints[j - 1]) < startPoint.Distance(endPoint) / (isoCount * 2) ||
 				intersectionPoints[j].Distance(intersectionPoints[j + 1]) < startPoint.Distance(endPoint) / (isoCount * 2))
@@ -2079,7 +2079,7 @@ Handle(Geom_BSplineSurface) FindClosestSurface(
 	double threshold)
 {
 	double minDistance = std::numeric_limits<double>::max();
-	int closestSurfaceIndex = -1;
+	Standard_Integer closestSurfaceIndex = -1;
 
 	for (size_t i = 0; i < surfaceArr.size(); ++i)
 	{
@@ -2096,7 +2096,7 @@ Handle(Geom_BSplineSurface) FindClosestSurface(
 		if (distance < minDistance)
 		{
 			minDistance = distance;
-			closestSurfaceIndex = static_cast<int>(i);
+			closestSurfaceIndex = static_cast<Standard_Integer>(i);
 		}
 	}
 
@@ -2137,7 +2137,7 @@ void SurfaceModelingTool::CreateFinalISOCurves(
 	std::vector<Handle(Geom_BSplineSurface)> vTangentSurface(2);
 
 	double minDistance = INT_MAX;  // 初始为最大值
-	int closestSurfaceIndex = -1;  // 初始化为无效索引
+	Standard_Integer closestSurfaceIndex = -1;  // 初始化为无效索引
 
 	gp_Pnt startPoint = uISOcurvesArray_New[uISOcurvesArray_New.size() / 2]->StartPoint();
 	gp_Pnt endPoint = uISOcurvesArray_New[uISOcurvesArray_New.size() / 2]->EndPoint();
@@ -2379,7 +2379,7 @@ void SurfaceModelingTool::LoadBSplineSurfaces(const std::string& filePath, std::
 }
 void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface)& surfacecoons, 
 	std::vector<Handle(Geom_BSplineCurve)>& uISOcurvesArray_Initial, 
-	std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Initial, std::vector<gp_Vec>& normalsOfUISOLines, std::vector<gp_Vec>& normalsOfVISOLines, int numIsoCurves)
+	std::vector<Handle(Geom_BSplineCurve)>& vISOcurvesArray_Initial, std::vector<gp_Vec>& normalsOfUISOLines, std::vector<gp_Vec>& normalsOfVISOLines, Standard_Integer numIsoCurves)
 {
 	auto IsPointOnSurface = [](const gp_Pnt& point, const Handle(Geom_Surface)& surface)
 	{
@@ -2409,8 +2409,8 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 
 	std::vector<std::pair<gp_Vec, gp_Vec>> tangentOfUISOLines;
 	std::vector<std::pair<gp_Vec, gp_Vec>> tangentOfVISOLines;
-	const int numSamplePoints = 10;
-	for (int i = 1; i < numIsoCurves; i++)
+	const Standard_Integer numSamplePoints = 10;
+	for (Standard_Integer i = 1; i < numIsoCurves; i++)
 	{
 		std::vector<gp_Vec> normalsU;
 		std::vector<gp_Vec> normalsV;
@@ -2424,7 +2424,7 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 		double uEnd = aUGeom_BSplineCurve->LastParameter();
 
 		gp_Vec startTangent, endTangent;
-		for (int j = 0; j < numSamplePoints; j++)
+		for (Standard_Integer j = 0; j < numSamplePoints; j++)
 		{
 			double t = uStart + j * (uEnd - uStart) / (numSamplePoints - 1); // 在实际参数范围内均匀取点
 			gp_Pnt p1 = aUGeom_BSplineCurve->Value(t);
@@ -2458,7 +2458,7 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 
 		double vStart = aVGeom_BSplineCurve->FirstParameter();
 		double vEnd = aVGeom_BSplineCurve->LastParameter();
-		for (int j = 0; j < numSamplePoints; j++)
+		for (Standard_Integer j = 0; j < numSamplePoints; j++)
 		{
 			double t = vStart + j * (vEnd - vStart) / (numSamplePoints - 1);
 			gp_Pnt p1 = aVGeom_BSplineCurve->Value(t);
@@ -2562,7 +2562,7 @@ bool SurfaceModelingTool::ExportBSplineCurves(const std::vector<Handle(Geom_BSpl
 
 	return true;
 }
-void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, int samplingNum)
+void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSplineCurve)>& curves, Standard_Integer samplingNum)
 {
 	for (auto& curve : curves) 
 	{
@@ -2582,7 +2582,7 @@ void SurfaceModelingTool::ApproximateBoundaryCurves(std::vector<Handle(Geom_BSpl
 		Standard_Real vMin = curve->FirstParameter();
 		Standard_Real vMax = curve->LastParameter();
 
-		for (int j = 1; j <= samplingNum; j++) 
+		for (Standard_Integer j = 1; j <= samplingNum; j++) 
 		{
 			Standard_Real param = vMin + (vMax - vMin) * (j - 1) / (samplingNum - 1);
 			gp_Pnt pnt = curve->Value(param);
@@ -2684,480 +2684,1091 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 	MathTool::ReverseIfNeeded(uISOcurvesArray_Final);
 	MathTool::ReverseIfNeeded(vISOcurvesArray_Final);
 }
-bool SurfaceModelingTool::GetInternalCurves(
-	std::vector<Handle(Geom_BSplineCurve)>& aBoundarycurveArray,
-	std::vector<Handle(Geom_BSplineCurve)>& anInternalBSplineCurves,
-	std::vector<Handle(Geom_BSplineCurve)>& uInternalCurve,
-	std::vector<Handle(Geom_BSplineCurve)>& vInternalCurve,
-	double& uAngleSum,
-	double& vAngleSum,
-	double AngleTolerance)
-{
-	Handle(Geom_BSplineCurve) bslpineCurve1 = aBoundarycurveArray[0];
-	Handle(Geom_BSplineCurve) bslpineCurve2 = aBoundarycurveArray[1];
-	Handle(Geom_BSplineCurve) bslpineCurve3 = aBoundarycurveArray[2];
-	Handle(Geom_BSplineCurve) bslpineCurve4 = aBoundarycurveArray[3];
 
-	// 步骤1：初始化PlanarCurveArray，包含所有边界曲线
-	std::vector<PlanarCurve> PlanarCurveArray;
-	for (int i = 0; i < aBoundarycurveArray.size(); i++)
-	{
-		PlanarCurveArray.emplace_back(PlanarCurve(aBoundarycurveArray[i]));
+Standard_Boolean SurfaceModelingTool::GetInternalCurves(
+	std::vector<Handle(Geom_BSplineCurve)>& theBoundaryCurveArray,
+	std::vector<Handle(Geom_BSplineCurve)>& theInternalBSplineCurves,
+	std::vector<Handle(Geom_BSplineCurve)>& theUInternalCurve,
+	std::vector<Handle(Geom_BSplineCurve)>& theVInternalCurve,
+	Standard_Real& theUAngleSum,
+	Standard_Real& theVAngleSum,
+	Standard_Real theAngleTolerance) {
+
+	if (theBoundaryCurveArray.size() != 4) {
+		return Standard_False;
 	}
 
-	// 步骤2：检查所有边界曲线是否都是平面曲线
-	bool canUseInternalLines = true;
-	for (const PlanarCurve& curve : PlanarCurveArray)
-	{
-		if (curve.GetCurveType() == CurveType::NOTPLANAR)
-		{
-			canUseInternalLines = false; // 如果有非平面曲线，设置为 false
+	Handle(Geom_BSplineCurve) aBoundaryCurve1 = theBoundaryCurveArray[0];
+	Handle(Geom_BSplineCurve) aBoundaryCurve2 = theBoundaryCurveArray[1];
+	Handle(Geom_BSplineCurve) aBoundaryCurve3 = theBoundaryCurveArray[2];
+	Handle(Geom_BSplineCurve) aBoundaryCurve4 = theBoundaryCurveArray[3];
+
+	std::vector<PlanarCurve> aPlanarCurveArray;
+	for (Standard_Integer i = 0; i < theBoundaryCurveArray.size(); ++i) {
+		aPlanarCurveArray.emplace_back(PlanarCurve(theBoundaryCurveArray[i]));
+	}
+
+	Standard_Boolean isPlanar = Standard_True;
+	for (const PlanarCurve& aCurve : aPlanarCurveArray) {
+		if (aCurve.GetCurveType() == CurveType::NOTPLANAR) {
+			isPlanar = Standard_False;
 			break;
 		}
 	}
 
-	if (!canUseInternalLines)
-	{
-		return false; // 如果任何一条边界曲线不是平面曲线，则直接返回false
+	if (!isPlanar) {
+		return Standard_False;
 	}
 
-	// 清空uInternalCurve和vInternalCurve，准备存储结果
-	uInternalCurve.clear();
-	vInternalCurve.clear();
+	theUInternalCurve.clear();
+	theVInternalCurve.clear();
 
-	// 遍历内部BSpline曲线
-	for (auto& internalCurve : anInternalBSplineCurves)
+	for (auto& anInternalCurve : theInternalBSplineCurves)
 	{
-		PlanarCurve InternalPlanarCurve(internalCurve);
+		PlanarCurve anInternalPlanarCurve(anInternalCurve);
 
-		// 如果内部曲线不是平面曲线，则跳过
-		if (InternalPlanarCurve.GetCurveType() == CurveType::NOTPLANAR)
+		if (anInternalPlanarCurve.GetCurveType() == CurveType::NOTPLANAR) 
 		{
 			continue;
 		}
 
-		// 计算内部曲线和四条边界曲线之间的距离
-		double distance1 = MathTool::ComputeCurveCurveDistance(InternalPlanarCurve.GetCurve(), bslpineCurve1);
-		double distance2 = MathTool::ComputeCurveCurveDistance(InternalPlanarCurve.GetCurve(), bslpineCurve2);
-		double distance3 = MathTool::ComputeCurveCurveDistance(InternalPlanarCurve.GetCurve(), bslpineCurve3);
-		double distance4 = MathTool::ComputeCurveCurveDistance(InternalPlanarCurve.GetCurve(), bslpineCurve4);
+		Standard_Real aDistance1 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve1);
+		Standard_Real aDistance2 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve2);
+		Standard_Real aDistance3 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve3);
+		Standard_Real aDistance4 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve4);
 
-		double SplitPointParameters[2] = { 0 };
+		Standard_Real aSplitPointParams[2] = { 0.0 };
 
-		// 步骤5：检查曲线是否靠近边界曲线，如果靠近，计算分割点
-		if ((distance1 < 10 && distance3 < 10) || (distance2 < 10 && distance4 < 10))
-		{
-			GeomAPI_ExtremaCurveCurve extrema1(InternalPlanarCurve.GetCurve(), distance1 < 10 ? bslpineCurve1 : bslpineCurve2);
-			GeomAPI_ExtremaCurveCurve extrema2(InternalPlanarCurve.GetCurve(), distance3 < 10 ? bslpineCurve3 : bslpineCurve4);
-			gp_Pnt internalPnt;
-			gp_Pnt replacePnt1, replacePnt2;
-			// 获取分割点参数
-			if (extrema1.NbExtrema() > 0)
-			{
-				double U;
-				extrema1.LowerDistanceParameters(SplitPointParameters[0], U);
-				extrema1.NearestPoints(internalPnt, replacePnt1);
-			}
-			if (extrema2.NbExtrema() > 0)	
-			{
-				double U;
-				extrema2.LowerDistanceParameters(SplitPointParameters[1], U);
-				extrema1.NearestPoints(internalPnt, replacePnt2);
+		if ((aDistance1 < 10.0 && aDistance3 < 10.0) || (aDistance2 < 10.0 && aDistance4 < 10.0)) {
+			GeomAPI_ExtremaCurveCurve anExtrema1(anInternalPlanarCurve.GetCurve(), aDistance1 < 10.0 ? aBoundaryCurve1 : aBoundaryCurve2);
+			GeomAPI_ExtremaCurveCurve anExtrema2(anInternalPlanarCurve.GetCurve(), aDistance3 < 10.0 ? aBoundaryCurve3 : aBoundaryCurve4);
+			gp_Pnt anInternalPoint;
+			gp_Pnt aReplacePoint1, aReplacePoint2;
+
+			Standard_Real aParameter = 0;
+			if (anExtrema1.NbExtrema() > 0) {
+				anExtrema1.LowerDistanceParameters(aSplitPointParams[0], aParameter);
+				anExtrema1.NearestPoints(anInternalPoint, aReplacePoint1);
 			}
 
-			// 确保分割点参数正确排序
-			if (SplitPointParameters[0] > SplitPointParameters[1])
-			{
-				std::swap(SplitPointParameters[1], SplitPointParameters[0]);
-				std::swap(replacePnt1, replacePnt2);
+			if (anExtrema2.NbExtrema() > 0) {
+				anExtrema2.LowerDistanceParameters(aSplitPointParams[1], aParameter);
+				anExtrema2.NearestPoints(anInternalPoint, aReplacePoint2);
 			}
 
-			// 对内部曲线进行裁剪
-			Handle(Geom_TrimmedCurve) trimmedCurve = new Geom_TrimmedCurve(InternalPlanarCurve.GetCurve(), SplitPointParameters[0], SplitPointParameters[1]);
-			Handle(Geom_BSplineCurve) aBsplineCurve = GeomConvert::CurveToBSplineCurve(trimmedCurve, Convert_TgtThetaOver2);
-			InternalPlanarCurve.SetCurve(aBsplineCurve);
-			/*
-			aBsplineCurve->SetPole(1, replacePnt1);
-			aBsplineCurve->SetPole(InternalPlanarCurve.GetCurve()->NbPoles(), replacePnt2);
-			distance1 = aBsplineCurve->StartPoint().Distance(replacePnt1);
-			distance2 = aBsplineCurve->EndPoint().Distance(replacePnt2);
-			std::vector<gp_Pnt> ApproximatePoints = MathTool::GetSamplePointsOnCurve(InternalPlanarCurve.GetCurve(), 100);
-			ApproximatePoints[0] = replacePnt1;
-			ApproximatePoints[ApproximatePoints.size() - 1] = replacePnt2;
-			MathTool::SortPoints(ApproximatePoints, ApproximatePoints[0]);
-			std::vector<double> params = ComputeUniformParam(ApproximatePoints.size(), 0., 1.);
-			std::vector<double> tempKnots = KnotGernerationByParams(params, 3, InternalPlanarCurve.GetCurve()->Degree());
-			std::vector<double> insertKnots;
-			Handle(Geom_BSplineCurve) aBSplineCurve = IterateApproximate(insertKnots, ApproximatePoints, params, tempKnots, InternalPlanarCurve.GetCurve()->Degree(), 50, 0.01);
-			InternalPlanarCurve.SetCurve(aBSplineCurve);
-			*/
-
-			// 计算角度并分类曲线
-			double angle1, angle3, angle2, angle4;
-			angle1 = MathTool::ComputeAngleBetweenPlanarCurves(PlanarCurveArray[0], InternalPlanarCurve);
-			angle2 = MathTool::ComputeAngleBetweenPlanarCurves(PlanarCurveArray[1], InternalPlanarCurve);
-			angle3 = MathTool::ComputeAngleBetweenPlanarCurves(PlanarCurveArray[2], InternalPlanarCurve);
-			angle4 = MathTool::ComputeAngleBetweenPlanarCurves(PlanarCurveArray[3], InternalPlanarCurve);
-
-			// 根据角度值判断该曲线属于u方向还是v方向
-			if (std::abs(angle1) < AngleTolerance && std::abs(angle3) < AngleTolerance)
-			{
-				uAngleSum += (std::abs(angle1) + std::abs(angle3)) / 2;
-				uInternalCurve.push_back(InternalPlanarCurve.GetCurve());
+			if (aSplitPointParams[0] > aSplitPointParams[1]) {
+				std::swap(aSplitPointParams[0], aSplitPointParams[1]);
+				std::swap(aReplacePoint1, aReplacePoint2);
 			}
-			else if (std::abs(angle2) < AngleTolerance && std::abs(angle4) < AngleTolerance)
+
+			Handle(Geom_TrimmedCurve) aTrimmedCurve = new Geom_TrimmedCurve(anInternalPlanarCurve.GetCurve(), aSplitPointParams[0], aSplitPointParams[1]);
+			Handle(Geom_BSplineCurve) aModifiedCurve = GeomConvert::CurveToBSplineCurve(aTrimmedCurve, Convert_TgtThetaOver2);
+
+			aModifiedCurve->SetPole(1, aReplacePoint1);
+			aModifiedCurve->SetPole(aModifiedCurve->NbPoles(), aReplacePoint2);
+			anInternalPlanarCurve.SetCurve(aModifiedCurve);
+
+			Standard_Real anAngle1 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[0], anInternalPlanarCurve);
+			Standard_Real anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
+			Standard_Real anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
+			Standard_Real anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
+			if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance &&
+				std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
 			{
-				vAngleSum += (std::abs(angle2) + std::abs(angle4)) / 2;
-				vInternalCurve.push_back(InternalPlanarCurve.GetCurve());
+				if (aDistance1 < 10.0 && aDistance3 < 10.0)
+				{
+					theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
+					theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+				}
+				else if(aDistance2 < 10.0 && aDistance4 < 10.0)
+				{
+					theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
+					theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+				}
+			}
+			else if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance)
+			{
+				theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
+				theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+			}
+			else if (std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance) 
+			{
+				theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
+				theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
 			}
 		}
 	}
 
-	// 将边界曲线添加到uInternalCurve和vInternalCurve的头部和尾部
-	uInternalCurve.insert(uInternalCurve.begin(), bslpineCurve1);
-	uInternalCurve.insert(uInternalCurve.end(), bslpineCurve3);
-	vInternalCurve.insert(vInternalCurve.begin(), bslpineCurve2);
-	vInternalCurve.insert(vInternalCurve.end(), bslpineCurve4);
+	theUInternalCurve.insert(theUInternalCurve.begin(), aBoundaryCurve1);
+	theUInternalCurve.push_back(aBoundaryCurve3);
+	theVInternalCurve.insert(theVInternalCurve.begin(), aBoundaryCurve2);
+	theVInternalCurve.push_back(aBoundaryCurve4);
 
-	// 排序曲线并检查自交
-	MathTool::SortBSplineCurves(uInternalCurve, uInternalCurve[0]);
-	MathTool::SortBSplineCurves(vInternalCurve, vInternalCurve[0]);
+	MathTool::SortBSplineCurves(theUInternalCurve, theUInternalCurve[0]);
+	MathTool::SortBSplineCurves(theVInternalCurve, theVInternalCurve[0]);
+	MathTool::CheckSelfIntersect(theUInternalCurve);
+	MathTool::CheckSelfIntersect(theVInternalCurve);
 
-	MathTool::CheckSelfIntersect(uInternalCurve);
-	MathTool::CheckSelfIntersect(vInternalCurve);
-
-	//SurfaceModelingTool tool;
-	//tool.CompatibleWithInterPoints(uInternalCurve, vInternalCurve);
-	//tool.CompatibleWithInterPoints(vInternalCurve, uInternalCurve);
-	// 如果uInternalCurve和vInternalCurve的曲线数有一个大于4，则返回true
-	return uInternalCurve.size() > 4 || vInternalCurve.size() > 4;
+	return theUInternalCurve.size() >= 4 || theVInternalCurve.size() >= 4;
 }
+
 
 Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
-	std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray,
-	std::vector<Handle(Geom_BSplineCurve)>& uInternalCurve,
-	std::vector<Handle(Geom_BSplineCurve)>& vInternalCurve,
-	double uAngleSum,
-	double vAngleSum,
-	int isoCount,
-	ReferSurfaceType referSurfaceType)
+	std::vector<Handle(Geom_BSplineCurve)> theBoundaryCurveArray,
+	std::vector<Handle(Geom_BSplineCurve)>& theUInternalCurve,
+	std::vector<Handle(Geom_BSplineCurve)>& theVInternalCurve,
+	Standard_Real theUAngleSum,
+	Standard_Real theVAngleSum,
+	Standard_Integer theIsoCount,
+	ReferSurfaceType theReferSurfaceType)
 {
-	if (referSurfaceType == ReferSurfaceType::GORDEN_ONE_DIRECTION_COONS)
+	if (theReferSurfaceType == ReferSurfaceType::GORDEN_ONE_DIRECTION_GORDEN)
 	{
 		// 获取输入的边界曲线
-		Handle(Geom_BSplineCurve) bslpineCurve1 = aBoundarycurveArray[0];
-		Handle(Geom_BSplineCurve) bslpineCurve2 = aBoundarycurveArray[1];
-		Handle(Geom_BSplineCurve) bslpineCurve3 = aBoundarycurveArray[2];
-		Handle(Geom_BSplineCurve) bslpineCurve4 = aBoundarycurveArray[3];
+		Handle(Geom_BSplineCurve) aBsplineCurve1 = theBoundaryCurveArray[0];
+		Handle(Geom_BSplineCurve) aBsplineCurve2 = theBoundaryCurveArray[1];
+		Handle(Geom_BSplineCurve) aBsplineCurve3 = theBoundaryCurveArray[2];
+		Handle(Geom_BSplineCurve) aBsplineCurve4 = theBoundaryCurveArray[3];
 
 		// 存储生成的Gorden等参线曲线和剩余曲线
-		std::vector<Handle(Geom_BSplineCurve)> GordenISOCurves;
-		std::vector<Handle(Geom_BSplineCurve)> remainCurves;
+		std::vector<Handle(Geom_BSplineCurve)> aGordenISOCurves;
+		std::vector<Handle(Geom_BSplineCurve)> aRemainCurves;
 
 		// 使用新算法的标志
-		bool useNewAlgorithm = true;
+		Standard_Boolean aUseNewAlgorithm = true;
 
 		// 判断内部曲线的数量来选择构造Gorden曲面的方式
-		if (uInternalCurve.size() > vInternalCurve.size() && uInternalCurve.size() >= 4)
+		if (theUInternalCurve.size() > theVInternalCurve.size() && theUInternalCurve.size() >= 4)
 		{
 			// 选择u方向的内部线和边界来构造Gorden曲面
-			GordenISOCurves.insert(GordenISOCurves.end(), uInternalCurve.begin(), uInternalCurve.end());
-			remainCurves.push_back(bslpineCurve2);
-			remainCurves.push_back(bslpineCurve4);
+			aGordenISOCurves.insert(aGordenISOCurves.end(), theUInternalCurve.begin(), theUInternalCurve.end());
+			aRemainCurves.push_back(aBsplineCurve2);
+			aRemainCurves.push_back(aBsplineCurve4);
 		}
-		else if (vInternalCurve.size() > uInternalCurve.size() && vInternalCurve.size() >= 4)
+		else if (theVInternalCurve.size() > theUInternalCurve.size() && theVInternalCurve.size() >= 4)
 		{
 			// 选择v方向的内部线和边界来构造Gorden曲面
-			GordenISOCurves.insert(GordenISOCurves.end(), vInternalCurve.begin(), vInternalCurve.end());
-			remainCurves.push_back(bslpineCurve1);
-			remainCurves.push_back(bslpineCurve3);
+			aGordenISOCurves.insert(aGordenISOCurves.end(), theVInternalCurve.begin(), theVInternalCurve.end());
+			aRemainCurves.push_back(aBsplineCurve1);
+			aRemainCurves.push_back(aBsplineCurve3);
 		}
-		else if (uInternalCurve.size() == vInternalCurve.size() && uInternalCurve.size() >= 4)
+		else if (theUInternalCurve.size() == theVInternalCurve.size() && theUInternalCurve.size() >= 4)
 		{
 			// 如果u方向和v方向的内部曲线数量相等，根据角度之和来选择
-			if (uAngleSum < vAngleSum)
+			if (theUAngleSum < theVAngleSum)
 			{
-				GordenISOCurves.insert(GordenISOCurves.end(), uInternalCurve.begin(), uInternalCurve.end());
-				remainCurves.push_back(bslpineCurve2);
-				remainCurves.push_back(bslpineCurve4);
+				aGordenISOCurves.insert(aGordenISOCurves.end(), theUInternalCurve.begin(), theUInternalCurve.end());
+				aRemainCurves.push_back(aBsplineCurve2);
+				aRemainCurves.push_back(aBsplineCurve4);
 			}
 			else
 			{
-				GordenISOCurves.insert(GordenISOCurves.end(), vInternalCurve.begin(), vInternalCurve.end());
-				remainCurves.push_back(bslpineCurve1);
-				remainCurves.push_back(bslpineCurve3);
+				aGordenISOCurves.insert(aGordenISOCurves.end(), theVInternalCurve.begin(), theVInternalCurve.end());
+				aRemainCurves.push_back(aBsplineCurve1);
+				aRemainCurves.push_back(aBsplineCurve3);
 			}
 		}
 		else
 		{
 			// 如果条件不满足，回退到现有算法
-			useNewAlgorithm = false;
+			aUseNewAlgorithm = false;
 			return nullptr;
 		}
 
 		// 存储生成的等参线曲线和法线
-		std::vector<Handle(Geom_BSplineCurve)> uCreateGordenCurves, vCreateGordenCurves;
-		std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
+		std::vector<Handle(Geom_BSplineCurve)> aUCreateGordenCurves, aVCreateGordenCurves;
+		std::vector<gp_Vec> aNormalsOfUISOLines, aNormalsOfVISOLines;
 
 		// 最终生成的参考曲面
-		Handle(Geom_BSplineSurface) referSurface;
+		Handle(Geom_BSplineSurface) aReferSurface;
 
-		if (useNewAlgorithm)
-		{
-			// 使用Coons算法生成G0曲面
-			SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, referSurface);
-
-			// 从Coons曲面获取初始的等参线和法向量
-			SurfaceModelingTool::GetISOCurveWithNormal(referSurface, uCreateGordenCurves, vCreateGordenCurves, normalsOfUISOLines, normalsOfVISOLines, isoCount);
-
-			// 计算生成的曲线与Gorden曲线之间的角度
-			double AngleUwithG = MathTool::ComputeAngleBetweenCurves(uCreateGordenCurves[0], GordenISOCurves[0]);
-			double AngleVwithG = MathTool::ComputeAngleBetweenCurves(vCreateGordenCurves[0], GordenISOCurves[0]);
-
-			// 根据角度选择曲线
-			if (AngleUwithG > AngleVwithG)
-			{
-				// 如果u方向的角度更大，调整u和v方向的曲线顺序
-				vCreateGordenCurves.clear();
-				vCreateGordenCurves.insert(vCreateGordenCurves.begin(), GordenISOCurves.begin(), GordenISOCurves.end());
-				uCreateGordenCurves.insert(uCreateGordenCurves.begin(), remainCurves[0]);
-				uCreateGordenCurves.insert(uCreateGordenCurves.end(), remainCurves[1]);
-			}
-			else
-			{
-				// 调整v方向的曲线顺序
-				uCreateGordenCurves.clear();
-				uCreateGordenCurves.insert(uCreateGordenCurves.begin(), GordenISOCurves.begin(), GordenISOCurves.end());
-				vCreateGordenCurves.insert(vCreateGordenCurves.begin(), remainCurves[0]);
-				vCreateGordenCurves.insert(vCreateGordenCurves.end(), remainCurves[1]);
-			}
-
-			// 对生成的曲线进行排序并检查交点
-			MathTool::SortBSplineCurves(uCreateGordenCurves, uCreateGordenCurves[0]);
-			MathTool::SortBSplineCurves(vCreateGordenCurves, vCreateGordenCurves[0]);
-			TopoDS_Face GordenFace;
-			GordenSurface::BuildMyGordonSurf(uCreateGordenCurves, vCreateGordenCurves, GordenFace);
-
-			// 将生成的面转换为BSplineSurface
-			Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
-			referSurface = Handle(Geom_BSplineSurface)::DownCast(geomSurface);
-		}
-		uInternalCurve = uCreateGordenCurves;
-		vInternalCurve = vCreateGordenCurves;
-		// 返回生成的参考曲面
-		return referSurface;
-	}
-	if (referSurfaceType == ReferSurfaceType::GORDEN_ONE_DIRECTION_GORDEN)
-	{
-		// 获取输入的边界曲线
-		Handle(Geom_BSplineCurve) bslpineCurve1 = aBoundarycurveArray[0];
-		Handle(Geom_BSplineCurve) bslpineCurve2 = aBoundarycurveArray[1];
-		Handle(Geom_BSplineCurve) bslpineCurve3 = aBoundarycurveArray[2];
-		Handle(Geom_BSplineCurve) bslpineCurve4 = aBoundarycurveArray[3];
-
-		// 存储生成的Gorden等参线曲线和剩余曲线
-		std::vector<Handle(Geom_BSplineCurve)> GordenISOCurves;
-		std::vector<Handle(Geom_BSplineCurve)> remainCurves;
-
-		// 使用新算法的标志
-		bool useNewAlgorithm = true;
-
-		// 判断内部曲线的数量来选择构造Gorden曲面的方式
-		if (uInternalCurve.size() > vInternalCurve.size() && uInternalCurve.size() >= 4)
-		{
-			// 选择u方向的内部线和边界来构造Gorden曲面
-			GordenISOCurves.insert(GordenISOCurves.end(), uInternalCurve.begin(), uInternalCurve.end());
-			remainCurves.push_back(bslpineCurve2);
-			remainCurves.push_back(bslpineCurve4);
-		}
-		else if (vInternalCurve.size() > uInternalCurve.size() && vInternalCurve.size() >= 4)
-		{
-			// 选择v方向的内部线和边界来构造Gorden曲面
-			GordenISOCurves.insert(GordenISOCurves.end(), vInternalCurve.begin(), vInternalCurve.end());
-			remainCurves.push_back(bslpineCurve1);
-			remainCurves.push_back(bslpineCurve3);
-		}
-		else if (uInternalCurve.size() == vInternalCurve.size() && uInternalCurve.size() >= 4)
-		{
-			// 如果u方向和v方向的内部曲线数量相等，根据角度之和来选择
-			if (uAngleSum < vAngleSum)
-			{
-				GordenISOCurves.insert(GordenISOCurves.end(), uInternalCurve.begin(), uInternalCurve.end());
-				remainCurves.push_back(bslpineCurve2);
-				remainCurves.push_back(bslpineCurve4);
-			}
-			else
-			{
-				GordenISOCurves.insert(GordenISOCurves.end(), vInternalCurve.begin(), vInternalCurve.end());
-				remainCurves.push_back(bslpineCurve1);
-				remainCurves.push_back(bslpineCurve3);
-			}
-		}
-		else
-		{
-			// 如果条件不满足，回退到现有算法
-			useNewAlgorithm = false;
-			return nullptr;
-		}
-
-		// 存储生成的等参线曲线和法线
-		std::vector<Handle(Geom_BSplineCurve)> uCreateGordenCurves, vCreateGordenCurves;
-		std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
-
-		// 最终生成的参考曲面
-		Handle(Geom_BSplineSurface) referSurface;
-
-		if (useNewAlgorithm)
+		if (aUseNewAlgorithm)
 		{
 			// 计算曲线与曲线之间的角度
-			double AngleUwithG = MathTool::ComputeAngleBetweenCurves(bslpineCurve1, GordenISOCurves[0]);
-			double AngleVwithG = MathTool::ComputeAngleBetweenCurves(bslpineCurve2, GordenISOCurves[0]);
+			Standard_Real aAngleUwithG = MathTool::ComputeAngleBetweenCurves(aBsplineCurve1, aGordenISOCurves[0]);
+			Standard_Real aAngleVwithG = MathTool::ComputeAngleBetweenCurves(aBsplineCurve2, aGordenISOCurves[0]);
 
 			// 根据角度选择曲线
-			if (AngleUwithG > AngleVwithG)
+			if (aAngleUwithG > aAngleVwithG)
 			{
 				// 如果u方向的角度更大，调整u和v方向的曲线顺序
-				vCreateGordenCurves.clear();
-				vCreateGordenCurves.insert(vCreateGordenCurves.begin(), GordenISOCurves.begin(), GordenISOCurves.end());
-				uCreateGordenCurves.insert(uCreateGordenCurves.begin(), remainCurves[0]);
-				uCreateGordenCurves.insert(uCreateGordenCurves.end(), remainCurves[1]);
+				aVCreateGordenCurves.clear();
+				aVCreateGordenCurves.insert(aVCreateGordenCurves.begin(), aGordenISOCurves.begin(), aGordenISOCurves.end());
+				aUCreateGordenCurves.insert(aUCreateGordenCurves.begin(), aRemainCurves[0]);
+				aUCreateGordenCurves.insert(aUCreateGordenCurves.end(), aRemainCurves[1]);
 			}
 			else
 			{
 				// 调整v方向的曲线顺序
-				uCreateGordenCurves.clear();
-				uCreateGordenCurves.insert(uCreateGordenCurves.begin(), GordenISOCurves.begin(), GordenISOCurves.end());
-				vCreateGordenCurves.insert(vCreateGordenCurves.begin(), remainCurves[0]);
-				vCreateGordenCurves.insert(vCreateGordenCurves.end(), remainCurves[1]);
+				aUCreateGordenCurves.clear();
+				aUCreateGordenCurves.insert(aUCreateGordenCurves.begin(), aGordenISOCurves.begin(), aGordenISOCurves.end());
+				aVCreateGordenCurves.insert(aVCreateGordenCurves.begin(), aRemainCurves[0]);
+				aVCreateGordenCurves.insert(aVCreateGordenCurves.end(), aRemainCurves[1]);
 			}
 
 			// 对生成的曲线进行排序并检查交点
-			MathTool::SortBSplineCurves(uCreateGordenCurves, uCreateGordenCurves[0]);
-			MathTool::SortBSplineCurves(vCreateGordenCurves, vCreateGordenCurves[0]);
-			TopoDS_Face GordenFace;
-			//GordenSurface::BuildMyGordonSurf(uCreateGordenCurves, vCreateGordenCurves, GordenFace);
-			//Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
-			//referSurface = Handle(Geom_BSplineSurface)::DownCast(geomSurface);
-			uInternalCurve.clear();
-			vInternalCurve.clear();
-			uInternalCurve = uCreateGordenCurves;
-			vInternalCurve = vCreateGordenCurves;
-			// 将生成的面转换为BSplineSurface
-
+			MathTool::SortBSplineCurves(aUCreateGordenCurves, aUCreateGordenCurves[0]);
+			MathTool::SortBSplineCurves(aVCreateGordenCurves, aVCreateGordenCurves[0]);
+			TopoDS_Face aGordenFace;
+			GordenSurface::BuildMyGordonSurf(aUCreateGordenCurves, aVCreateGordenCurves, aGordenFace);
+			Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
+			aReferSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
 		}
 
 		// 返回生成的参考曲面
-		return referSurface;
-
+		return aReferSurface;
 	}
-	if (referSurfaceType == ReferSurfaceType::GORDEN_TWO_DIRECTION)
+
+	if (theReferSurfaceType == ReferSurfaceType::GORDEN_TWO_DIRECTION_GORDEN)
 	{
-		TopoDS_Face GordenFace;
-		GordenSurface::BuildMyGordonSurf(uInternalCurve, vInternalCurve, GordenFace);
+		TopoDS_Face aGordenFace;
+		GordenSurface::BuildMyGordonSurf(theUInternalCurve, theVInternalCurve, aGordenFace);
 
 		// 将生成的面转换为BSplineSurface
-		Handle(Geom_Surface) geomSurface = BRep_Tool::Surface(GordenFace);
-		return Handle(Geom_BSplineSurface)::DownCast(geomSurface);
+		Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
+		return Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
+	}
+
+	return nullptr;
+}
+
+PlanarCurve::PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
+	: curveType(CurveType::NOTPLANAR), curve(theCurve), line(), plane()
+{
+	IsPlanarCurve(curve, 10);
+}
+
+PlanarCurve::PlanarCurve()
+	:curveType(CurveType::NOTPLANAR), curve(), line(), plane()
+{
+	curveType = CurveType::NOTPLANAR;
+}
+
+Standard_Boolean PlanarCurve::IsPlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
+{
+	// 检查曲线是否为空
+	if (theCurve.IsNull())
+	{
+		curveType = CurveType::NOTPLANAR;
+		return false;
+	}
+
+	Standard_Boolean isLinear = IsBSplineCurveLinear(theCurve);
+	if (isLinear)
+	{
+		curveType = CurveType::LINEAR;
+		line = gp_Lin(theCurve->StartPoint(), gp_Vec(theCurve->StartPoint(), theCurve->EndPoint()));
+		return true;
+	}
+
+	Standard_Boolean isPoint = IsBSplineCurvePoint(theCurve);
+	if (isPoint)
+	{
+		curveType = CurveType::POINT;
+		return true;
+	}
+
+	// 采样曲线上的点
+	std::vector<gp_Pnt> aBoundarySampling;
+	Standard_Integer aNumSamples = 100; // 采样点数量，可根据需要调整
+	Standard_Real firstParam = theCurve->FirstParameter();
+	Standard_Real lastParam = theCurve->LastParameter();
+	Standard_Real step = (lastParam - firstParam) / (aNumSamples - 1);
+
+	aBoundarySampling.reserve(aNumSamples);
+	for (Standard_Integer i = 0; i < aNumSamples; ++i)
+	{
+		Standard_Real aParam = firstParam + i * step;
+		gp_Pnt aPnt;
+		theCurve->D0(aParam, aPnt); // 获取曲线上的点
+		aBoundarySampling.push_back(aPnt);
+	}
+
+	// 检查是否成功采样
+	if (aBoundarySampling.empty())
+	{
+		curveType = CurveType::NOTPLANAR;
+		return false;
+	}
+
+	// 声明法向量和坐标轴
+	gp_XYZ N, X, Y;
+	// 计算质心 P	
+	gp_Pnt P;
+	P.SetCoord(0, 0, 0);
+	Standard_Integer num = aBoundarySampling.size();
+	for (const auto& point : aBoundarySampling)
+	{
+		P.SetCoord(P.X() + point.X(), P.Y() + point.Y(), P.Z() + point.Z());
+	}
+	P.SetCoord(P.X() / num, P.Y() / num, P.Z() / num);
+
+	// 替换协方差矩阵构建和特征值分解部分
+	Standard_Integer m = 3;
+	Eigen::MatrixXd A1 = Eigen::MatrixXd::Zero(m, m);
+
+	Standard_Real c00 = 0, c01 = 0, c02 = 0, c11 = 0, c12 = 0, c22 = 0;
+	gp_Pnt point; // 声明 'point'
+
+	for (Standard_Integer i = 0; i < num; i++)
+	{
+		point = aBoundarySampling[i];
+
+		c00 += (point.X() - P.X()) * (point.X() - P.X());
+		c01 += (point.X() - P.X()) * (point.Y() - P.Y());
+		c02 += (point.X() - P.X()) * (point.Z() - P.Z());
+
+		c11 += (point.Y() - P.Y()) * (point.Y() - P.Y());
+		c12 += (point.Y() - P.Y()) * (point.Z() - P.Z());
+
+		c22 += (point.Z() - P.Z()) * (point.Z() - P.Z());
+	}
+
+	A1(0, 0) = c00;
+	A1(0, 1) = c01;
+	A1(0, 2) = c02;
+
+	A1(1, 0) = c01;
+	A1(1, 1) = c11;
+	A1(1, 2) = c12;
+
+	A1(2, 0) = c02;
+	A1(2, 1) = c12;
+	A1(2, 2) = c22;
+
+
+	Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(A1);
+	Eigen::VectorXcd E1 = eigensolver.eigenvalues();
+	auto  E2 = eigensolver.eigenvectors();
+
+	auto eigen1 = E1.col(0)[0];
+	auto eigen2 = E1.col(0)[1];
+	auto eigen3 = E1.col(0)[2];
+
+	Standard_Real eigenvalue1 = E1.col(0)[0].real();
+	Standard_Real eigenvalue2 = E1.col(0)[1].real();
+	Standard_Real eigenvalue3 = E1.col(0)[2].real();
+
+	// 根据最小特征值确定法向量和坐标轴
+	if (eigenvalue1 < eigenvalue2 && eigenvalue1 < eigenvalue3)
+	{
+		N.SetCoord(E2.col(0)[0].real(), E2.col(0)[1].real(), E2.col(0)[2].real());
+		X.SetCoord(E2.col(1)[0].real(), E2.col(1)[1].real(), E2.col(1)[2].real());
+		Y.SetCoord(E2.col(2)[0].real(), E2.col(2)[1].real(), E2.col(2)[2].real());
+	}
+	else if (eigenvalue2 < eigenvalue1 && eigenvalue2 < eigenvalue3)
+	{
+		N.SetCoord(E2.col(1)[0].real(), E2.col(1)[1].real(), E2.col(1)[2].real());
+		Y.SetCoord(E2.col(0)[0].real(), E2.col(0)[1].real(), E2.col(0)[2].real());
+		X.SetCoord(E2.col(2)[0].real(), E2.col(2)[1].real(), E2.col(2)[2].real());
+	}
+	else
+	{
+		N.SetCoord(E2.col(2)[0].real(), E2.col(2)[1].real(), E2.col(2)[2].real());
+		Y.SetCoord(E2.col(1)[0].real(), E2.col(1)[1].real(), E2.col(1)[2].real());
+		X.SetCoord(E2.col(0)[0].real(), E2.col(0)[1].real(), E2.col(0)[2].real());
+	}
+
+	// 创建 gp_Dir 对象用于 gp_pln
+	gp_Dir dirN(N);
+	plane = gp_Pln(P, dirN);
+	// 评估平面性
+	Standard_Real maxDistance = 0.0;
+	Standard_Real sumDistance = 0.0;
+	for (const auto& point : aBoundarySampling)
+	{
+		Standard_Real distance = MathTool::ComputeDistancePointToPlane(point, plane);
+		sumDistance += distance;
+		if (distance > maxDistance)
+		{
+			maxDistance = distance;
+		}
+	}
+
+	Standard_Real averageDistance = sumDistance / aBoundarySampling.size();
+
+	// 设置平面性阈值（根据具体需求调整）
+	if (maxDistance < theTolerance)
+	{
+		curveType = CurveType::PLANAR;
+		return true;
+	}
+	else
+	{
+		curveType = CurveType::NOTPLANAR;
+		return false;
 	}
 }
-// 结构体用于存储节点及其重复度
-struct KnotMultiplicity 
+
+Standard_Boolean PlanarCurve::IsBSplineCurveLinear(const Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
 {
-	Standard_Real knot;
-	int multiplicity;
-};
+	if (theCurve.IsNull())
+	{
+		return false;
+	}
+
+	// 获取控制点数量
+	Standard_Integer aNumPoles = theCurve->NbPoles();
+	if (aNumPoles < 2)
+	{
+		// 少于两个控制点，无法确定直线
+		return false;
+	}
+
+	// 获取第一个和第二个控制点
+	gp_Pnt aP0 = theCurve->Pole(1);
+	gp_Pnt aP1 = theCurve->Pole(2);
+
+	// 计算方向向量 v = P1 - P0
+	gp_Vec aV(aP0, aP1);
+	if (aV.Magnitude() < theTolerance)
+	{
+		// 前两个点重合，无法定义方向
+		return false;
+	}
+
+	// 对于每一个后续的控制点，检查是否与方向向量共线
+	for (Standard_Integer i = 3; i <= aNumPoles; ++i)
+	{
+		gp_Pnt aPi = theCurve->Pole(i);
+		gp_Vec aU(aP0, aPi);
+
+		// 计算叉积 v × u
+		gp_Vec aCross = aV.Crossed(aU);
+
+		// 检查叉积的模长是否在容差范围内
+		if (aCross.Magnitude() > theTolerance)
+		{
+			// 不共线
+			return false;
+		}
+	}
+	// 所有控制点共线
+	return true;
+}
+
+
+Standard_Boolean PlanarCurve::IsBSplineCurvePoint(const Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
+{
+	// 获取控制点数量
+	Standard_Integer aNumPoles = theCurve->NbPoles();
+	// 获取第一个和第二个控制点
+	gp_Pnt aP0 = theCurve->Pole(1);
+	gp_Pnt aP1 = theCurve->Pole(2);
+
+	// 计算方向向量 v = P1 - P0
+	gp_Vec aV(aP0, aP1);
+	if (aNumPoles == 2 && aV.Magnitude() < theTolerance)
+	{
+		return true;
+	}
+	return false;
+}
+
+Standard_Real MathTool::ComputeCurveCurveDistance(const Handle(Geom_BSplineCurve)& theCurve, const Handle(Geom_BSplineCurve)& theBoundaryCurve)
+{
+	GeomAPI_ExtremaCurveCurve aExtrema(theCurve, theBoundaryCurve);
+	// 检查是否找到了极值点
+	if (aExtrema.NbExtrema() > 0)
+	{
+		// 遍历所有极值点，找到最小距离
+		Standard_Real aMinDistance = RealLast();
+		for (Standard_Integer i = 1; i <= aExtrema.NbExtrema(); ++i)
+		{
+			Standard_Real aDist = aExtrema.Distance(i);
+			if (aDist < aMinDistance)
+			{
+				aMinDistance = aDist;
+			}
+		}
+		return aMinDistance;
+	}
+
+	return INT_MAX;
+}
+
+// 计算曲线的采样点平均坐标
+gp_Pnt MathTool::ComputeAverageSamplePoint(const Handle(Geom_BSplineCurve)& theCurve, Standard_Integer theNumSamples)
+{
+	GeomAdaptor_Curve adaptor(theCurve);
+	Standard_Real aStartParam = adaptor.FirstParameter();
+	Standard_Real aEndParam = adaptor.LastParameter();
+	Standard_Real aDeltaParam = (aEndParam - aStartParam) / (theNumSamples - 1);
+	Standard_Real X = 0, Y = 0, Z = 0;
+	for (Standard_Integer i = 0; i < theNumSamples; ++i) {
+		Standard_Real aParam = aStartParam + i * aDeltaParam;
+		gp_Pnt sample = adaptor.Value(aParam);
+		X += sample.X();
+		Y += sample.Y();
+		Z += sample.Z();
+	}
+	X /= theNumSamples;
+	Y /= theNumSamples;
+	Z /= theNumSamples;
+	return gp_Pnt(X, Y, Z);
+}
+
+Standard_Real MathTool::ComputeAngleWithAxis(const gp_Vec& theVec, const gp_Vec& theAxis)
+{
+	Standard_Real aDotProduct = theVec.Dot(theAxis); // 点积
+	Standard_Real aMagnitudeVec = theVec.Magnitude(); // 向量的模
+	Standard_Real aMagnitudeAxis = theAxis.Magnitude(); // 轴的模
+	Standard_Real aCosAngle = aDotProduct / (aMagnitudeVec * aMagnitudeAxis); // 余弦值
+	// 防止数值误差导致超出 [-1, 1] 范围
+	aCosAngle = std::max(-1.0, std::min(1.0, aCosAngle));
+	return std::acos(aCosAngle); // 返回夹角
+}
+
+void MathTool::CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)> theBSplineCurvesArray)
+{
+	for (Standard_Integer i = 0; i < theBSplineCurvesArray.size(); i++)
+	{
+		for (Standard_Integer j = i + 1; j < theBSplineCurvesArray.size(); j++)
+		{
+			Standard_Real aDistance = MathTool::ComputeCurveCurveDistance(theBSplineCurvesArray[i], theBSplineCurvesArray[j]);
+			if (aDistance < 1e-3)
+			{
+				// 曲线自交，保留距离主平面更近的曲线
+				gp_Pnt aPnt1 = MathTool::ComputeAverageSamplePoint(theBSplineCurvesArray[i], 10);
+				gp_Pnt aPnt2 = MathTool::ComputeAverageSamplePoint(theBSplineCurvesArray[j], 10);
+
+				// 计算曲线到原点的向量
+				gp_Vec aVec1 = aPnt1.XYZ() - gp_Pnt(0, 0, 0).XYZ();
+				gp_Vec aVec2 = aPnt2.XYZ() - gp_Pnt(0, 0, 0).XYZ();
+
+				// 定义x轴、y轴、z轴
+				gp_Vec xAxis(1, 0, 0);
+				gp_Vec yAxis(0, 1, 0);
+				gp_Vec zAxis(0, 0, 1);
+
+				// 计算两个向量与x、y、z轴的夹角
+				Standard_Real angle1_x = ComputeAngleWithAxis(aVec1, xAxis);
+				Standard_Real angle2_x = ComputeAngleWithAxis(aVec2, xAxis);
+				Standard_Real angle1_y = ComputeAngleWithAxis(aVec1, yAxis);
+				Standard_Real angle2_y = ComputeAngleWithAxis(aVec2, yAxis);
+				Standard_Real angle1_z = ComputeAngleWithAxis(aVec1, zAxis);
+				Standard_Real angle2_z = ComputeAngleWithAxis(aVec2, zAxis);
+
+				// 比较与各轴的夹角，保留夹角更小的曲线
+				if (angle1_x < angle2_x || angle1_y < angle2_y || angle1_z < angle2_z)
+				{
+					// 保留 theBSplineCurvesArray[i]，移除 theBSplineCurvesArray[j]
+					theBSplineCurvesArray.erase(theBSplineCurvesArray.begin() + j);
+					j--; // 保证不跳过下一个元素
+				}
+				else
+				{
+					// 保留 theBSplineCurvesArray[j]，移除 theBSplineCurvesArray[i]
+					theBSplineCurvesArray.erase(theBSplineCurvesArray.begin() + i);
+					i--; // 保证不跳过下一个元素
+					break; // 退出内层循环，因为 i 已经改变
+				}
+			}
+		}
+	}
+}
+
+gp_Dir MathTool::ComputeAverageTangent(const Handle(Geom_BSplineCurve)& theCurve, Standard_Integer theNumSamples)
+{
+	if (theCurve.IsNull())
+	{
+		throw std::invalid_argument("Curve is null.");
+	}
+	if (theNumSamples <= 0)
+	{
+		throw std::invalid_argument("Number of samples must be positive.");
+	}
+
+	Standard_Real firstParam = theCurve->FirstParameter();
+	Standard_Real lastParam = theCurve->LastParameter();
+	Standard_Real step = (lastParam - firstParam) / (theNumSamples - 1);
+
+	gp_Vec sumTangent(0.0, 0.0, 0.0);
+	Standard_Integer validSamples = 0;
+
+	for (Standard_Integer i = 0; i < theNumSamples; ++i)
+	{
+		Standard_Real param = firstParam + i * step;
+		gp_Pnt pnt;
+		gp_Vec tangent;
+		theCurve->D1(param, pnt, tangent); // D1 获取点和一阶导数
+		sumTangent += tangent;
+		++validSamples;
+	}
+
+	if (validSamples == 0)
+	{
+		throw std::runtime_error("No valid samples were taken from the curve.");
+	}
+
+	gp_Vec averageTangent = sumTangent / validSamples;
+	gp_Dir averageDir(averageTangent);
+
+	return averageDir;
+}
+
+Standard_Real MathTool::ComputeAngleBetweenCurves(Handle(Geom_BSplineCurve)& theCurve1,
+	Handle(Geom_BSplineCurve)& theCurve2,
+	Standard_Integer theNumSamples)
+{
+	PlanarCurve aPlanarCurve1(theCurve1);
+	PlanarCurve aPlanarCurve2(theCurve2);
+	if (aPlanarCurve1.GetCurveType() != CurveType::NOTPLANAR && aPlanarCurve2.GetCurveType() != CurveType::NOTPLANAR)
+	{
+		return MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurve1, aPlanarCurve2);
+	}
+
+	gp_Dir aAvgDir1 = ComputeAverageTangent(theCurve1, theNumSamples);
+	gp_Dir aAvgDir2 = ComputeAverageTangent(theCurve2, theNumSamples);
+
+	Standard_Real aDotProduct = aAvgDir1.Dot(aAvgDir2);
+
+	// 确保点积在 [-1, 1] 范围内，以避免数值误差
+	aDotProduct = std::max(-1.0, std::min(1.0, aDotProduct));
+
+	Standard_Real aAngleRad = std::acos(aDotProduct);
+	Standard_Real aAngleDeg = aAngleRad * 180.0 / M_PI;
+
+	return aAngleDeg;
+}
+
+void MathTool::SortBSplineCurves(std::vector<Handle(Geom_BSplineCurve)>& theCurves,
+	Handle(Geom_BSplineCurve) theReferCurve)
+{
+	Standard_Integer aNumSamples = 10;
+	// 检查曲线数组是否为空
+	if (theCurves.empty())
+	{
+		return;
+	}
+
+	// 计算参考点，使用数组中的第一个曲线
+	gp_Pnt aReferencePoint = MathTool::ComputeAverageSamplePoint(theReferCurve, aNumSamples);
+
+	// 使用 std::sort 对曲线数组进行排序
+	std::sort(theCurves.begin(), theCurves.end(),
+		[&](const Handle(Geom_BSplineCurve)& theCurve1, const Handle(Geom_BSplineCurve)& theCurve2) -> Standard_Boolean
+		{
+			// 计算每条曲线的平均采样点
+			gp_Pnt aAvg = MathTool::ComputeAverageSamplePoint(theCurve1, aNumSamples);
+			gp_Pnt bAvg = MathTool::ComputeAverageSamplePoint(theCurve2, aNumSamples);
+
+			// 计算平均采样点到参考点的距离
+			Standard_Real distA = aReferencePoint.Distance(aAvg);
+			Standard_Real distB = aReferencePoint.Distance(bAvg);
+
+			// 按照距离从小到大排序
+			return distA < distB;
+		}
+	);
+
+	std::cout << "曲线数组已根据平均采样点到参考点的距离成功排序。" << std::endl;
+}
+
+void MathTool::ReverseIfNeeded(std::vector<Handle(Geom_BSplineCurve)>& theCurves)
+{
+	// 检查曲线数组是否为空
+	if (theCurves.empty()) return;
+
+	// 获取第一条曲线作为初始参考
+	Handle(Geom_BSplineCurve) firstCurve = theCurves[0];
+	gp_Pnt firstStart = firstCurve->StartPoint();
+	gp_Pnt firstEnd = firstCurve->EndPoint();
+	gp_Vec firstDirection(firstStart, firstEnd); // 计算参考曲线的方向向量
+
+	// 如果第一条曲线是一个点（方向向量为零向量），则选择最后一条曲线作为参考
+	if (firstDirection.Magnitude() == 0)
+	{
+		if (theCurves.size() < 2)
+		{
+			return;
+		}
+		firstCurve = theCurves.back();
+		firstStart = firstCurve->StartPoint();
+		firstEnd = firstCurve->EndPoint();
+		firstDirection = gp_Vec(firstStart, firstEnd); // 重新计算参考曲线的方向向量
+
+		// 再次检查方向向量是否为零向量
+		if (firstDirection.Magnitude() == 0)
+		{
+			return;
+		}
+	}
+
+	// 遍历每条曲线，检查方向并反转
+	for (auto& aCurve : theCurves)
+	{
+		gp_Pnt start = aCurve->StartPoint();
+		gp_Pnt end = aCurve->EndPoint();
+		gp_Vec direction(start, end); // 计算当前曲线的方向向量
+
+		// 如果当前曲线的方向与参考方向相反，则反转曲线
+		if (direction.Dot(firstDirection) < 0)
+		{
+			aCurve->Reverse(); // 反转曲线方向
+		}
+	}
+}
+
+
+Standard_Real MathTool::ComputeAngleBetweenLineAndPlane(const gp_Lin& theLine, const gp_Pln& thePlane)
+{
+	// 获取直线的方向向量
+	gp_Vec aLineDirection = theLine.Direction();  // 直线方向向量
+
+	// 获取平面的法向量
+	gp_Vec aPlaneNormal = thePlane.Axis().Direction();  // 平面法向量
+
+	// 计算直线方向向量与平面法向量的点积
+	Standard_Real aDotProduct = aLineDirection.Dot(aPlaneNormal);
+
+	// 计算直线方向向量和法向量的模长
+	Standard_Real aLineMagnitude = aLineDirection.Magnitude();
+	Standard_Real aPlaneNormalMagnitude = aPlaneNormal.Magnitude();
+
+	// 计算夹角（弧度）
+	Standard_Real aAngle = std::acos(aDotProduct / (aLineMagnitude * aPlaneNormalMagnitude));
+
+	return aAngle;
+}
+
+Standard_Real MathTool::ComputeAngleBetweenLines(const gp_Lin& theLine1, const gp_Lin& theLine2)
+{
+	// 获取两条直线的方向向量
+	gp_Vec direction1 = theLine1.Direction();
+	gp_Vec direction2 = theLine2.Direction();
+
+	// 计算方向向量的点积
+	Standard_Real aDotProduct = direction1.Dot(direction2);
+
+	// 计算方向向量的模长
+	Standard_Real magnitude1 = direction1.Magnitude();
+	Standard_Real magnitude2 = direction2.Magnitude();
+
+	// 计算夹角（弧度）
+	Standard_Real aAngle = std::acos(aDotProduct / (magnitude1 * magnitude2));
+
+	return aAngle;
+}
+
+Standard_Real MathTool::ComputeAngleBetweenPlanes(const gp_Pln& thePlane1, const gp_Pln& thePlane2)
+{
+	// 获取平面的法向量
+	gp_Dir aNormal1 = thePlane1.Axis().Direction();
+	gp_Dir aNormal2 = thePlane2.Axis().Direction();
+
+	// 计算法向量之间的点积
+	Standard_Real aDotProduct = aNormal1.Dot(aNormal2);
+
+	// 限制 aDotProduct 的范围在 [-1, 1] 之间，以防止数值误差导致的 acos 计算错误
+	aDotProduct = std::max(-1.0, std::min(1.0, aDotProduct));
+
+	// 计算夹角的弧度值
+	Standard_Real aAngleRad = std::acos(aDotProduct);
+
+	// 将弧度转换为度数
+	Standard_Real aAngleDeg = aAngleRad * 180.0 / M_PI;
+
+	// 获取锐角（0°到90°）
+	if (aAngleDeg > 90.0)
+	{
+		aAngleDeg = 180.0 - aAngleDeg;
+	}
+
+	return aAngleDeg;
+}
+
+Standard_Real MathTool::ComputeDistancePointToLine(const gp_Pnt& thePoint, const gp_Lin& theLine)
+{
+	// 直线的方向向量
+	gp_Vec aLineDirection = theLine.Direction();
+
+	// 点到直线上的任意一点（我们选择直线上的一个点作为参考点）
+	gp_Pnt aLinePoint = theLine.Location(); // 直线上的一个点
+
+	// 点与直线上的点的向量
+	gp_Vec pointToLine = thePoint.XYZ() - aLinePoint.XYZ();
+
+	// 计算点到直线的垂直距离
+	gp_Vec aCrossProduct = pointToLine.Crossed(aLineDirection);
+
+	// 返回距离，使用叉乘的模长除以方向向量的模长
+	return aCrossProduct.Magnitude() / aLineDirection.Magnitude();
+}
+
+Standard_Real MathTool::ComputeAngleBetweenPlanarCurves(const PlanarCurve& theCurve1, const PlanarCurve& theCurve2)
+{
+	Standard_Real aAngle = INT_MAX;
+	Standard_Real aDistance = INT_MIN;
+	if (theCurve1.GetCurveType() == CurveType::LINEAR && theCurve2.GetCurveType() == CurveType::LINEAR)
+	{
+		// 调用直线直线求交
+		aAngle = ComputeAngleBetweenLines(theCurve1.GetLine(), theCurve2.GetLine());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::PLANAR && theCurve2.GetCurveType() == CurveType::PLANAR)
+	{
+		// 调用平面平面求交
+		aAngle = ComputeAngleBetweenPlanes(theCurve1.GetPlane(), theCurve2.GetPlane());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::PLANAR && theCurve2.GetCurveType() == CurveType::LINEAR)
+	{
+		// 调用平面和直线求交
+		aAngle = ComputeAngleBetweenLineAndPlane(theCurve2.GetLine(), theCurve1.GetPlane());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::LINEAR && theCurve2.GetCurveType() == CurveType::PLANAR)
+	{
+		// 调用平面和直线求交
+		aAngle = ComputeAngleBetweenLineAndPlane(theCurve1.GetLine(), theCurve2.GetPlane());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::POINT && theCurve2.GetCurveType() == CurveType::POINT)
+	{
+		aDistance = theCurve1.GetPoint().Distance(theCurve2.GetPoint());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::POINT && theCurve2.GetCurveType() == CurveType::PLANAR)
+	{
+		aDistance = ComputeDistancePointToPlane(theCurve1.GetPoint(), theCurve2.GetPlane());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::POINT && theCurve2.GetCurveType() == CurveType::LINEAR)
+	{
+		aDistance = ComputeDistancePointToLine(theCurve1.GetPoint(), theCurve2.GetLine());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::PLANAR && theCurve2.GetCurveType() == CurveType::POINT)
+	{
+		aDistance = ComputeDistancePointToPlane(theCurve2.GetPoint(), theCurve1.GetPlane());
+	}
+	else if (theCurve1.GetCurveType() == CurveType::LINEAR && theCurve2.GetCurveType() == CurveType::POINT)
+	{
+		aDistance = ComputeDistancePointToLine(theCurve2.GetPoint(), theCurve1.GetLine());
+	}
+
+	if (aDistance > 1) aAngle = 0.0;
+
+	return aAngle;
+}
+
+std::vector<gp_Pnt> MathTool::GetSamplePointsOnCurve(const Handle(Geom_Curve)& theCurve, Standard_Integer theNumPoints)
+{
+	std::vector<gp_Pnt> aSampledPoints;
+
+	Standard_Real firstParam = theCurve->FirstParameter();
+	Standard_Real lastParam = theCurve->LastParameter();
+	Standard_Real delta = (lastParam - firstParam) / (theNumPoints - 1);
+
+	for (Standard_Integer i = 0; i < theNumPoints; ++i)
+	{
+		Standard_Real param = firstParam + i * delta;
+		gp_Pnt aP;
+		theCurve->D0(param, aP);
+		aSampledPoints.push_back(aP);
+	}
+
+	return aSampledPoints;
+}
+
+void MathTool::TrimInternalCurves(
+	std::vector<Handle(Geom_BSplineCurve)>& theInternalBSplineCurves,
+	const std::vector<Handle(Geom_BSplineCurve)>& theBoundaryCurveArray,
+	Standard_Real theToleranceDistance) {
+	for (auto& internalCurve : theInternalBSplineCurves)
+	{
+		// 用于存储最近两条边界曲线的交点和裁剪参数
+		gp_Pnt replacePoints[2];
+		Standard_Real splitParams[2] = { 0 };
+		Standard_Integer foundCount = 0;
+
+		// 计算内部曲线与每条边界曲线的距离并排序
+		std::vector<std::pair<Standard_Real, Handle(Geom_BSplineCurve)>> aBoundaryCurves;
+		for (auto& boundaryCurve : theBoundaryCurveArray)
+		{
+			Standard_Real distance = MathTool::ComputeCurveCurveDistance(internalCurve, boundaryCurve);
+			aBoundaryCurves.emplace_back(distance, boundaryCurve);
+		}
+
+		// 按距离从小到大排序
+		std::sort(aBoundaryCurves.begin(), aBoundaryCurves.end(),
+			[](const auto& a, const auto& b) { return a.first < b.first; });
+
+		if (aBoundaryCurves[0].first >= theToleranceDistance) continue;
+
+		// 找到与内部曲线距离最近的两条边界曲线的交点
+		for (size_t i = 0; i < 2 && i < aBoundaryCurves.size(); ++i)
+		{
+			GeomAPI_ExtremaCurveCurve extrema(internalCurve, aBoundaryCurves[i].second);
+
+			if (extrema.NbExtrema() > 0)
+			{
+				gp_Pnt internalPoint, boundaryPoint;
+				Standard_Real paramOnCurve;
+				extrema.NearestPoints(internalPoint, boundaryPoint);
+				extrema.LowerDistanceParameters(splitParams[foundCount], paramOnCurve);
+
+				replacePoints[foundCount] = boundaryPoint;
+				foundCount++;
+			}
+		}
+
+		// 如果没有找到两个有效的交点，则跳过
+		if (foundCount != 2)
+			continue;
+
+		// 确保裁剪参数按升序排列
+		if (splitParams[0] > splitParams[1])
+		{
+			std::swap(splitParams[0], splitParams[1]);
+			std::swap(replacePoints[0], replacePoints[1]);
+		}
+
+		// 裁剪内部曲线并更新为新的B样条曲线
+		Handle(Geom_TrimmedCurve) trimmedCurve = new Geom_TrimmedCurve(internalCurve, splitParams[0], splitParams[1]);
+		Handle(Geom_BSplineCurve) modifiedCurve = GeomConvert::CurveToBSplineCurve(trimmedCurve, Convert_TgtThetaOver2);
+
+		// 设置裁剪后的端点
+		modifiedCurve->SetPole(1, replacePoints[0]);
+		modifiedCurve->SetPole(modifiedCurve->NbPoles(), replacePoints[1]);
+
+		// 更新内部曲线
+		internalCurve = modifiedCurve;
+	}
+}
+void MathTool::SortPoints(std::vector<gp_Pnt>& thePoints, const gp_Pnt& theReferPoint)
+{
+	// 检查点数组是否为空
+	if (thePoints.empty())
+	{
+		return;
+	}
+
+	// 使用 std::sort 对点数组进行排序
+	std::sort(thePoints.begin(), thePoints.end(),
+		[&](const gp_Pnt& aPnt1, const gp_Pnt& aPnt2) -> Standard_Boolean
+		{
+			// 计算每个点到参考点的距离
+			Standard_Real distA = aPnt1.Distance(theReferPoint);
+			Standard_Real distB = aPnt2.Distance(theReferPoint);
+
+			// 按照距离从小到大排序
+			return distA < distB;
+		}
+	);
+}
+
+Standard_Real MathTool::ComputeDistancePointToPlane(const gp_Pnt& theP, const gp_Pln& thePlane)
+{
+	// 获取平面的法向量和点
+	gp_Dir aNormal = thePlane.Axis().Direction();
+	gp_Pnt aPlanePoint = thePlane.Location();
+
+	// 向量 (p - aPlanePoint)
+	gp_Vec vec(theP.X() - aPlanePoint.X(), theP.Y() - aPlanePoint.Y(), theP.Z() - aPlanePoint.Z());
+
+	// 点到平面的距离 = |vec . aNormal| / |aNormal|
+	// 由于 aNormal 是单位向量，分母为1
+	Standard_Real aDistance = std::abs(vec.Dot(aNormal));
+	return aDistance;
+}
+
+
+//代码自查
+/*
+* 1、函数首字母大写
+* 2、参数名 带the
+* 3、变量名 小写
+* 4、见名知意
+* 5、数据类型
+* 6、函数定义注释
+* 7、不允许存在未使用形参
+* 8、不允许未引用变量
+* 9、无警告
+*
+*/
+
+//宏定义异常捕获
+#define HANDLE_EXCEPTIONS_CONTINUE \
+    catch (const std::exception & e) { \
+        std::cerr << "Exception caught: " << e.what() << std::endl; \
+        continue; \
+    } catch (...) { \
+        std::cerr << "Unknown exception caught." << std::endl; \
+        continue; \
+    }
+
+#define HANDLE_EXCEPTIONS_RETURN_FALSE \
+    catch (const std::exception & e) { \
+        std::cerr << "Exception caught: " << e.what() << std::endl; \
+        return false; \
+    } catch (...) { \
+        std::cerr << "Unknown exception caught." << std::endl; \
+        return false; \
+    }
+
 
 // 辅助函数：判断两个点是否几乎相同（距离小于给定的容差）
-bool ArePointsEqual(const gp_Pnt& p1, const gp_Pnt& p2, Standard_Real tolerance = 1e-6) 
-{
-	return p1.Distance(p2) <= tolerance;
+bool ArePointsEqual(const gp_Pnt& thePoint1, const gp_Pnt& thePoint2, Standard_Real theTolerance = 1e-6) {
+	return thePoint1.Distance(thePoint2) <= theTolerance;
 }
 
 // 辅助函数：判断两个值是否在容差范围内相等
-bool AreValuesEqual(Standard_Real a, Standard_Real b, Standard_Real tolerance = 0.01) {
-	return std::fabs(a - b) <= tolerance;
+bool AreValuesEqual(Standard_Real theValue1, Standard_Real theValue2, Standard_Real theTolerance = 0.01) {
+	return std::fabs(theValue1 - theValue2) <= theTolerance;
 }
 
-std::vector<Standard_Real> SurfaceModelingTool::CalSameKnotFromCurves(std::vector< Handle(Geom_BSplineCurve) >& curves, Standard_Real toler) {
-	// 如果没有曲线则返回空
-	if (curves.empty()) {
-		return {};
-	}
+/// <summary>
+/// 合并theCurves的节点、在theTolerance内视为一个节点
+/// </summary>
+/// <param name="theCurves"></param>
+/// <param name="theTolerance"></param>
+/// <returns></returns> 合并后的节点
+std::vector<Standard_Real> CalSameKnotFromCurves(std::vector< Handle(Geom_BSplineCurve) >& theCurves, Standard_Real theTolerance = 0.01) {
+	if (theCurves.empty()) return {};
 
-	std::vector<KnotMultiplicity> allKnots;
+	// 使用map自动去重并合并
+	std::map<Standard_Real, Standard_Integer> knotMap;
 
-	// 1. 收集所有节点及重复度
-	for (auto& curve : curves) {
-		if (curve.IsNull()) {
-			continue;
-		}
+	for (const auto& curve : theCurves) {
+		if (curve.IsNull()) continue;
 
 		Standard_Integer nbKnots = curve->NbKnots();
 		for (Standard_Integer i = 1; i <= nbKnots; ++i) {
-			KnotMultiplicity km;
-			km.knot = curve->Knot(i);
-			km.multiplicity = curve->Multiplicity(i);
-			allKnots.push_back(km);
-		}
-	}
+			Standard_Real knot = curve->Knot(i);
+			Standard_Integer multiplicity = curve->Multiplicity(i);
 
-	// 如果没有节点直接返回空
-	if (allKnots.empty()) {
-		return {};
-	}
-
-	// 2. 按knot值排序
-	std::sort(allKnots.begin(), allKnots.end(), [](const KnotMultiplicity& a, const KnotMultiplicity& b) {
-		return a.knot < b.knot;
-		});
-
-	// 3. 合并相近节点
-	std::vector<KnotMultiplicity> mergedKnots;
-	{
-		KnotMultiplicity current = allKnots.front();
-
-		for (size_t i = 1; i < allKnots.size(); ++i) {
-			const auto& next = allKnots[i];
-			// 检查节点差值
-			Standard_Real diff = next.knot - current.knot;
-
-			// 如果两个节点的距离小于等于给定公差toler，则视为同一节点
-			if (std::fabs(diff) <= toler) {
-				// 同一节点，以最大重复度为准
-				current.multiplicity = std::max(current.multiplicity, next.multiplicity);
+			auto it = knotMap.lower_bound(knot - theTolerance);
+			if (it != knotMap.end() && std::fabs(it->first - knot) <= theTolerance) {
+				// 更新重复度
+				it->second = std::max(it->second, multiplicity);
 			}
 			else {
-				// 不同节点，先保存当前节点
-				mergedKnots.push_back(current);
-				current = next; // 开始处理下一个
+				knotMap[knot] = multiplicity;
 			}
 		}
-		// 将最后一个节点加入结果
-		mergedKnots.push_back(current);
 	}
 
-	// 4. 将(节点,重复度)展开成仅有节点的vector
+	// 展开结果
 	std::vector<Standard_Real> result;
-	for (auto& mk : mergedKnots) {
-		// 重复mk.multiplicity次
-		for (int i = 0; i < mk.multiplicity; ++i) {
-			result.push_back(mk.knot);
-		}
+	for (const auto& [knot, multiplicity] : knotMap) {
+		result.insert(result.end(), multiplicity, knot);
 	}
 
 	return result;
 }
 
 
-// 函数实现
+
+/// <summary>
+/// 计算theCurve与theCurves交点的参数值，返回为tuple的形式、一一对应，其中theTolerance判断直线是否精确相交
+/// 计算多条曲线和一条曲线的交点以及参数
+/// </summary>
+/// <param name="theCurves"></param> 数量多的曲线
+/// <param name="theCurve"></param>	 某条曲线
+/// <param name="theTolerance"></param>
+/// <returns></returns>	交点以及交点参数值
 std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPointsParamsToCurve(
-	const std::vector<Handle(Geom_BSplineCurve)>& curves,
+	const std::vector<Handle(Geom_BSplineCurve)>& theCurves,
 	const Handle(Geom_BSplineCurve)& theCurve,
-	Standard_Real tolerance = 0.1)
-{
+	Standard_Real theTolerance = 0.1) {
 	std::vector<gp_Pnt> pointsOnTheCurve;
 	std::vector<Standard_Real> paramsOnTheCurve;
-	const Standard_Real intersectionToleranceSq = tolerance * tolerance; // 容差的平方，用于距离比较
+	const Standard_Real intersectionToleranceSq = theTolerance * theTolerance; // 容差的平方，用于距离比较
 
 	// 检查输入是否有效
 	if (theCurve.IsNull()) {
@@ -3166,7 +3777,7 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPoints
 	}
 
 	// 遍历每条曲线
-	for (const auto& curve : curves) {
+	for (const auto& curve : theCurves) {
 		if (curve.IsNull()) {
 			// 跳过空曲线
 			continue;
@@ -3182,7 +3793,7 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPoints
 				std::vector<Standard_Real> paramsForThisCurve;
 
 				// 遍历所有极值点，查找交点
-				for (int i = 1; i <= extrema.NbExtrema(); ++i) {
+				for (Standard_Integer i = 1; i <= extrema.NbExtrema(); ++i) {
 					Standard_Real distanceSq = extrema.Distance(i);
 					if (distanceSq <= intersectionToleranceSq) { // 判断是否为交点
 						Standard_Real U1, U2;
@@ -3193,7 +3804,7 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPoints
 						// 检查是否已经存在几乎相同的点，避免重复
 						bool alreadyExists = false;
 						for (const auto& existingPnt : intersectionsForThisCurve) {
-							if (ArePointsEqual(p1, existingPnt, tolerance)) {
+							if (ArePointsEqual(p1, existingPnt, theTolerance)) {
 								alreadyExists = true;
 								break;
 							}
@@ -3222,7 +3833,7 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPoints
 						// 检查是否已经存在几乎相同的点，避免重复
 						bool alreadyExists = false;
 						for (const auto& existingPnt : pointsOnTheCurve) {
-							if (ArePointsEqual(nearestP1, existingPnt, tolerance)) {
+							if (ArePointsEqual(nearestP1, existingPnt, theTolerance)) {
 								alreadyExists = true;
 								break;
 							}
@@ -3249,7 +3860,7 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPoints
 					// 检查是否已经存在几乎相同的点，避免重复
 					bool alreadyExists = false;
 					for (const auto& existingPnt : pointsOnTheCurve) {
-						if (ArePointsEqual(nearestP1, existingPnt, tolerance)) {
+						if (ArePointsEqual(nearestP1, existingPnt, theTolerance)) {
 							alreadyExists = true;
 							break;
 						}
@@ -3276,13 +3887,22 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPoints
 	return std::make_tuple(pointsOnTheCurve, paramsOnTheCurve);
 }
 
+
+
+/// <summary>
+/// 对theCurve的theOriginParams的参数区间内的点加密采样、加密次数为theSamplingNum，并且返回加密后的点以及参数
+/// </summary>
+/// <param name="theCurve"></param>	待加密的曲线
+/// <param name="theOriginParams"></param> 加密的区间
+/// <param name="theSamplingNum"></param> 加密数目
+/// <returns></returns> 加密后的点以及参数值
 std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> DenseSampling(const Handle(Geom_BSplineCurve)& theCurve,
-	std::vector<Standard_Real>& originParams, Standard_Integer samplingNum) {
+	std::vector<Standard_Real>& theOriginParams, Standard_Integer theSamplingNum) {
 	std::vector<gp_Pnt> sampledPoints;
 	std::vector<Standard_Real> sampledParams;
 
-	// 检查 originParams 的合法性
-	if (originParams.size() < 2) {
+	// 检查 theOriginParams 的合法性
+	if (theOriginParams.size() < 2) {
 		Standard_Failure::Raise("DenseSampling Error: originParams must contain at least two parameters.");
 	}
 
@@ -3290,94 +3910,101 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> DenseSampling(const 
 	Standard_Real firstParam = theCurve->FirstParameter();
 	Standard_Real lastParam = theCurve->LastParameter();
 
-	// 检查 originParams 的第一个和最后一个参数是否在容差范围内
-	if (!AreValuesEqual(originParams.front(), firstParam, 0.01)) {
+	// 检查 theOriginParams 的第一个和最后一个参数是否在容差范围内
+	if (!AreValuesEqual(theOriginParams.front(), firstParam, 0.01)) {
 		Standard_Failure::Raise("DenseSampling Error: The first element of originParams is not within tolerance of theCurve's first parameter.");
 	}
 
-	if (!AreValuesEqual(originParams.back(), lastParam, 0.01)) {
+	if (!AreValuesEqual(theOriginParams.back(), lastParam, 0.01)) {
 		Standard_Failure::Raise("DenseSampling Error: The last element of originParams is not within tolerance of theCurve's last parameter.");
 	}
-	originParams.front() = firstParam;
-	originParams.back() = lastParam;
+	theOriginParams.front() = firstParam;
+	theOriginParams.back() = lastParam;
 
-	// 检查 originParams 是否按升序排列
-	for (size_t i = 1; i < originParams.size(); ++i) {
-		if (originParams[i] < originParams[i - 1]) {
+	// 检查 theOriginParams 是否按升序排列
+	for (size_t i = 1; i < theOriginParams.size(); ++i) {
+		if (theOriginParams[i] < theOriginParams[i - 1]) {
 			Standard_Failure::Raise("DenseSampling Error: originParams must be in ascending order.");
 		}
 	}
 
 	// 进行加密采样
-	for (size_t i = 0; i < originParams.size() - 1; ++i) {
-		Standard_Real U_start = originParams[i];
-		Standard_Real U_end = originParams[i + 1];
-		Standard_Real interval = U_end - U_start;
+	for (size_t i = 0; i < theOriginParams.size() - 1; ++i) {
+		Standard_Real aStartParam = theOriginParams[i];
+		Standard_Real aEndParam = theOriginParams[i + 1];
+		Standard_Real interval = aEndParam - aStartParam;
 
 		// 将起始参数加入采样结果
 		if (i == 0) { // 仅在第一次循环时添加第一个起始点
-			sampledParams.emplace_back(U_start);
-			sampledPoints.emplace_back(theCurve->Value(U_start));
+			sampledParams.emplace_back(aStartParam);
+			sampledPoints.emplace_back(theCurve->Value(aStartParam));
 		}
 
 		// 计算每个区间内的采样步长
-		Standard_Real step = interval / (samplingNum + 1);
+		Standard_Real step = interval / (theSamplingNum + 1);
 
 		// 生成采样点
-		for (Standard_Integer j = 1; j <= samplingNum; ++j) {
-			Standard_Real U_sample = U_start + j * step;
-			gp_Pnt P_sample = theCurve->Value(U_sample);
-			sampledParams.emplace_back(U_sample);
-			sampledPoints.emplace_back(P_sample);
+		for (Standard_Integer j = 1; j <= theSamplingNum; ++j) {
+			Standard_Real aSamplingParam = aStartParam + j * step;
+			gp_Pnt aSamplingPoint = theCurve->Value(aSamplingParam);
+			sampledParams.emplace_back(aSamplingParam);
+			sampledPoints.emplace_back(aSamplingPoint);
 		}
 
 		// 将结束参数加入采样结果
-		sampledParams.emplace_back(U_end);
-		sampledPoints.emplace_back(theCurve->Value(U_end));
+		sampledParams.emplace_back(aEndParam);
+		sampledPoints.emplace_back(theCurve->Value(aEndParam));
 	}
 
 	return std::make_tuple(sampledPoints, sampledParams);
 }
 
-std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_Real>& baseParams, Standard_Integer baseIndex, std::vector<Standard_Real>& params) {
+/// <summary>
+/// 将交点参数变换后、相对应的区间加密点参数也需要变化。本接口为辅助函数、等比例变化区间加密参数
+/// </summary>
+/// <param name="theBaseParams"></param> 参考的参数值、标准参数值、通过平均计算而来
+/// <param name="theBaseIndex"></param>	 对应加密的参数向量的下标
+/// <param name="theParams"></param> 加密后的参数值
+/// <returns></returns>	变换后的参数值
+std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_Real>& theBaseParams, Standard_Integer theBaseIndex, std::vector<Standard_Real>& theParams) {
 	std::vector<Standard_Real> scaledParams;
 
-	// 检查 (params.size() + 1) 是否能被 baseIndex 整除
-	if ((params.size() + 1) % baseIndex != 0) {
+	// 检查 (theParams.size() + 1) 是否能被 theBaseIndex 整除
+	if ((theParams.size() - 1) % theBaseIndex != 0) {
 		throw std::invalid_argument("ScalingParamsByBaseParams Error: (params.size() + 1) is not divisible by baseIndex.");
 	}
 
-	// 计算期望的 baseParams 大小
-	size_t expectedBaseSize = (params.size() + 1) / baseIndex;
-	if (baseParams.size() != expectedBaseSize) {
+	// 计算期望的 theBaseParams 大小
+	size_t expectedBaseSize = ((theParams.size() - 1) / theBaseIndex) + 1;
+	if (theBaseParams.size() != expectedBaseSize) {
 		throw std::invalid_argument("ScalingParamsByBaseParams Error: baseParams size does not match the expected number of intervals.");
 	}
 
-	// 检查 baseParams 的第一个元素是否与 params 的第一个元素在容差范围内相等
-	if (!AreValuesEqual(baseParams.front(), params.front(), 0.01)) {
+	// 检查 theBaseParams 的第一个元素是否与 theParams 的第一个元素在容差范围内相等
+	if (!AreValuesEqual(theBaseParams.front(), theParams.front(), 0.01)) {
 		throw std::invalid_argument("ScalingParamsByBaseParams Error: The first element of baseParams is not within tolerance of params[0].");
 	}
 
-	// 检查 baseParams 的最后一个元素是否与 params 的最后一个基准元素在容差范围内相等
-	// 基准元素的位置为 (baseParams.size() -1) * baseIndex
-	size_t lastParamPos = (baseParams.size() - 1) * baseIndex;
-	if (lastParamPos >= params.size()) {
+	// 检查 theBaseParams 的最后一个元素是否与 theParams 的最后一个基准元素在容差范围内相等
+	// 基准元素的位置为 (theBaseParams.size() -1) * theBaseIndex
+	size_t lastParamPos = (theBaseParams.size() - 1) * theBaseIndex;
+	if (lastParamPos >= theParams.size()) {
 		throw std::invalid_argument("ScalingParamsByBaseParams Error: baseIndex exceeds params size.");
 	}
-	if (!AreValuesEqual(baseParams.back(), params[lastParamPos], 0.01)) {
+	if (!AreValuesEqual(theBaseParams.back(), theParams[lastParamPos], 0.01)) {
 		throw std::invalid_argument("ScalingParamsByBaseParams Error: The last element of baseParams is not within tolerance of params[" + std::to_string(lastParamPos) + "].");
 	}
 
 	// 进行缩放处理
-	for (size_t i = 0; i < baseParams.size() - 1; ++i) {
-		Standard_Real baseStart = baseParams[i];
-		Standard_Real baseEnd = baseParams[i + 1];
+	for (size_t i = 0; i < theBaseParams.size() - 1; ++i) {
+		Standard_Real baseStart = theBaseParams[i];
+		Standard_Real baseEnd = theBaseParams[i + 1];
 		Standard_Real baseInterval = baseEnd - baseStart;
 
-		size_t paramStartPos = i * baseIndex;
-		size_t paramEndPos = (i + 1) * baseIndex;
-		Standard_Real paramStart = params[paramStartPos];
-		Standard_Real paramEnd = params[paramEndPos];
+		size_t paramStartPos = i * theBaseIndex;
+		size_t paramEndPos = (i + 1) * theBaseIndex;
+		Standard_Real paramStart = theParams[paramStartPos];
+		Standard_Real paramEnd = theParams[paramEndPos];
 		Standard_Real paramInterval = paramEnd - paramStart;
 
 		if (paramInterval == 0) {
@@ -3385,9 +4012,10 @@ std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_
 				std::to_string(paramStartPos) + " and " + std::to_string(paramEndPos));
 		}
 
+		Standard_Integer startIndex = (i == 0) ? paramStartPos : (paramStartPos + 1);
 		// 缩放每个区间内的参数
-		for (size_t j = paramStartPos; j <= paramEndPos; ++j) {
-			Standard_Real scaledParam = baseStart + (params[j] - paramStart) * baseInterval / paramInterval;
+		for (size_t j = startIndex; j <= paramEndPos; ++j) {
+			Standard_Real scaledParam = baseStart + (theParams[j] - paramStart) * baseInterval / paramInterval;
 			scaledParams.push_back(scaledParam);
 		}
 	}
@@ -3395,53 +4023,76 @@ std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_
 	return scaledParams;
 }
 
-bool SurfaceModelingTool::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& interCurves, std::vector<Handle(Geom_BSplineCurve)>& compatibleCurves, Standard_Real toler) 
+/// <summary>
+/// 进行compatible  ，compatible后交点参数值相同、节点相同
+/// </summary>
+/// <param name="theInterCurves"></param> 相交的曲线
+/// <param name="theCompatibleCurves"></param> 需要compatible的曲线
+/// <param name="theTolerance"></param> 拟合容差
+/// <returns></returns>	是否compatible成功
+Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance)
 {
 	//1.获取交点以及交点参数化
 	std::vector<std::vector<gp_Pnt>> interPoints;
 	std::vector<std::vector<Standard_Real>> interPointOrgParams;
-	interPoints.reserve(compatibleCurves.size());
-	interPointOrgParams.reserve(compatibleCurves.size());
-	for (const auto& curve : compatibleCurves) {
+	interPoints.reserve(theCompatibleCurves.size());
+	interPointOrgParams.reserve(theCompatibleCurves.size());
+
+	for (const auto& curve : theCompatibleCurves) 
+	{
 		try {
 			std::vector<gp_Pnt> pointsOnTheCurve;
 			std::vector<Standard_Real> paramsOnTheCurve;
-			std::tie(pointsOnTheCurve, paramsOnTheCurve) = CalCurvesInterPointsParamsToCurve(interCurves, curve);
+			std::tie(pointsOnTheCurve, paramsOnTheCurve) = [&]() 
+				{
+				auto result = CalCurvesInterPointsParamsToCurve(theInterCurves, curve);
+				auto& points = std::get<0>(result);
+				auto& params = std::get<1>(result);
 
-			// 检查 pointsOnTheCurve 和 paramsOnTheCurve 的大小是否一致
-			if (pointsOnTheCurve.size() != paramsOnTheCurve.size()) {
-				std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
-				std::cerr << "Points size: " << pointsOnTheCurve.size()
-					<< ", Parameters size: " << paramsOnTheCurve.size() << std::endl;
-				continue;
-			}
+				if (points.size() != params.size()) {
+					std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
+					std::cerr << "Points size: " << points.size()
+						<< ", Parameters size: " << params.size() << std::endl;
+				}
+
+				// 排序操作
+				std::vector<std::pair<Standard_Real, gp_Pnt>> combined;
+				for (size_t i = 0; i < params.size(); ++i)
+				{
+					combined.emplace_back(params[i], points[i]);
+				}
+				std::sort(combined.begin(), combined.end(), [](const auto& a, const auto& b) 
+					{
+					return a.first < b.first;
+					});
+				for (size_t i = 0; i < combined.size(); ++i)
+				{
+					params[i] = combined[i].first;
+					points[i] = combined[i].second;
+				}
+				return result;
+				}();
 			interPoints.emplace_back(std::move(pointsOnTheCurve));
 			interPointOrgParams.emplace_back(std::move(paramsOnTheCurve));
-		}
-		catch (const std::exception& e) {
-			// 捕捉标准异常
-			std::cerr << "Exception caught while processing a curve: " << e.what() << std::endl;
-			continue;
-		}
-		catch (...) {
-			// 捕捉所有其他异常
-			std::cerr << "Unknown exception caught while processing a curve." << std::endl;
-			continue;
-		}
+		} HANDLE_EXCEPTIONS_CONTINUE
 	}
+
 	//2.在compatibleCurves上加密采样
 	Standard_Integer denseSamplingNum = 10;
 	std::vector<std::vector<gp_Pnt>> denseSamplingPoints;
 	std::vector<std::vector<Standard_Real>> denseSamplingPointsParams;
-	denseSamplingPoints.reserve(compatibleCurves.size());
-	denseSamplingPointsParams.reserve(compatibleCurves.size());
-	for (Standard_Integer i = 0; i < compatibleCurves.size(); i++) {
+	denseSamplingPoints.reserve(theCompatibleCurves.size());
+	denseSamplingPointsParams.reserve(theCompatibleCurves.size());
+
+	for (Standard_Integer i = 0; i < theCompatibleCurves.size(); i++)
+	{
 		try {
 			std::vector<gp_Pnt> densePoints;
 			std::vector<Standard_Real> denseParams;
-			std::tie(densePoints, denseParams) = DenseSampling(compatibleCurves[i], interPointOrgParams[i], denseSamplingNum);
-			// 检查 pointsOnTheCurve 和 paramsOnTheCurve 的大小是否一致
-			if (densePoints.size() != denseParams.size()) {
+			std::tie(densePoints, denseParams) = DenseSampling(theCompatibleCurves[i], interPointOrgParams[i], denseSamplingNum);
+
+			if (densePoints.size() != denseParams.size())
+			{
 				std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
 				std::cerr << "Points size: " << densePoints.size()
 					<< ", Parameters size: " << denseParams.size() << std::endl;
@@ -3449,110 +4100,74 @@ bool SurfaceModelingTool::CompatibleWithInterPoints(const std::vector<Handle(Geo
 			}
 			denseSamplingPoints.emplace_back(std::move(densePoints));
 			denseSamplingPointsParams.emplace_back(std::move(denseParams));
-		}
-		catch (const std::exception& e) {
-			// 捕捉标准异常
-			std::cerr << "Exception caught while processing a curve: " << e.what() << std::endl;
-			continue;
-		}
-		catch (...) {
-			// 捕捉所有其他异常
-			std::cerr << "Unknown exception caught while processing a curve." << std::endl;
-			continue;
-		}
+		} HANDLE_EXCEPTIONS_CONTINUE
 	}
+
 	//3.对所有参数化取平均
-	if (interPointOrgParams.empty()) {
+	if (interPointOrgParams.empty())
+	{
 		throw std::runtime_error("interPointOrgParams is empty, cannot compute average parameters.");
 	}
 	size_t paramSize = interPointOrgParams[0].size();
-	for (const auto& paramVec : interPointOrgParams) {
-		if (paramVec.size() != paramSize) {
+	for (const auto& paramVec : interPointOrgParams)
+	{
+		if (paramVec.size() != paramSize) 
+		{
 			throw std::runtime_error("interPointOrgParams contains vectors of differing sizes.");
 		}
 	}
 	std::vector<Standard_Real> avgParams(interPointOrgParams[0].size(), 0.0);
-	for (const auto& paramVec : interPointOrgParams) {
-		for (size_t i = 0; i < paramVec.size(); ++i) {
+	for (const auto& paramVec : interPointOrgParams) 
+	{
+		for (size_t i = 0; i < paramVec.size(); ++i) 
+		{
 			avgParams[i] += paramVec[i];
 		}
 	}
 	for (auto& val : avgParams) {
 		val /= interPointOrgParams.size();
 	}
+
 	//4.对所有参数重新参数化
-	for (size_t i = 0; i < denseSamplingPointsParams.size(); ++i) {
+	for (size_t i = 0; i < denseSamplingPointsParams.size(); ++i)
+	{
 		try {
 			denseSamplingPointsParams[i] = ScalingParamsByBaseParams(avgParams, denseSamplingNum + 1, denseSamplingPointsParams[i]);
-		}
-		catch (const std::exception& e) {
-			std::cerr << "Exception caught while scaling parameters for curve " << i << ": " << e.what() << std::endl;
-			continue;
-		}
-		catch (...) {
-			std::cerr << "Unknown exception caught while scaling parameters for curve " << i << "." << std::endl;
-			continue;
-		}
+		} HANDLE_EXCEPTIONS_CONTINUE
 	}
+
 	//5.合并节点向量
 	std::vector<Standard_Real> knots;
 	try {
-		knots = CalSameKnotFromCurves(compatibleCurves, 0.01);
-	}
-	catch (const std::exception& e) 
-	{
-		std::cerr << "Exception caught while calculating knots: " << e.what() << std::endl;
-		return false;
-	}
-	catch (...) 
-	{
-		std::cerr << "Unknown exception caught while calculating knots." << std::endl;
-		return false;
-	}
-	//6.找到最大次数
-	Standard_Integer aDegree = 0;
+		knots = CalSameKnotFromCurves(theCompatibleCurves, 0.01);
+	} HANDLE_EXCEPTIONS_RETURN_FALSE
+
+		//6.找到最大次数
+		Standard_Integer aDegree = 0;
 	try {
-		auto maxCurve = std::max_element(compatibleCurves.begin(), compatibleCurves.end(),
-			[](const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2) -> bool 
-			{
-				if (curve1.IsNull()) return true;  // 将空曲线视为较小
+		auto maxCurve = std::max_element(theCompatibleCurves.begin(), theCompatibleCurves.end(),
+			[](const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2) -> bool {
+				if (curve1.IsNull()) return true;
 				if (curve2.IsNull()) return false;
 				return curve1->Degree() < curve2->Degree();
 			}
 		);
 
-		if (maxCurve != compatibleCurves.end() && !(*maxCurve).IsNull()) 
-		{
+		if (maxCurve != theCompatibleCurves.end() && !(*maxCurve).IsNull()) {
 			aDegree = (*maxCurve)->Degree();
 		}
 		else {
 			std::cerr << "Error: No valid curves found in compatibleCurves." << std::endl;
 			return false;
 		}
-	}
-	catch (const std::exception& e) {
-		std::cerr << "Exception caught while finding max degree: " << e.what() << std::endl;
-		return false;
-	}
-	catch (...) {
-		std::cerr << "Unknown exception caught while finding max degree." << std::endl;
-		return false;
-	}
+	} HANDLE_EXCEPTIONS_RETURN_FALSE
 
-	//7.进行拟合
-	for (size_t i = 0; i < compatibleCurves.size(); ++i) {
-		try {
-			compatibleCurves[i] = ApproximateC(denseSamplingPoints[i], denseSamplingPointsParams[i], knots, aDegree);
+		//7.进行拟合
+		for (size_t i = 0; i < theCompatibleCurves.size(); ++i) {
+			try {
+				theCompatibleCurves[i] = ApproximateC(denseSamplingPoints[i], denseSamplingPointsParams[i], knots, aDegree);
+			} HANDLE_EXCEPTIONS_CONTINUE
 		}
-		catch (const std::exception& e) {
-			std::cerr << "Exception caught while approximating curve " << i << ": " << e.what() << std::endl;
-			continue;
-		}
-		catch (...) {
-			std::cerr << "Unknown exception caught while approximating curve " << i << "." << std::endl;
-			continue;
-		}
-	}
 
 	return true;
 }
