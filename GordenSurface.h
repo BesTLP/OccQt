@@ -17,6 +17,14 @@ public:
         std::vector<Handle(Geom_BSplineCurve)>& uCurves,
         std::vector<Handle(Geom_BSplineCurve)>& vCurves,
         TopoDS_Face& face);
+
+    // 根据给定的 u 和 v 方向曲线构建 Gordon 曲面
+    static void BuildMyGordonSurf(
+        std::vector<Handle(Geom_BSplineCurve)>& uCurves,
+        std::vector<Handle(Geom_BSplineCurve)>& vCurves,
+        const std::vector<Standard_Real>& theUParams,
+        const std::vector<Standard_Real>& theVParams,
+        TopoDS_Face& face);
 };
 
 #endif

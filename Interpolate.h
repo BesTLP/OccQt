@@ -46,6 +46,7 @@ namespace InterPolateTool
 		std::vector<double>& UKnots, std::vector<double>& VKnots, std::vector<int>& UMuti, std::vector<int>& VMuti, int Udegree, int Vdegree);
 
 	Handle(Geom_BSplineSurface) Loft(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, int perpendDegree = 3);
+	Handle(Geom_BSplineSurface) Loft(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, const std::vector<Standard_Real>& theParams, int perpendDegree = 3);
 
 	std::vector<double> CalKnots(const std::vector<double>& params, int degree);
 
@@ -61,6 +62,7 @@ namespace InterPolateTool
 	Eigen::MatrixXd composeTensowMat(const Eigen::MatrixXd& matA, const Eigen::MatrixXd& matB);
 	TColgp_Array2OfPnt vectorToOCCMatrix(const std::vector<gp_Pnt>& pnts, int m);
 	Handle(Geom_BSplineSurface) LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, int perpendDegree);
+	Handle(Geom_BSplineSurface) LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, const std::vector<Standard_Real>& theParams, int perpendDegree);
 	bool isEqual(double x, double y, double epsilon = 0.0000000000001);
 	bool isGreaterThan(double x, double y, double epsilon = 0.0000000000001);
 	bool isLessThan(double x, double y, double epsilon = 0.0000000000001);
