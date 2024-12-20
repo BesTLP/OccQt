@@ -87,12 +87,15 @@ Handle(Geom_BSplineSurface) InterPolateTool::Interpolate(const std::vector<gp_Pn
 	Eigen::MatrixXd matNi(Pnts.size(), u_direct_poles_num);
 	Eigen::MatrixXd matNj(Pnts.size(), v_direct_poles_num);
 	double valueTemp = 0.0;
-	for (size_t i = 0; i < Pnts.size(); i++) {
-		for (size_t j = 0; j < u_direct_poles_num; j++) {
+	for (size_t i = 0; i < Pnts.size(); i++)
+	{
+		for (size_t j = 0; j < u_direct_poles_num; j++) 
+		{
 			valueTemp = OneBasicFun(PntParams[i].X(), j, Udegree, USeq);
 			matNi(i, j) = valueTemp;
 		}
-		for (size_t j = 0; j < v_direct_poles_num; j++) {
+		for (size_t j = 0; j < v_direct_poles_num; j++)
+		{
 			valueTemp = OneBasicFun(PntParams[i].Y(), j, Vdegree, VSeq);
 			matNj(i, j) = valueTemp;
 		}
@@ -374,6 +377,31 @@ TColgp_Array2OfPnt InterPolateTool::vectorToOCCMatrix(const std::vector<gp_Pnt>&
 	return array2D;
 }
 
+Handle(Geom_BSplineSurface) InterPolateTool::LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, int perpendDegree)
+{
+	auto ctrl_point_matrix = ExtractControlPoints(isoCurves);
+	auto point_params = ChordLenParam(ctrl_point_matrix);
+	auto perpend_knot_sequence = CalKnots(point_params, perpendDegree);
+	std::vector<Handle(Geom_BSplineCurve)> interpolate_curves(ctrl_point_matrix.size());
+	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
+		auto curve = Interpolate(ctrl_point_matrix[i], point_params, perpend_knot_sequence, perpendDegree);
+		interpolate_curves[i] = curve;
+	}
+	TColgp_Array2OfPnt Poles(1, ctrl_point_matrix[0].size(), 1, ctrl_point_matrix.size());
+	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
+		for (int j = 0; j < ctrl_point_matrix[0].size(); j++) {
+			Poles(j + 1, i + 1) = interpolate_curves[i]->Pole(j + 1);
+		}
+	}
+	auto VKnots = isoCurves[0]->Knots();
+	auto VMulti = isoCurves[0]->Multiplicities();
+	auto UKnots = interpolate_curves[0]->Knots();
+	auto UMulti = interpolate_curves[0]->Multiplicities();
+
+
+	Handle(Geom_BSplineSurface) bspline = new Geom_BSplineSurface(Poles, UKnots, VKnots, UMulti, VMulti, perpendDegree, isoCurves[0]->Degree());
+	return bspline;
+}
 // 比较两个浮点数是否相等
 bool InterPolateTool::isEqual(double x, double y, double epsilon) {
 	return std::fabs(x - y) < epsilon;

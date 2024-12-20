@@ -2723,12 +2723,19 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 	theUInternalCurve.clear();
 	theVInternalCurve.clear();
 
+<<<<<<< Updated upstream
 	for (auto& anInternalCurve : theInternalBSplineCurves)
 	{
 		PlanarCurve anInternalPlanarCurve(anInternalCurve);
 
 		if (anInternalPlanarCurve.GetCurveType() == CurveType::NOTPLANAR) 
 		{
+=======
+	for (auto& anInternalCurve : theInternalBSplineCurves) {
+		PlanarCurve anInternalPlanarCurve(anInternalCurve);
+
+		if (anInternalPlanarCurve.GetCurveType() == CurveType::NOTPLANAR) {
+>>>>>>> Stashed changes
 			continue;
 		}
 
@@ -2772,6 +2779,7 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 			Standard_Real anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
 			Standard_Real anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
 			Standard_Real anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
+<<<<<<< Updated upstream
 			if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance &&
 				std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
 			{
@@ -2793,6 +2801,14 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 			}
 			else if (std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance) 
 			{
+=======
+
+			if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance) {
+				theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
+				theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+			}
+			else if (std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance) {
+>>>>>>> Stashed changes
 				theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
 				theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
 			}
@@ -2809,7 +2825,11 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 	MathTool::CheckSelfIntersect(theUInternalCurve);
 	MathTool::CheckSelfIntersect(theVInternalCurve);
 
+<<<<<<< Updated upstream
 	return theUInternalCurve.size() >= 4 || theVInternalCurve.size() >= 4;
+=======
+	return theUInternalCurve.size() > 4 || theVInternalCurve.size() > 4;
+>>>>>>> Stashed changes
 }
 
 
@@ -3565,6 +3585,7 @@ std::vector<gp_Pnt> MathTool::GetSamplePointsOnCurve(const Handle(Geom_Curve)& t
 	return aSampledPoints;
 }
 
+<<<<<<< Updated upstream
 void MathTool::TrimInternalCurves(
 	std::vector<Handle(Geom_BSplineCurve)>& theInternalBSplineCurves,
 	const std::vector<Handle(Geom_BSplineCurve)>& theBoundaryCurveArray,
@@ -3630,6 +3651,8 @@ void MathTool::TrimInternalCurves(
 		internalCurve = modifiedCurve;
 	}
 }
+=======
+>>>>>>> Stashed changes
 void MathTool::SortPoints(std::vector<gp_Pnt>& thePoints, const gp_Pnt& theReferPoint)
 {
 	// 检查点数组是否为空
