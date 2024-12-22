@@ -39,7 +39,7 @@ public:
 	// 默认构造函数
 	PlanarCurve();
 	// 带参数的构造函数，接受一个 B-Spline 曲线句柄和容差值
-	PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance = 1);
+	PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance = 10);
 	// 获取当前曲线的类型
 	CurveType GetCurveType() const { return curveType; }
 	// 获取线性曲线（仅当曲线类型为 LINEAR 时有效）

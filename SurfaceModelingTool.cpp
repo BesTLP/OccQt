@@ -2705,13 +2705,16 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 	Handle(Geom_BSplineCurve) aBoundaryCurve4 = theBoundaryCurveArray[3];
 
 	std::vector<PlanarCurve> aPlanarCurveArray;
-	for (Standard_Integer i = 0; i < theBoundaryCurveArray.size(); ++i) {
+	for (Standard_Integer i = 0; i < theBoundaryCurveArray.size(); ++i) 
+	{
 		aPlanarCurveArray.emplace_back(PlanarCurve(theBoundaryCurveArray[i]));
 	}
 
 	Standard_Boolean isPlanar = Standard_True;
-	for (const PlanarCurve& aCurve : aPlanarCurveArray) {
-		if (aCurve.GetCurveType() == CurveType::NOTPLANAR) {
+	for (const PlanarCurve& aCurve : aPlanarCurveArray)
+	{
+		if (aCurve.GetCurveType() == CurveType::NOTPLANAR) 
+		{
 			isPlanar = Standard_False;
 			break;
 		}
@@ -2778,10 +2781,6 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 			aModifiedCurve->SetPole(aModifiedCurve->NbPoles(), aReplacePoint2);
 			anInternalPlanarCurve.SetCurve(aModifiedCurve);
 
-			anAngle1 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[0], anInternalPlanarCurve);
-			anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
-			anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
-			anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
 			if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance &&
 				std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
 			{
