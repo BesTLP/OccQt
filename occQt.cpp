@@ -1257,7 +1257,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 void UniformCurve(Handle(Geom_BSplineCurve)& curve);
 void occQt::GenerateIsoCurves(void)
 {
-    for (Standard_Integer i = 29; i <= 29; i++)
+    for (Standard_Integer i = 10; i <= 41; i++)
     {
         //if (i == 20) continue; // 三边
         //if (i >= 22 && i <= 29) continue;
@@ -1275,6 +1275,7 @@ void occQt::GenerateIsoCurves(void)
         SurfaceModelingTool::ApproximateBoundaryCurves(tempArray);
         if (tempArray.size() == 3)
         {
+            continue;
             gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
             gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
 
@@ -1354,6 +1355,7 @@ void occQt::GenerateIsoCurves(void)
             }
             else
             {
+                continue;
                 tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
             }
         }
@@ -1404,7 +1406,6 @@ void occQt::GenerateIsoCurves(void)
             // 生成不了Gorden，不适用新算法，继续生成Coons
             SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
         }
-        continue;
         SurfaceModelingTool::GetISOCurveWithNormal(aResSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
         myOccView->getContext()->RemoveAll(true);
         Visualize(uISOcurvesArray_Initial, Quantity_NOC_RED);
@@ -1444,6 +1445,12 @@ void occQt::GenerateIsoCurves(void)
                 std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
             }
 
+            if (MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[0]) > 10 && 
+                MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
+            {
+                std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
+            }
+
             // 保留线多的方向
             if (uInternalCurve.size() > vInternalCurve.size())
             {
@@ -1465,8 +1472,8 @@ void occQt::GenerateIsoCurves(void)
             MathTool::ReverseIfNeeded(uISOcurvesArray_New);
             MathTool::ReverseIfNeeded(vISOcurvesArray_New);
             myOccView->getContext()->RemoveAll(true);
-            Visualize(vISOcurvesArray_New);
-            Visualize(uISOcurvesArray_New);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_RED);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_BLUE);
             //// 调用陈鑫的 Compatible
             //for (auto curve : uISOcurvesArray_New)
             //{
