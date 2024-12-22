@@ -39,8 +39,7 @@ public:
 	// 默认构造函数
 	PlanarCurve();
 	// 带参数的构造函数，接受一个 B-Spline 曲线句柄和容差值
-	PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance =
-		0.1);
+	PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance = 0.1);
 	// 获取当前曲线的类型
 	CurveType GetCurveType() const { return curveType; }
 	// 获取线性曲线（仅当曲线类型为 LINEAR 时有效）
@@ -126,6 +125,10 @@ public:
 		theCurve, Standard_Integer theNumPoints = 50);
 	static void SortPoints(std::vector<gp_Pnt>& thePoints, const gp_Pnt&
 		theReferPoint);
+	static void TrimInternalCurves(
+		std::vector<Handle(Geom_BSplineCurve)>& theInternalBSplineCurves,
+		const std::vector<Handle(Geom_BSplineCurve)>& theBoundaryCurveArray,
+		Standard_Real theToleranceDistance = 10);
 };
 
 enum ReferSurfaceType
@@ -317,9 +320,16 @@ public:
 		int isoCount,
 		ReferSurfaceType referSurfaceType);
 
-	static Standard_Boolean CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance = 0.01);
+	
 
 private:
 	std::string knotsOutputPath;
 	
+};
+
+class CurveOperate
+{
+public:
+	static Standard_Boolean CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance = 0.01);
+	static std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPointsParamsToCurve(const std::vector<Handle(Geom_BSplineCurve)>& theCurves, const Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance = 0.1);
 };

@@ -202,6 +202,18 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
             context->Display(aisShape, Standard_True);
             return;  // 跳过后续的 AIS_Shape 处理
         }
+        else if constexpr (std::is_same<T, gp_Pln>::value)
+        {
+            // 定义平面的范围
+            Standard_Real uMin = -5000.0, uMax = 5000.0, vMin = -5000.0, vMax = 5000.0;
+
+            // 将 gp_Pln 转换为 Geom_Plane
+            Handle(Geom_Plane) geomPlane = new Geom_Plane(object);
+
+            // 创建 TopoDS_Face
+            TopoDS_Face face = BRepBuilderAPI_MakeFace(geomPlane, uMin, uMax, vMin, vMax, Precision::Confusion());
+            aisShape = new AIS_Shape(face);
+        }
 
         aisShape->SetColor(color); // 设置颜色
         context->Display(aisShape, Standard_True);
@@ -282,6 +294,18 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
                 context->Display(aisShape, Standard_True);
                 continue;  // 跳过后续的 AIS_Shape 处理
             }
+            else if constexpr (std::is_same<T, gp_Pln>::value)
+            {
+                // 定义平面的范围
+                Standard_Real uMin = -5000.0, uMax = 5000.0, vMin = -5000.0, vMax = 5000.0;
+
+                // 将 gp_Pln 转换为 Geom_Plane
+                Handle(Geom_Plane) geomPlane = new Geom_Plane(obj);
+
+                // 创建 TopoDS_Face
+                TopoDS_Face face = BRepBuilderAPI_MakeFace(geomPlane, uMin, uMax, vMin, vMax, Precision::Confusion());
+                aisShape = new AIS_Shape(face);
+            }
 
             aisShape->SetColor(color); // 设置颜色
             context->Display(aisShape, Standard_True);
@@ -297,7 +321,10 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
     {
         myOccView->fitAll();
     }
-}void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
+}
+
+
+void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
 {
     // 获取曲面的参数范围
     Standard_Real uMin, uMax, vMin, vMax;
@@ -1230,18 +1257,17 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 void UniformCurve(Handle(Geom_BSplineCurve)& curve);
 void occQt::GenerateIsoCurves(void)
 {
-    for (Standard_Integer i = 5; i <= 99; i++)
+    for (Standard_Integer i = 10; i <= 41; i++)
     {
-        if (i == 2 || i == 3) continue;
-        if (i == 20) continue; // 三边
-        if (i >= 22 && i <= 29) continue;
-        if (i >= 31 && i <= 33) continue;
-        if (i >= 37 && i <= 98) continue;
+        //if (i == 20) continue; // 三边
+        //if (i >= 22 && i <= 29) continue;
+        //if (i >= 30 && i <= 33) continue;
+        //if (i >= 37 && i <= 98) continue;
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
         std::vector<Handle(Geom_BSplineCurve)> tempArray;
         tempArray.clear();
-        std::string filename = "E:/Models/Constraint/test";
+        std::string filename = "D:/GordenModels/NewModels/Processed/test";
         filename += std::to_string(i);
         filename += "/";
         std::string boundaryPath = filename + "boundary.brep";
@@ -1331,13 +1357,13 @@ void occQt::GenerateIsoCurves(void)
                 tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
             }
         }
-        
         Handle(Geom_BSplineCurve) bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4;
         SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, 10, Standard_True);
         std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray = { bslpineCurve1 , bslpineCurve2, bslpineCurve3, bslpineCurve4 };
         Visualize(tempArray);
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
+
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
         Visualize(anInternalBSplineCurves);
         Standard_Integer isoCount = 20;
@@ -1346,32 +1372,41 @@ void occQt::GenerateIsoCurves(void)
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
         std::vector<std::vector<Standard_Real>> uKnots;
         std::vector<std::vector<Standard_Real>> vKnots;
-
         // 新添加代码
         std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
         Standard_Real uAngleSum = 0, vAngleSum = 0;
         Handle(Geom_BSplineSurface) aResSurface;
+
+        //MathTool::TrimInternalCurves(anInternalBSplineCurves, aBoundarycurveArray, 20);
+        Visualize(anInternalBSplineCurves, Quantity_NOC_GOLD);
+        Visualize(aBoundarycurveArray, Quantity_NOC_RED);
         if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5))
         {
-            if (uInternalCurve.size() >= 4 && vInternalCurve.size() >= 4)
-            {
-                aResSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, GORDEN_TWO_DIRECTION_GORDEN);
-            }
-            else
-            {
-                aResSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, GORDEN_ONE_DIRECTION_GORDEN);
-            }
             myOccView->getContext()->RemoveAll(true);
-            Visualize(uInternalCurve, Quantity_NOC_AZURE);
-            Visualize(vInternalCurve, Quantity_NOC_AZURE);
+            Visualize(uInternalCurve, Quantity_NOC_RED);
+            Visualize(vInternalCurve, Quantity_NOC_BLUE);
+            continue;
+            aResSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, GORDEN_TWO_DIRECTION_GORDEN);
             Visualize(aResSurface);
         }
+        myOccView->getContext()->RemoveAll(true);
+        for (auto uCurve : uInternalCurve)
+        {
+            PlanarCurve uPlanarCurve(uCurve);
+            Visualize(uPlanarCurve.GetCurve(), Quantity_NOC_BLUE);
+        }
+        for (auto vCurve : vInternalCurve)
+        {
+            PlanarCurve vPlanarCurve(vCurve);
+            Visualize(vPlanarCurve.GetCurve(), Quantity_NOC_RED);
+        }
+
         if (aResSurface.IsNull())
         {
             // 生成不了Gorden，不适用新算法，继续生成Coons
             SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
         }
-
+        continue;
         SurfaceModelingTool::GetISOCurveWithNormal(aResSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
         myOccView->getContext()->RemoveAll(true);
         Visualize(uISOcurvesArray_Initial, Quantity_NOC_RED);
@@ -1434,17 +1469,18 @@ void occQt::GenerateIsoCurves(void)
             myOccView->getContext()->RemoveAll(true);
             Visualize(vISOcurvesArray_New);
             Visualize(uISOcurvesArray_New);
-            // 调用陈鑫的 Compatible
-            for (auto curve : uISOcurvesArray_New)
-            {
-                UniformCurve(curve);
-            }
-            for (auto curve : vISOcurvesArray_New)
-            {
-                UniformCurve(curve);
-            }
-            SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
-            SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
+            //// 调用陈鑫的 Compatible
+            //for (auto curve : uISOcurvesArray_New)
+            //{
+            //    UniformCurve(curve);
+            //}
+            //for (auto curve : vISOcurvesArray_New)
+            //{
+            //    UniformCurve(curve);
+            //}
+
+            //SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
+            //SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
 
             // 调用胡新宇的 Gorden
             TopoDS_Face aGordenFace;
