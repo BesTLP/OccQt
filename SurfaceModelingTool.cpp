@@ -2964,31 +2964,25 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theVInternalCurve, theUInternalCurve[0]);
 		// 排序操作
 		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
-		for (size_t i = 0; i < vparams.size(); ++i) 
-		{
+		for (size_t i = 0; i < vparams.size(); ++i) {
 			combinedv.emplace_back(vparams[i], theVInternalCurve[i]);
 		}
-		std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b)
-			{
+		std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b) {
 			return a.first < b.first;
 		});
-		for (size_t i = 0; i < combinedv.size(); ++i)
-		{
+		for (size_t i = 0; i < combinedv.size(); ++i) {
 			vparams[i] = combinedv[i].first;
 			theVInternalCurve[i] = combinedv[i].second;
 		}
 
 		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
-		for (size_t i = 0; i < uparams.size(); ++i) 
-		{
+		for (size_t i = 0; i < uparams.size(); ++i) {
 			combinedu.emplace_back(uparams[i], theUInternalCurve[i]);
 		}
-		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) 
-		{
+		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) {
 			return a.first < b.first;
 		});
-		for (size_t i = 0; i < combinedu.size(); ++i)
-		{
+		for (size_t i = 0; i < combinedu.size(); ++i) {
 			uparams[i] = combinedu[i].first;
 			theUInternalCurve[i] = combinedu[i].second;
 		}
@@ -3833,10 +3827,10 @@ std::vector<Standard_Real> CalSameKnotFromCurves(std::vector< Handle(Geom_BSplin
 /// <param name="theCurve"></param>	 某条曲线
 /// <param name="theTolerance"></param>
 /// <returns></returns>	交点以及交点参数值
-std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CurveOperate::CalCurvesInterPointsParamsToCurve(
+std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPointsParamsToCurve(
 	const std::vector<Handle(Geom_BSplineCurve)>& theCurves,
 	const Handle(Geom_BSplineCurve)& theCurve,
-	Standard_Real theTolerance) {
+	Standard_Real theTolerance = 0.1) {
 	std::vector<gp_Pnt> pointsOnTheCurve;
 	std::vector<Standard_Real> paramsOnTheCurve;
 	const Standard_Real intersectionToleranceSq = theTolerance * theTolerance; // 容差的平方，用于距离比较
@@ -4101,7 +4095,7 @@ std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_
 /// <param name="theCompatibleCurves"></param> 需要compatible的曲线
 /// <param name="theTolerance"></param> 拟合容差
 /// <returns></returns>	是否compatible成功
-Standard_Boolean CurveOperate::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance)
+Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance)
 {
 	//1.获取交点以及交点参数化
 	std::vector<std::vector<gp_Pnt>> interPoints;
