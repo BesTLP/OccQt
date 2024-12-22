@@ -2822,8 +2822,7 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 	Standard_Integer theIsoCount,
 	ReferSurfaceType theReferSurfaceType)
 {
-	if (theReferSurfaceType == ReferSurfaceType::GORDEN_ONE_DIRECTION_GORDEN)
-	{
+	if (theReferSurfaceType == ReferSurfaceType::GORDEN_ONE_DIRECTION_GORDEN) {
 		// 获取输入的边界曲线
 		Handle(Geom_BSplineCurve) aBsplineCurve1 = theBoundaryCurveArray[0];
 		Handle(Geom_BSplineCurve) aBsplineCurve2 = theBoundaryCurveArray[1];
@@ -2838,38 +2837,28 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		Standard_Boolean aUseNewAlgorithm = true;
 
 		// 判断内部曲线的数量来选择构造Gorden曲面的方式
-		if (theUInternalCurve.size() > theVInternalCurve.size() && theUInternalCurve.size() >= 4)
-		{
+		if (theUInternalCurve.size() > theVInternalCurve.size() && theUInternalCurve.size() >= 4) {
 			// 选择u方向的内部线和边界来构造Gorden曲面
 			aGordenISOCurves.insert(aGordenISOCurves.end(), theUInternalCurve.begin(), theUInternalCurve.end());
 			aRemainCurves.push_back(aBsplineCurve2);
 			aRemainCurves.push_back(aBsplineCurve4);
-		}
-		else if (theVInternalCurve.size() > theUInternalCurve.size() && theVInternalCurve.size() >= 4)
-		{
+		} else if (theVInternalCurve.size() > theUInternalCurve.size() && theVInternalCurve.size() >= 4) {
 			// 选择v方向的内部线和边界来构造Gorden曲面
 			aGordenISOCurves.insert(aGordenISOCurves.end(), theVInternalCurve.begin(), theVInternalCurve.end());
 			aRemainCurves.push_back(aBsplineCurve1);
 			aRemainCurves.push_back(aBsplineCurve3);
-		}
-		else if (theUInternalCurve.size() == theVInternalCurve.size() && theUInternalCurve.size() >= 4)
-		{
+		} else if (theUInternalCurve.size() == theVInternalCurve.size() && theUInternalCurve.size() >= 4) {
 			// 如果u方向和v方向的内部曲线数量相等，根据角度之和来选择
-			if (theUAngleSum < theVAngleSum)
-			{
+			if (theUAngleSum < theVAngleSum) {
 				aGordenISOCurves.insert(aGordenISOCurves.end(), theUInternalCurve.begin(), theUInternalCurve.end());
 				aRemainCurves.push_back(aBsplineCurve2);
 				aRemainCurves.push_back(aBsplineCurve4);
-			}
-			else
-			{
+			} else {
 				aGordenISOCurves.insert(aGordenISOCurves.end(), theVInternalCurve.begin(), theVInternalCurve.end());
 				aRemainCurves.push_back(aBsplineCurve1);
 				aRemainCurves.push_back(aBsplineCurve3);
 			}
-		}
-		else
-		{
+		} else {
 			// 如果条件不满足，回退到现有算法
 			aUseNewAlgorithm = false;
 			return nullptr;
@@ -2882,23 +2871,19 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		// 最终生成的参考曲面
 		Handle(Geom_BSplineSurface) aReferSurface;
 
-		if (aUseNewAlgorithm)
-		{
+		if (aUseNewAlgorithm) {
 			// 计算曲线与曲线之间的角度
 			Standard_Real aAngleUwithG = MathTool::ComputeAngleBetweenCurves(aBsplineCurve1, aGordenISOCurves[0]);
 			Standard_Real aAngleVwithG = MathTool::ComputeAngleBetweenCurves(aBsplineCurve2, aGordenISOCurves[0]);
 
 			// 根据角度选择曲线
-			if (aAngleUwithG > aAngleVwithG)
-			{
+			if (aAngleUwithG > aAngleVwithG) {
 				// 如果u方向的角度更大，调整u和v方向的曲线顺序
 				aVCreateGordenCurves.clear();
 				aVCreateGordenCurves.insert(aVCreateGordenCurves.begin(), aGordenISOCurves.begin(), aGordenISOCurves.end());
 				aUCreateGordenCurves.insert(aUCreateGordenCurves.begin(), aRemainCurves[0]);
 				aUCreateGordenCurves.insert(aUCreateGordenCurves.end(), aRemainCurves[1]);
-			}
-			else
-			{
+			} else {
 				// 调整v方向的曲线顺序
 				aUCreateGordenCurves.clear();
 				aUCreateGordenCurves.insert(aUCreateGordenCurves.begin(), aGordenISOCurves.begin(), aGordenISOCurves.end());
@@ -2910,7 +2895,46 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 			MathTool::SortBSplineCurves(aUCreateGordenCurves, aUCreateGordenCurves[0]);
 			MathTool::SortBSplineCurves(aVCreateGordenCurves, aVCreateGordenCurves[0]);
 			TopoDS_Face aGordenFace;
-			GordenSurface::BuildMyGordonSurf(aUCreateGordenCurves, aVCreateGordenCurves, aGordenFace);
+
+			//MathTool::ReverseIfNeeded(aUCreateGordenCurves);
+			//MathTool::ReverseIfNeeded(aVCreateGordenCurves);
+			// 调用陈鑫的 Compatible
+			std::for_each(aUCreateGordenCurves.begin(), aUCreateGordenCurves.end(), UniformCurve);
+			std::for_each(aVCreateGordenCurves.begin(), aVCreateGordenCurves.end(), UniformCurve);
+
+			CurveOperate::CompatibleWithInterPoints(aVCreateGordenCurves, aUCreateGordenCurves);
+			CurveOperate::CompatibleWithInterPoints(aUCreateGordenCurves, aVCreateGordenCurves);
+
+			std::vector<gp_Pnt> upoints, vpoints;
+			std::vector<Standard_Real> uparams, vparams;
+			std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(aUCreateGordenCurves, aVCreateGordenCurves[0]);
+			std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(aVCreateGordenCurves, aUCreateGordenCurves[0]);
+			// 排序操作
+			std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
+			for (size_t i = 0; i < vparams.size(); ++i) {
+				combinedv.emplace_back(vparams[i], aVCreateGordenCurves[i]);
+			}
+			std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b) {
+				return a.first < b.first;
+			});
+			for (size_t i = 0; i < combinedv.size(); ++i) {
+				vparams[i] = combinedv[i].first;
+				aVCreateGordenCurves[i] = combinedv[i].second;
+			}
+
+			std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
+			for (size_t i = 0; i < uparams.size(); ++i) {
+				combinedu.emplace_back(uparams[i], aUCreateGordenCurves[i]);
+			}
+			std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) {
+				return a.first < b.first;
+			});
+			for (size_t i = 0; i < combinedu.size(); ++i) {
+				uparams[i] = combinedu[i].first;
+				aUCreateGordenCurves[i] = combinedu[i].second;
+			}
+
+			GordenSurface::BuildMyGordonSurf(aUCreateGordenCurves, aVCreateGordenCurves, uparams, vparams, aGordenFace);
 			Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
 			aReferSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
 		}
@@ -2919,10 +2943,51 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		return aReferSurface;
 	}
 
-	if (theReferSurfaceType == ReferSurfaceType::GORDEN_TWO_DIRECTION_GORDEN)
-	{
+	if (theReferSurfaceType == ReferSurfaceType::GORDEN_TWO_DIRECTION_GORDEN) {
+		// 对生成的曲线进行排序并检查交点
+		MathTool::SortBSplineCurves(theUInternalCurve, theUInternalCurve[0]);
+		MathTool::SortBSplineCurves(theVInternalCurve, theVInternalCurve[0]);
 		TopoDS_Face aGordenFace;
-		GordenSurface::BuildMyGordonSurf(theUInternalCurve, theVInternalCurve, aGordenFace);
+
+		/*MathTool::ReverseIfNeeded(theUInternalCurve);
+		MathTool::ReverseIfNeeded(theVInternalCurve);*/
+		// 调用陈鑫的 Compatible
+		std::for_each(theUInternalCurve.begin(), theUInternalCurve.end(), UniformCurve);
+		std::for_each(theVInternalCurve.begin(), theVInternalCurve.end(), UniformCurve);
+
+		CurveOperate::CompatibleWithInterPoints(theVInternalCurve, theUInternalCurve);
+		CurveOperate::CompatibleWithInterPoints(theUInternalCurve, theVInternalCurve);
+
+		std::vector<gp_Pnt> upoints, vpoints;
+		std::vector<Standard_Real> uparams, vparams;
+		std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theUInternalCurve, theVInternalCurve[0]);
+		std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theVInternalCurve, theUInternalCurve[0]);
+		// 排序操作
+		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
+		for (size_t i = 0; i < vparams.size(); ++i) {
+			combinedv.emplace_back(vparams[i], theVInternalCurve[i]);
+		}
+		std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b) {
+			return a.first < b.first;
+		});
+		for (size_t i = 0; i < combinedv.size(); ++i) {
+			vparams[i] = combinedv[i].first;
+			theVInternalCurve[i] = combinedv[i].second;
+		}
+
+		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
+		for (size_t i = 0; i < uparams.size(); ++i) {
+			combinedu.emplace_back(uparams[i], theUInternalCurve[i]);
+		}
+		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) {
+			return a.first < b.first;
+		});
+		for (size_t i = 0; i < combinedu.size(); ++i) {
+			uparams[i] = combinedu[i].first;
+			theUInternalCurve[i] = combinedu[i].second;
+		}
+		GordenSurface::BuildMyGordonSurf(theUInternalCurve, theVInternalCurve, uparams, vparams, aGordenFace);
+
 
 		// 将生成的面转换为BSplineSurface
 		Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);

@@ -181,6 +181,30 @@ Handle(Geom_BSplineSurface) InterPolateTool::Loft(const std::vector<Handle(Geom_
 
 }
 
+Handle(Geom_BSplineSurface) InterPolateTool::Loft(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, const std::vector<Standard_Real>& theParams, int perpendDegree) {
+	auto ctrl_point_matrix = ExtractControlPoints(isoCurves);
+	auto perpend_knot_sequence = CalKnots(theParams, perpendDegree);
+	std::vector<Handle(Geom_BSplineCurve)> interpolate_curves(ctrl_point_matrix.size());
+	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
+		auto curve = Interpolate(ctrl_point_matrix[i], theParams, perpend_knot_sequence, perpendDegree);
+		interpolate_curves[i] = curve;
+	}
+	TColgp_Array2OfPnt Poles(1, ctrl_point_matrix.size(), 1, ctrl_point_matrix[0].size());
+	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
+		for (int j = 0; j < ctrl_point_matrix[0].size(); j++) {
+			Poles(i + 1, j + 1) = interpolate_curves[i]->Pole(j + 1);
+		}
+	}
+	auto UKnots = isoCurves[0]->Knots();
+	auto UMulti = isoCurves[0]->Multiplicities();
+	auto VKnots = interpolate_curves[0]->Knots();
+	auto VMulti = interpolate_curves[0]->Multiplicities();
+
+	Handle(Geom_BSplineSurface) bspline = new Geom_BSplineSurface(Poles, UKnots, VKnots, UMulti, VMulti, isoCurves[0]->Degree(), perpendDegree);
+	return bspline;
+
+}
+
 std::vector<double> InterPolateTool::CalKnots(const std::vector<double>& params, int degree) {
 	std::vector<double> knots(params.size() + degree + 1);
 	for (int i = 0; i <= degree; i++) {
@@ -385,6 +409,30 @@ Handle(Geom_BSplineSurface) InterPolateTool::LoftV(const std::vector<Handle(Geom
 	std::vector<Handle(Geom_BSplineCurve)> interpolate_curves(ctrl_point_matrix.size());
 	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
 		auto curve = Interpolate(ctrl_point_matrix[i], point_params, perpend_knot_sequence, perpendDegree);
+		interpolate_curves[i] = curve;
+	}
+	TColgp_Array2OfPnt Poles(1, ctrl_point_matrix[0].size(), 1, ctrl_point_matrix.size());
+	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
+		for (int j = 0; j < ctrl_point_matrix[0].size(); j++) {
+			Poles(j + 1, i + 1) = interpolate_curves[i]->Pole(j + 1);
+		}
+	}
+	auto VKnots = isoCurves[0]->Knots();
+	auto VMulti = isoCurves[0]->Multiplicities();
+	auto UKnots = interpolate_curves[0]->Knots();
+	auto UMulti = interpolate_curves[0]->Multiplicities();
+
+
+	Handle(Geom_BSplineSurface) bspline = new Geom_BSplineSurface(Poles, UKnots, VKnots, UMulti, VMulti, perpendDegree, isoCurves[0]->Degree());
+	return bspline;
+}
+
+Handle(Geom_BSplineSurface) InterPolateTool::LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, const std::vector<Standard_Real>& theParams, int perpendDegree) {
+	auto ctrl_point_matrix = ExtractControlPoints(isoCurves);
+	auto perpend_knot_sequence = CalKnots(theParams, perpendDegree);
+	std::vector<Handle(Geom_BSplineCurve)> interpolate_curves(ctrl_point_matrix.size());
+	for (int i = 0; i < ctrl_point_matrix.size(); i++) {
+		auto curve = Interpolate(ctrl_point_matrix[i], theParams, perpend_knot_sequence, perpendDegree);
 		interpolate_curves[i] = curve;
 	}
 	TColgp_Array2OfPnt Poles(1, ctrl_point_matrix[0].size(), 1, ctrl_point_matrix.size());
