@@ -205,6 +205,7 @@ Handle(Geom_BSplineSurface) InterPolateTool::Loft(const std::vector<Handle(Geom_
 
 }
 
+
 std::vector<double> InterPolateTool::CalKnots(const std::vector<double>& params, int degree) {
 	std::vector<double> knots(params.size() + degree + 1);
 	for (int i = 0; i <= degree; i++) {
@@ -427,7 +428,7 @@ Handle(Geom_BSplineSurface) InterPolateTool::LoftV(const std::vector<Handle(Geom
 	return bspline;
 }
 
-Handle(Geom_BSplineSurface) InterPolateTool::LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, const std::vector<Standard_Real>& theParams, int perpendDegree) {
+Handle(Geom_BSplineSurface) InterPolateTool::LoftV(const std::vector<Handle(Geom_BSplineCurve)>& isoCurves, const std::vector<Standard_Real>& theParams,int perpendDegree) {
 	auto ctrl_point_matrix = ExtractControlPoints(isoCurves);
 	auto perpend_knot_sequence = CalKnots(theParams, perpendDegree);
 	std::vector<Handle(Geom_BSplineCurve)> interpolate_curves(ctrl_point_matrix.size());

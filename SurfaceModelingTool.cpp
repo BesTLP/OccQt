@@ -2694,7 +2694,8 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 	Standard_Real& theVAngleSum,
 	Standard_Real theAngleTolerance) {
 
-	if (theBoundaryCurveArray.size() != 4) {
+	if (theBoundaryCurveArray.size() != 4)
+	{
 		return Standard_False;
 	}
 
@@ -2739,24 +2740,28 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 
 		Standard_Real aSplitPointParams[2] = { 0.0 };
 
-		if ((aDistance1 < 10.0 && aDistance3 < 10.0) || (aDistance2 < 10.0 && aDistance4 < 10.0)) {
+		if ((aDistance1 < 10.0 && aDistance3 < 10.0) || (aDistance2 < 10.0 && aDistance4 < 10.0))
+		{
 			GeomAPI_ExtremaCurveCurve anExtrema1(anInternalPlanarCurve.GetCurve(), aDistance1 < 10.0 ? aBoundaryCurve1 : aBoundaryCurve2);
 			GeomAPI_ExtremaCurveCurve anExtrema2(anInternalPlanarCurve.GetCurve(), aDistance3 < 10.0 ? aBoundaryCurve3 : aBoundaryCurve4);
 			gp_Pnt anInternalPoint;
 			gp_Pnt aReplacePoint1, aReplacePoint2;
 
 			Standard_Real aParameter = 0;
-			if (anExtrema1.NbExtrema() > 0) {
+			if (anExtrema1.NbExtrema() > 0) 
+			{
 				anExtrema1.LowerDistanceParameters(aSplitPointParams[0], aParameter);
 				anExtrema1.NearestPoints(anInternalPoint, aReplacePoint1);
 			}
 
-			if (anExtrema2.NbExtrema() > 0) {
+			if (anExtrema2.NbExtrema() > 0)
+			{
 				anExtrema2.LowerDistanceParameters(aSplitPointParams[1], aParameter);
 				anExtrema2.NearestPoints(anInternalPoint, aReplacePoint2);
 			}
 
-			if (aSplitPointParams[0] > aSplitPointParams[1]) {
+			if (aSplitPointParams[0] > aSplitPointParams[1])
+			{
 				std::swap(aSplitPointParams[0], aSplitPointParams[1]);
 				std::swap(aReplacePoint1, aReplacePoint2);
 			}
@@ -2764,14 +2769,19 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 			Handle(Geom_TrimmedCurve) aTrimmedCurve = new Geom_TrimmedCurve(anInternalPlanarCurve.GetCurve(), aSplitPointParams[0], aSplitPointParams[1]);
 			Handle(Geom_BSplineCurve) aModifiedCurve = GeomConvert::CurveToBSplineCurve(aTrimmedCurve, Convert_TgtThetaOver2);
 
-			aModifiedCurve->SetPole(1, aReplacePoint1);
-			aModifiedCurve->SetPole(aModifiedCurve->NbPoles(), aReplacePoint2);
-			anInternalPlanarCurve.SetCurve(aModifiedCurve);
-
 			Standard_Real anAngle1 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[0], anInternalPlanarCurve);
 			Standard_Real anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
 			Standard_Real anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
 			Standard_Real anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
+
+			aModifiedCurve->SetPole(1, aReplacePoint1);
+			aModifiedCurve->SetPole(aModifiedCurve->NbPoles(), aReplacePoint2);
+			anInternalPlanarCurve.SetCurve(aModifiedCurve);
+
+			anAngle1 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[0], anInternalPlanarCurve);
+			anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
+			anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
+			anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
 			if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance &&
 				std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
 			{
@@ -2894,6 +2904,8 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 			// 对生成的曲线进行排序并检查交点
 			MathTool::SortBSplineCurves(aUCreateGordenCurves, aUCreateGordenCurves[0]);
 			MathTool::SortBSplineCurves(aVCreateGordenCurves, aVCreateGordenCurves[0]);
+			MathTool::ReverseIfNeeded(aUCreateGordenCurves);
+			MathTool::ReverseIfNeeded(aVCreateGordenCurves);
 			TopoDS_Face aGordenFace;
 
 			//MathTool::ReverseIfNeeded(aUCreateGordenCurves);
@@ -2947,6 +2959,8 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		// 对生成的曲线进行排序并检查交点
 		MathTool::SortBSplineCurves(theUInternalCurve, theUInternalCurve[0]);
 		MathTool::SortBSplineCurves(theVInternalCurve, theVInternalCurve[0]);
+		MathTool::ReverseIfNeeded(theUInternalCurve);
+		MathTool::ReverseIfNeeded(theVInternalCurve);
 		TopoDS_Face aGordenFace;
 
 		/*MathTool::ReverseIfNeeded(theUInternalCurve);
@@ -2964,25 +2978,31 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theVInternalCurve, theUInternalCurve[0]);
 		// 排序操作
 		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
-		for (size_t i = 0; i < vparams.size(); ++i) {
+		for (size_t i = 0; i < vparams.size(); ++i) 
+		{
 			combinedv.emplace_back(vparams[i], theVInternalCurve[i]);
 		}
-		std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b) {
+		std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b)
+			{
 			return a.first < b.first;
 		});
-		for (size_t i = 0; i < combinedv.size(); ++i) {
+		for (size_t i = 0; i < combinedv.size(); ++i)
+		{
 			vparams[i] = combinedv[i].first;
 			theVInternalCurve[i] = combinedv[i].second;
 		}
 
 		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
-		for (size_t i = 0; i < uparams.size(); ++i) {
+		for (size_t i = 0; i < uparams.size(); ++i) 
+		{
 			combinedu.emplace_back(uparams[i], theUInternalCurve[i]);
 		}
-		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) {
+		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) 
+		{
 			return a.first < b.first;
 		});
-		for (size_t i = 0; i < combinedu.size(); ++i) {
+		for (size_t i = 0; i < combinedu.size(); ++i)
+		{
 			uparams[i] = combinedu[i].first;
 			theUInternalCurve[i] = combinedu[i].second;
 		}
@@ -3000,7 +3020,7 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 PlanarCurve::PlanarCurve(Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
 	: curveType(CurveType::NOTPLANAR), curve(theCurve), line(), plane()
 {
-	IsPlanarCurve(curve, 10);
+	IsPlanarCurve(curve, theTolerance);
 }
 
 PlanarCurve::PlanarCurve()
@@ -3827,10 +3847,10 @@ std::vector<Standard_Real> CalSameKnotFromCurves(std::vector< Handle(Geom_BSplin
 /// <param name="theCurve"></param>	 某条曲线
 /// <param name="theTolerance"></param>
 /// <returns></returns>	交点以及交点参数值
-std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPointsParamsToCurve(
+std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CurveOperate::CalCurvesInterPointsParamsToCurve(
 	const std::vector<Handle(Geom_BSplineCurve)>& theCurves,
 	const Handle(Geom_BSplineCurve)& theCurve,
-	Standard_Real theTolerance = 0.1) {
+	Standard_Real theTolerance) {
 	std::vector<gp_Pnt> pointsOnTheCurve;
 	std::vector<Standard_Real> paramsOnTheCurve;
 	const Standard_Real intersectionToleranceSq = theTolerance * theTolerance; // 容差的平方，用于距离比较
@@ -4095,7 +4115,7 @@ std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_
 /// <param name="theCompatibleCurves"></param> 需要compatible的曲线
 /// <param name="theTolerance"></param> 拟合容差
 /// <returns></returns>	是否compatible成功
-Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance)
+Standard_Boolean CurveOperate::CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance)
 {
 	//1.获取交点以及交点参数化
 	std::vector<std::vector<gp_Pnt>> interPoints;
@@ -4143,7 +4163,7 @@ Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vecto
 	}
 
 	//2.在compatibleCurves上加密采样
-	Standard_Integer denseSamplingNum = 10;
+	Standard_Integer denseSamplingNum = 30;
 	std::vector<std::vector<gp_Pnt>> denseSamplingPoints;
 	std::vector<std::vector<Standard_Real>> denseSamplingPointsParams;
 	denseSamplingPoints.reserve(theCompatibleCurves.size());
@@ -4204,7 +4224,7 @@ Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vecto
 	//5.合并节点向量
 	std::vector<Standard_Real> knots;
 	try {
-		knots = CalSameKnotFromCurves(theCompatibleCurves, 0.01);
+		knots = CalSameKnotFromCurves(theCompatibleCurves, 0.05);
 	} HANDLE_EXCEPTIONS_RETURN_FALSE
 
 		//6.找到最大次数
@@ -4228,6 +4248,20 @@ Standard_Boolean SurfaceModelingTool::CompatibleWithInterPoints(const std::vecto
 	} HANDLE_EXCEPTIONS_RETURN_FALSE
 
 		//7.进行拟合
+		Standard_Integer addNum = 0;
+		if (std::fabs(knots.back() - 1.) > 0.01) {
+			for (Standard_Integer i = knots.size() - 1; i > 0;) {
+				if (std::fabs(knots[i] - knots[i - 1]) <= 0.01) {
+					knots[i] = 1.;
+					addNum++;
+					i--;
+					if (std::fabs(knots[i] - knots[i - 1]) > 0.01) {
+						break;
+					}
+				}
+			}
+			knots.insert(knots.end(), aDegree + 1 - addNum, 1.);
+		}
 		for (size_t i = 0; i < theCompatibleCurves.size(); ++i) {
 			try {
 				theCompatibleCurves[i] = ApproximateC(denseSamplingPoints[i], denseSamplingPointsParams[i], knots, aDegree);
