@@ -1282,90 +1282,90 @@ void occQt::GenerateIsoCurves(void)
 
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
         Visualize(anInternalBSplineCurves);
-        if (tempArray.size() == 3)
-        {
-            gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
-            gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
+        //if (tempArray.size() == 3)
+        //{
+        //    gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
+        //    gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
 
-            Standard_Real tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
-            if (tempArray[1]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
-            {
-                tempArray[1]->Reverse();
-            }
-            else if (tempArray[2]->StartPoint().Distance(tempArray[0]->EndPoint()) < tol)
-            {
-                std::swap(tempArray[1], tempArray[2]);
-            }
-            else if (tempArray[2]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
-            {
-                std::swap(tempArray[1], tempArray[2]);
-                tempArray[1]->Reverse();
-            }
+        //    Standard_Real tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
+        //    if (tempArray[1]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
+        //    {
+        //        tempArray[1]->Reverse();
+        //    }
+        //    else if (tempArray[2]->StartPoint().Distance(tempArray[0]->EndPoint()) < tol)
+        //    {
+        //        std::swap(tempArray[1], tempArray[2]);
+        //    }
+        //    else if (tempArray[2]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
+        //    {
+        //        std::swap(tempArray[1], tempArray[2]);
+        //        tempArray[1]->Reverse();
+        //    }
 
-            if (tempArray[2]->EndPoint().Distance(tempArray[1]->EndPoint()) < tol)
-            {
-                tempArray[2]->Reverse();
-            }
+        //    if (tempArray[2]->EndPoint().Distance(tempArray[1]->EndPoint()) < tol)
+        //    {
+        //        tempArray[2]->Reverse();
+        //    }
 
-            pnt1 = tempArray[0]->StartPoint(); pnt2 = tempArray[0]->EndPoint(); pnt3 = tempArray[1]->StartPoint();
-            pnt4 = tempArray[1]->EndPoint(); pnt5 = tempArray[2]->StartPoint(); pnt6 = tempArray[2]->EndPoint();
+        //    pnt1 = tempArray[0]->StartPoint(); pnt2 = tempArray[0]->EndPoint(); pnt3 = tempArray[1]->StartPoint();
+        //    pnt4 = tempArray[1]->EndPoint(); pnt5 = tempArray[2]->StartPoint(); pnt6 = tempArray[2]->EndPoint();
 
-            // 三边情况，创建退化边构成四边
-            std::vector<gp_Pnt> boundaryPoints = { tempArray[0]->StartPoint(), tempArray[1]->StartPoint(), tempArray[2]->StartPoint() };
+        //    // 三边情况，创建退化边构成四边
+        //    std::vector<gp_Pnt> boundaryPoints = { tempArray[0]->StartPoint(), tempArray[1]->StartPoint(), tempArray[2]->StartPoint() };
 
-            // 定义边
-            gp_Vec line_01(boundaryPoints[1].XYZ() - boundaryPoints[0].XYZ());
-            gp_Vec line_12(boundaryPoints[2].XYZ() - boundaryPoints[1].XYZ());
-            gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
+        //    // 定义边
+        //    gp_Vec line_01(boundaryPoints[1].XYZ() - boundaryPoints[0].XYZ());
+        //    gp_Vec line_12(boundaryPoints[2].XYZ() - boundaryPoints[1].XYZ());
+        //    gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
 
-            auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
-                {
-                    Standard_Real dotProduct = v1.Dot(v2);
-                    Standard_Real magnitudes = v1.Magnitude() * v2.Magnitude();
-                    return std::acos(dotProduct / magnitudes);  // 返回角度
-                };
+        //    auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
+        //        {
+        //            Standard_Real dotProduct = v1.Dot(v2);
+        //            Standard_Real magnitudes = v1.Magnitude() * v2.Magnitude();
+        //            return std::acos(dotProduct / magnitudes);  // 返回角度
+        //        };
 
-            // 计算三个角的夹角
-            Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
-            Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // 点1的夹角
-            Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // 点2的夹角
+        //    // 计算三个角的夹角
+        //    Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
+        //    Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // 点1的夹角
+        //    Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // 点2的夹角
 
-            // 找出最大角度
-            Standard_Real maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
-            Standard_Integer maxAngleIndex = 0;
-            if (maxAngle == angleAtPoint1) maxAngleIndex = 1;
-            else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
+        //    // 找出最大角度
+        //    Standard_Real maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
+        //    Standard_Integer maxAngleIndex = 0;
+        //    if (maxAngle == angleAtPoint1) maxAngleIndex = 1;
+        //    else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
 
-            // 构造退化边
-            auto CreateDegenerateEdge = [](const gp_Pnt& point)
-                {
-                    TColgp_Array1OfPnt poles(1, 2);
-                    poles.SetValue(1, point);
-                    poles.SetValue(2, point);
+        //    // 构造退化边
+        //    auto CreateDegenerateEdge = [](const gp_Pnt& point)
+        //        {
+        //            TColgp_Array1OfPnt poles(1, 2);
+        //            poles.SetValue(1, point);
+        //            poles.SetValue(2, point);
 
-                    TColStd_Array1OfReal knots(1, 2);
-                    knots.SetValue(1, 0.0);
-                    knots.SetValue(2, 1.0);
+        //            TColStd_Array1OfReal knots(1, 2);
+        //            knots.SetValue(1, 0.0);
+        //            knots.SetValue(2, 1.0);
 
-                    TColStd_Array1OfInteger multiplicities(1, 2);
-                    multiplicities.SetValue(1, 2);
-                    multiplicities.SetValue(2, 2);
+        //            TColStd_Array1OfInteger multiplicities(1, 2);
+        //            multiplicities.SetValue(1, 2);
+        //            multiplicities.SetValue(2, 2);
 
-                    return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
-                };
+        //            return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
+        //        };
 
-            //maxAngleIndex = 0;
-            //maxAngleIndex = 1;
-            //maxAngleIndex = 2;
-            if (maxAngleIndex == 0)
-            {
-                tempArray.push_back(CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
-            }
-            else
-            {
-                tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
-            }
-        }
+        //    //maxAngleIndex = 0;
+        //    //maxAngleIndex = 1;
+        //    //maxAngleIndex = 2;
+        //    if (maxAngleIndex == 0)
+        //    {
+        //        tempArray.push_back(CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
+        //    }
+        //    else
+        //    {
+        //        tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
+        //    }
+        //}
         if(tempArray.size() == 3)
         {
             // 初始化一个向量用于存储每条曲线的交点计数以及对应的样条曲线
