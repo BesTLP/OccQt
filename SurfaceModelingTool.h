@@ -330,6 +330,10 @@ private:
 class CurveOperate
 {
 public:
+	static bool isDegenerate(const Handle(Geom_BSplineCurve)& curve);
 	static Standard_Boolean CompatibleWithInterPoints(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance = 0.01);
 	static std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CalCurvesInterPointsParamsToCurve(const std::vector<Handle(Geom_BSplineCurve)>& theCurves, const Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance = 0.1);
+	static bool CompatibleWithInterPointsThree(const std::vector<Handle(Geom_BSplineCurve)>& interCurves, std::vector<Handle(Geom_BSplineCurve)>& compatibleCurves,
+		Standard_Real toler = 0.1);
+
 };

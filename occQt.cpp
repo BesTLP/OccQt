@@ -143,6 +143,7 @@
 template <typename T>
 void occQt::Visualize(const T& object, const Quantity_Color& color)
 {
+    if (isVisualize == false) return;
     Handle(AIS_InteractiveContext) context = myOccView->getContext();  // 直接访问 myOccView
     try
     {
@@ -234,6 +235,7 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
 template <typename T>
 void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color)
 {
+    if (isVisualize == false) return;
     Handle(AIS_InteractiveContext) context = myOccView->getContext();  // 直接访问 myOccView
     for (const auto& obj : objects)
     {
@@ -1257,25 +1259,24 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 void UniformCurve(Handle(Geom_BSplineCurve)& curve);
 void occQt::GenerateIsoCurves(void)
 {
-    for (Standard_Integer i = 10; i <= 41; i++)
+    for (Standard_Integer i = 23; i <= 41; i++)
     {
-        //if (i == 20) continue; // 三边
-        //if (i >= 22 && i <= 29) continue;
-        //if (i >= 30 && i <= 33) continue;
-        //if (i >= 37 && i <= 98) continue;
+        occQt::isVisualize = false;
+        if (i == 23) continue; // 三边
+
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
         std::vector<Handle(Geom_BSplineCurve)> tempArray;
         tempArray.clear();
-        std::string filename = "D:/GordenModels/NewModels/Processed/test";
+        std::string filename = "D:/GordenModels/NewModels/";
         filename += std::to_string(i);
-        filename += "/";
+        filename += "_";
         std::string boundaryPath = filename + "boundary.brep";
         SurfaceModelingTool::LoadBSplineCurves(boundaryPath.c_str(), tempArray);
+        if (tempArray.size() == 0) continue;
         SurfaceModelingTool::ApproximateBoundaryCurves(tempArray);
         if (tempArray.size() == 3)
         {
-            continue;
             gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
             gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
 
@@ -1379,7 +1380,7 @@ void occQt::GenerateIsoCurves(void)
         Standard_Real uAngleSum = 0, vAngleSum = 0;
         Handle(Geom_BSplineSurface) aResSurface;
 
-        //MathTool::TrimInternalCurves(anInternalBSplineCurves, aBoundarycurveArray, 20);
+        MathTool::TrimInternalCurves(anInternalBSplineCurves, aBoundarycurveArray, 20);
         myOccView->getContext()->RemoveAll(true);
         if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5))
         {
@@ -1435,7 +1436,6 @@ void occQt::GenerateIsoCurves(void)
             vInterpolatePoints,
             vInterpoalteTangentArray, vInterpoalteTangentArray2, aResSurface);
 
-        // 大于 4 是因为包含了边界
         if (uInternalCurve.size() >= 4 || vInternalCurve.size() >= 4)
         {
             // 可能出现退化边的情况，所以计算和两个对边的夹角
@@ -1444,13 +1444,11 @@ void occQt::GenerateIsoCurves(void)
             {
                 std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
             }
-
-            if (MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[0]) > 10 && 
+            if (MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[0]) > 10 &&
                 MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
             {
                 std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
             }
-
             // 保留线多的方向
             if (uInternalCurve.size() > vInternalCurve.size())
             {
@@ -1464,7 +1462,7 @@ void occQt::GenerateIsoCurves(void)
                 vISOcurvesArray_New.clear();
                 vISOcurvesArray_New = vInternalCurve;
                 uISOcurvesArray_New.insert(uISOcurvesArray_New.begin(), bslpineCurve1);
-                uISOcurvesArray_New.emplace_back (bslpineCurve3);
+                uISOcurvesArray_New.emplace_back(bslpineCurve3);
             }
 
             MathTool::SortBSplineCurves(uISOcurvesArray_New, uISOcurvesArray_New[0]);
@@ -1472,24 +1470,99 @@ void occQt::GenerateIsoCurves(void)
             MathTool::ReverseIfNeeded(uISOcurvesArray_New);
             MathTool::ReverseIfNeeded(vISOcurvesArray_New);
             myOccView->getContext()->RemoveAll(true);
-            Visualize(vISOcurvesArray_New, Quantity_NOC_RED);
-            Visualize(uISOcurvesArray_New, Quantity_NOC_BLUE);
-            //// 调用陈鑫的 Compatible
-            //for (auto curve : uISOcurvesArray_New)
-            //{
-            //    UniformCurve(curve);
-            //}
-            //for (auto curve : vISOcurvesArray_New)
-            //{
-            //    UniformCurve(curve);
-            //}
+            Visualize(vISOcurvesArray_New);
+            Visualize(uISOcurvesArray_New);
+            // 调用陈鑫的 Compatible
+            std::for_each(uISOcurvesArray_New.begin(), uISOcurvesArray_New.end(), UniformCurve);
+            std::for_each(vISOcurvesArray_New.begin(), vISOcurvesArray_New.end(), UniformCurve);
+            Visualize(vISOcurvesArray_New);
+            Visualize(uISOcurvesArray_New);
 
-            //SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
-            //SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
+            CurveOperate::CompatibleWithInterPointsThree(vISOcurvesArray_New, uISOcurvesArray_New);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
+            CurveOperate::CompatibleWithInterPointsThree(uISOcurvesArray_New, vISOcurvesArray_New);
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
+            //visualize intersection point and params
+            std::vector<std::vector<gp_Pnt>> pointsOnTheCurve(vISOcurvesArray_New.size());
+            std::vector<std::vector<Standard_Real>> paramsOnTheCurve(vISOcurvesArray_New.size());
+            for (Standard_Integer i = 0; i < vISOcurvesArray_New.size(); i++) {
+                if (CurveOperate::isDegenerate(vISOcurvesArray_New[i])) {
+                    pointsOnTheCurve[i] = { vISOcurvesArray_New[i]->Pole(1) };
+                    paramsOnTheCurve[i] = { vISOcurvesArray_New[i]->FirstParameter() };
+                    continue;
+                }
+                std::tie(pointsOnTheCurve[i], paramsOnTheCurve[i]) = CurveOperate::CalCurvesInterPointsParamsToCurve(uISOcurvesArray_New, vISOcurvesArray_New[i]);
+            }
+            // 创建一个存储pair的vector
+            std::vector<std::pair<gp_Pnt, Standard_Real>> pointParamPairs;
+            for (Standard_Integer i = 0; i < pointsOnTheCurve.size(); i++) {
+                for (Standard_Integer j = 0; j < pointsOnTheCurve[i].size(); j++) {
+                    pointParamPairs.emplace_back(std::make_pair(pointsOnTheCurve[i][j], paramsOnTheCurve[i][j]));
+                }
+            }
+            Visualize(pointParamPairs, Quantity_NOC_GOLD);
+            //visualize intersection point and params
+            std::vector<std::vector<gp_Pnt>> pointsOnTheCurve1(uISOcurvesArray_New.size());
+            std::vector<std::vector<Standard_Real>> paramsOnTheCurve1(uISOcurvesArray_New.size());
+            for (Standard_Integer i = 0; i < uISOcurvesArray_New.size(); i++) {
+                if (CurveOperate::isDegenerate(uISOcurvesArray_New[i])) {
+                    pointsOnTheCurve1[i] = { uISOcurvesArray_New[i]->Pole(1) };
+                    paramsOnTheCurve1[i] = { uISOcurvesArray_New[i]->FirstParameter() };
+                    continue;
+                }
+                std::tie(pointsOnTheCurve1[i], paramsOnTheCurve1[i]) = CurveOperate::CalCurvesInterPointsParamsToCurve(vISOcurvesArray_New, uISOcurvesArray_New[i]);
+            }
+            // 创建一个存储pair的vector
+            std::vector<std::pair<gp_Pnt, Standard_Real>> pointParamPairs1;
+            for (Standard_Integer i = 0; i < pointsOnTheCurve1.size(); i++) {
+                for (Standard_Integer j = 0; j < pointsOnTheCurve1[i].size(); j++) {
+                    pointParamPairs1.emplace_back(std::make_pair(pointsOnTheCurve1[i][j], paramsOnTheCurve1[i][j]));
+                }
+            }
+            myOccView->getContext()->RemoveAll(true);
+            occQt::isVisualize = true;
+            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_GOLD);
+            Visualize(pointParamPairs1, Quantity_NOC_GOLD);
 
             // 调用胡新宇的 Gorden
             TopoDS_Face aGordenFace;
-            GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, aGordenFace);
+            std::vector<gp_Pnt> upoints, vpoints;
+            std::vector<Standard_Real> uparams, vparams;
+            Standard_Integer vIndex, uIndex;
+            vIndex = CurveOperate::isDegenerate(vISOcurvesArray_New.front()) ? vISOcurvesArray_New.size() - 1 : 0;
+            uIndex = CurveOperate::isDegenerate(uISOcurvesArray_New.front()) ? uISOcurvesArray_New.size() - 1 : 0;
+            std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(uISOcurvesArray_New, vISOcurvesArray_New[vIndex]);
+            std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(vISOcurvesArray_New, uISOcurvesArray_New[uIndex]);
+            // 排序操作
+            std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
+            for (size_t i = 0; i < vparams.size(); ++i) {
+                combinedv.emplace_back(vparams[i], vISOcurvesArray_New[i]);
+            }
+            std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b) {
+                return a.first < b.first;
+                });
+            for (size_t i = 0; i < combinedv.size(); ++i) {
+                vparams[i] = combinedv[i].first;
+                vISOcurvesArray_New[i] = combinedv[i].second;
+            }
+
+            std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
+            for (size_t i = 0; i < uparams.size(); ++i) {
+                combinedu.emplace_back(uparams[i], uISOcurvesArray_New[i]);
+            }
+            std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) {
+                return a.first < b.first;
+                });
+            for (size_t i = 0; i < combinedu.size(); ++i) {
+                uparams[i] = combinedu[i].first;
+                uISOcurvesArray_New[i] = combinedu[i].second;
+            }
+
+            GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, uparams, vparams, aGordenFace);
             Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
             Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
             Visualize(aBSplineSurface);
@@ -1498,7 +1571,6 @@ void occQt::GenerateIsoCurves(void)
             continue;
         }
 
-        continue;
         myOccView->getContext()->RemoveAll(Standard_True);
         // 根据u、v等参线之间的交点，生成最终等参线
         interPoints.clear();
@@ -1525,6 +1597,17 @@ void occQt::GenerateIsoCurves(void)
 
         SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
 
+        std::string uIsoExportFilename = "D:/GordenModels/NewModels/Curves/";
+        uIsoExportFilename += "coons_";
+        uIsoExportFilename += std::to_string(i);
+        uIsoExportFilename += "_uIsoCurves.brep";
+        std::string vIsoExportFilename = "D:/GordenModels/NewModels/Curves/";
+        vIsoExportFilename += "coons_";
+        vIsoExportFilename += std::to_string(i);
+        vIsoExportFilename += "_vIsoCurves.brep";
+        
+        SurfaceModelingTool::ExportBSplineCurves(uISOcurvesArray_Final, uIsoExportFilename);
+        SurfaceModelingTool::ExportBSplineCurves(vISOcurvesArray_Final, vIsoExportFilename);
         for (auto boundaryPoint : boundaryPoints)
         {
             interPoints.push_back(boundaryPoint);

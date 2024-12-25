@@ -2918,8 +2918,11 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 
 			std::vector<gp_Pnt> upoints, vpoints;
 			std::vector<Standard_Real> uparams, vparams;
-			std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(aUCreateGordenCurves, aVCreateGordenCurves[0]);
-			std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(aVCreateGordenCurves, aUCreateGordenCurves[0]);
+			Standard_Integer vIndex, uIndex;
+			vIndex = CurveOperate::isDegenerate(aVCreateGordenCurves.front()) ? aVCreateGordenCurves.size() - 1 : 0;
+			uIndex = CurveOperate::isDegenerate(aUCreateGordenCurves.front()) ? aUCreateGordenCurves.size() - 1 : 0;
+			std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(aUCreateGordenCurves, aVCreateGordenCurves[vIndex]);
+			std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(aVCreateGordenCurves, aUCreateGordenCurves[uIndex]);
 			// 排序操作
 			std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
 			for (size_t i = 0; i < vparams.size(); ++i) {
@@ -2973,8 +2976,11 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 
 		std::vector<gp_Pnt> upoints, vpoints;
 		std::vector<Standard_Real> uparams, vparams;
-		std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theUInternalCurve, theVInternalCurve[0]);
-		std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theVInternalCurve, theUInternalCurve[0]);
+		Standard_Integer vIndex, uIndex;
+		vIndex = CurveOperate::isDegenerate(theVInternalCurve.front()) ? theVInternalCurve.size() - 1 : 0;
+		uIndex = CurveOperate::isDegenerate(theUInternalCurve.front()) ? theUInternalCurve.size() - 1 : 0;
+		std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theUInternalCurve, theVInternalCurve[vIndex]);
+		std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theVInternalCurve, theUInternalCurve[uIndex]);
 		// 排序操作
 		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
 		for (size_t i = 0; i < vparams.size(); ++i) 
@@ -3837,6 +3843,16 @@ std::vector<Standard_Real> CalSameKnotFromCurves(std::vector< Handle(Geom_BSplin
 }
 
 
+bool CurveOperate::isDegenerate(const Handle(Geom_BSplineCurve)& curve) {
+	const TColgp_Array1OfPnt& poles = curve->Poles();
+	gp_Pnt firstPole = poles(poles.Lower());
+	for (Standard_Integer i = poles.Lower() + 1; i <= poles.Upper(); ++i) {
+		if (!poles(i).IsEqual(firstPole, 1.e-1)) {
+			return false;
+		}
+	}
+	return true;
+}
 
 /// <summary>
 /// 计算theCurve与theCurves交点的参数值，返回为tuple的形式、一一对应，其中theTolerance判断直线是否精确相交
@@ -3868,6 +3884,24 @@ std::tuple<std::vector<gp_Pnt>, std::vector<Standard_Real>> CurveOperate::CalCur
 		}
 
 		try {
+			if (CurveOperate::isDegenerate(curve)) {
+				gp_Pnt degeneratePoint = curve->Pole(1);
+				Standard_Real dis1, dis2;
+				dis1 = degeneratePoint.Distance(theCurve->Pole(1));
+				dis2 = degeneratePoint.Distance(theCurve->Pole(theCurve->NbPoles()));
+				if (std::abs(dis1) < 0.05) {
+					pointsOnTheCurve.emplace_back(degeneratePoint);
+					paramsOnTheCurve.emplace_back(theCurve->FirstParameter());
+				} else if (std::abs(dis2) < 0.05) {
+					pointsOnTheCurve.emplace_back(degeneratePoint);
+					paramsOnTheCurve.emplace_back(theCurve->LastParameter());
+				} else {
+					// 无法找到最近点
+					std::cerr << "Warning: Unable to find nearest point parameters between two curves." << std::endl;
+				}
+				continue;
+			}
+
 			// 使用 GeomAPI_ExtremaCurveCurve 计算两条曲线之间的极值点
 			GeomAPI_ExtremaCurveCurve extrema(theCurve, curve);
 
@@ -4107,6 +4141,8 @@ std::vector<Standard_Real> ScalingParamsByBaseParams(const std::vector<Standard_
 	return scaledParams;
 }
 
+
+
 /// <summary>
 /// 进行compatible  ，compatible后交点参数值相同、节点相同
 /// </summary>
@@ -4266,6 +4302,265 @@ Standard_Boolean CurveOperate::CompatibleWithInterPoints(const std::vector<Handl
 				theCompatibleCurves[i] = ApproximateC(denseSamplingPoints[i], denseSamplingPointsParams[i], knots, aDegree);
 			} HANDLE_EXCEPTIONS_CONTINUE
 		}
+
+	return true;
+}
+
+bool CurveOperate::CompatibleWithInterPointsThree(const std::vector<Handle(Geom_BSplineCurve)>& theInterCurves, std::vector<Handle(Geom_BSplineCurve)>& theCompatibleCurves, Standard_Real theTolerance) {
+	//0.检测theCompatibleCurves退化边
+	if (theCompatibleCurves.size() <= 1) {
+		return false;
+	}
+
+	bool firstDegenerate = false;
+	bool lastDegenerate = false;
+	std::vector<Handle(Geom_BSplineCurve)> middleCurves;
+
+	// Check for degenerate curves and collect middle curves
+	for (size_t i = 0; i < theCompatibleCurves.size(); ++i) {
+		try {
+			if (i == 0) {
+				if (CurveOperate::isDegenerate(theCompatibleCurves[i])) {
+					firstDegenerate = true;
+				} else {
+					middleCurves.emplace_back(theCompatibleCurves[i]);
+				}
+			} else if (i == theCompatibleCurves.size() - 1) {
+				if (CurveOperate::isDegenerate(theCompatibleCurves[i])) {
+					lastDegenerate = true;
+				} else {
+					middleCurves.emplace_back(theCompatibleCurves[i]);
+				}
+			} else {
+				if (CurveOperate::isDegenerate(theCompatibleCurves[i])) {
+					throw Standard_Failure("Degenerate curve found in middle of the sequence");
+				} else {
+					middleCurves.emplace_back(theCompatibleCurves[i]);
+				}
+			}
+		}HANDLE_EXCEPTIONS_CONTINUE
+	}
+
+
+	// 处理中间曲线
+	if (middleCurves.empty()) {
+		// 所有中间曲线退化，不允许
+		theCompatibleCurves.clear();
+		return false;
+	}
+
+	//1.获取交点以及交点参数化
+	std::vector<std::vector<gp_Pnt>> interPoints;
+	std::vector<std::vector<Standard_Real>> interPointOrgParams;
+	interPoints.reserve(middleCurves.size());
+	interPointOrgParams.reserve(middleCurves.size());
+	int i = 1;
+	for (const auto& curve : middleCurves) {
+		try {
+			std::vector<gp_Pnt> pointsOnTheCurve;
+			std::vector<Standard_Real> paramsOnTheCurve;
+			std::tie(pointsOnTheCurve, paramsOnTheCurve) = [&]() {
+				auto result = CalCurvesInterPointsParamsToCurve(theInterCurves, curve);
+				auto& points = std::get<0>(result);
+				auto& params = std::get<1>(result);
+				if (points.size() != params.size()) {
+					std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
+					std::cerr << "Points size: " << points.size()
+						<< ", Parameters size: " << params.size() << std::endl;
+				}
+
+				// 排序操作
+				std::vector<std::pair<double, gp_Pnt>> combined;
+				for (size_t i = 0; i < params.size(); ++i) {
+					combined.emplace_back(params[i], points[i]);
+				}
+				std::sort(combined.begin(), combined.end(), [](const auto& a, const auto& b) {
+					return a.first < b.first;
+				});
+				for (size_t i = 0; i < combined.size(); ++i) {
+					params[i] = combined[i].first;
+					points[i] = combined[i].second;
+				}
+				return result;
+			}();
+			interPoints.emplace_back(std::move(pointsOnTheCurve));
+			interPointOrgParams.emplace_back(std::move(paramsOnTheCurve));
+		} HANDLE_EXCEPTIONS_CONTINUE
+			i++;
+	}
+
+	//2.在middleCurves上加密采样
+	Standard_Integer denseSamplingNum = 30;
+	std::vector<std::vector<gp_Pnt>> denseSamplingPoints;
+	std::vector<std::vector<Standard_Real>> denseSamplingPointsParams;
+	denseSamplingPoints.reserve(middleCurves.size());
+	denseSamplingPointsParams.reserve(middleCurves.size());
+
+	for (Standard_Integer i = 0; i < middleCurves.size(); i++) {
+		try {
+			std::vector<gp_Pnt> densePoints;
+			std::vector<Standard_Real> denseParams;
+			std::tie(densePoints, denseParams) = DenseSampling(middleCurves[i], interPointOrgParams[i], denseSamplingNum);
+
+			if (densePoints.size() != denseParams.size()) {
+				std::cerr << "Error: The number of points and parameters do not match for a curve." << std::endl;
+				std::cerr << "Points size: " << densePoints.size()
+					<< ", Parameters size: " << denseParams.size() << std::endl;
+				continue;
+			}
+			denseSamplingPoints.emplace_back(std::move(densePoints));
+			denseSamplingPointsParams.emplace_back(std::move(denseParams));
+		} HANDLE_EXCEPTIONS_CONTINUE
+	}
+
+	//3.对所有参数化取平均
+	if (interPointOrgParams.empty()) {
+		throw std::runtime_error("interPointOrgParams is empty, cannot compute average parameters.");
+	}
+	Standard_Integer paramSize = interPointOrgParams[0].size();
+	for (const auto& paramVec : interPointOrgParams) {
+		if (paramVec.size() != paramSize) {
+			throw std::runtime_error("interPointOrgParams contains vectors of differing sizes.");
+		}
+	}
+	std::vector<Standard_Real> avgParams(interPointOrgParams[0].size(), 0.0);
+	if (firstDegenerate) {
+		for (Standard_Integer i = 0; i < interPointOrgParams.front().size(); ++i) {
+			avgParams[i] += interPointOrgParams.back()[i];
+		}
+	} else if (lastDegenerate) {
+		for (Standard_Integer i = 0; i < interPointOrgParams.front().size(); ++i) {
+			avgParams[i] += interPointOrgParams.front()[i];
+		}
+	} else {
+		for (Standard_Integer i = 0; i < interPointOrgParams.front().size(); ++i) {
+			avgParams[i] += interPointOrgParams.front()[i];
+			avgParams[i] += interPointOrgParams.back()[i];
+		}
+		for (auto& val : avgParams) {
+			val /= 2.0;
+		}
+	}
+
+
+	//4.对所有参数重新参数化
+	for (size_t i = 0; i < denseSamplingPointsParams.size(); ++i) {
+		try {
+			denseSamplingPointsParams[i] = ScalingParamsByBaseParams(avgParams, denseSamplingNum + 1, denseSamplingPointsParams[i]);
+		} HANDLE_EXCEPTIONS_CONTINUE
+	}
+
+	//5.合并节点向量
+	std::vector<Standard_Real> knots;
+	try {
+		knots = CalSameKnotFromCurves(middleCurves, 0.05);
+	} HANDLE_EXCEPTIONS_RETURN_FALSE
+
+		//6.找到最大次数
+		Standard_Integer aDegree = 0;
+	try {
+		auto maxCurve = std::max_element(middleCurves.begin(), middleCurves.end(),
+			[](const Handle(Geom_BSplineCurve)& curve1, const Handle(Geom_BSplineCurve)& curve2) -> bool {
+			if (curve1.IsNull()) return true;
+			if (curve2.IsNull()) return false;
+			return curve1->Degree() < curve2->Degree();
+		}
+		);
+
+		if (maxCurve != middleCurves.end() && !(*maxCurve).IsNull()) {
+			aDegree = (*maxCurve)->Degree();
+		} else {
+			std::cerr << "Error: No valid curves found in compatibleCurves." << std::endl;
+			return false;
+		}
+	} HANDLE_EXCEPTIONS_RETURN_FALSE
+
+		//7.进行拟合
+		Standard_Integer addNum = 0;
+	if (std::fabs(knots.back() - 1.) > 0.01) {
+		for (Standard_Integer i = knots.size() - 1; i > 0;) {
+			if (std::fabs(knots[i] - knots[i - 1]) <= 0.01) {
+				knots[i] = 1.;
+				addNum++;
+				i--;
+				if (std::fabs(knots[i] - knots[i - 1]) > 0.01) {
+					break;
+				}
+			}
+		}
+		knots.insert(knots.end(), aDegree + 1 - addNum, 1.);
+	}
+	for (size_t i = 0; i < middleCurves.size(); ++i) {
+		try {
+			middleCurves[i] = ApproximateC(denseSamplingPoints[i], denseSamplingPointsParams[i], knots, aDegree);
+		} HANDLE_EXCEPTIONS_CONTINUE
+	}
+
+	//8.生成最终曲线
+	Standard_Integer middleIndex = 0;
+	std::vector<Handle(Geom_BSplineCurve)> compatibleCurves;
+	for (size_t i = 0; i < theCompatibleCurves.size(); ++i) {
+		try {
+			if (i == 0 && firstDegenerate) {
+				// Construct new curve for the first degenerate curve
+				Handle(Geom_BSplineCurve) refCurve = middleCurves[0];
+				int degree = refCurve->Degree();
+				const TColStd_Array1OfReal& knots = refCurve->Knots();
+				const TColStd_Array1OfInteger& multiplicities = refCurve->Multiplicities();
+
+				// Compute number of poles
+				int numPoles = 0;
+				for (int k = multiplicities.Lower(); k <= multiplicities.Upper(); ++k) {
+					numPoles += multiplicities.Value(k);
+				}
+				numPoles -= (degree + 1);
+
+				// Create control points (all the same)
+				gp_Pnt degeneratePoint = theCompatibleCurves[i]->Pole(1);
+				TColgp_Array1OfPnt poles(1, numPoles);
+				for (int j = poles.Lower(); j <= poles.Upper(); ++j) {
+					poles.SetValue(j, degeneratePoint);
+				}
+
+				// Create the new degenerate curve
+				Handle(Geom_BSplineCurve) newCurve = new Geom_BSplineCurve(
+					poles, knots, multiplicities, degree);
+
+				compatibleCurves.emplace_back(newCurve);
+			} else if (i == theCompatibleCurves.size() - 1 && lastDegenerate) {
+				// Construct new curve for the last degenerate curve
+				Handle(Geom_BSplineCurve) refCurve = middleCurves.back();
+				int degree = refCurve->Degree();
+				const TColStd_Array1OfReal& knots = refCurve->Knots();
+				const TColStd_Array1OfInteger& multiplicities = refCurve->Multiplicities();
+
+				// Compute number of poles
+				int numPoles = 0;
+				for (int k = multiplicities.Lower(); k <= multiplicities.Upper(); ++k) {
+					numPoles += multiplicities.Value(k);
+				}
+				numPoles -= (degree + 1);
+
+				// Create control points (all the same)
+				gp_Pnt degeneratePoint = theCompatibleCurves[i]->Pole(1);
+				TColgp_Array1OfPnt poles(1, numPoles);
+				for (int j = poles.Lower(); j <= poles.Upper(); ++j) {
+					poles.SetValue(j, degeneratePoint);
+				}
+
+				// Create the new degenerate curve
+				Handle(Geom_BSplineCurve) newCurve = new Geom_BSplineCurve(
+					poles, knots, multiplicities, degree);
+
+				compatibleCurves.emplace_back(newCurve);
+			} else {
+				// Use the processed compatible curve
+				compatibleCurves.emplace_back(middleCurves[middleIndex]);
+				middleIndex++;
+			}
+		}HANDLE_EXCEPTIONS_CONTINUE
+	}
+	theCompatibleCurves = std::move(compatibleCurves);
 
 	return true;
 }
