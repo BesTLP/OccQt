@@ -143,12 +143,12 @@
 template <typename T>
 void occQt::Visualize(const T& object, const Quantity_Color& color)
 {
-    Handle(AIS_InteractiveContext) context = myOccView->getContext();  // Ö±½Ó·ÃÎÊ myOccView
+    Handle(AIS_InteractiveContext) context = myOccView->getContext();  // ç›´æ¥è®¿é—® myOccView
     try
     {
         Handle(AIS_Shape) aisShape;
 
-        // ¸ù¾İ¶ÔÏóÀàĞÍ´´½¨¶ÔÓ¦µÄ AIS_Shape
+        // æ ¹æ®å¯¹è±¡ç±»å‹åˆ›å»ºå¯¹åº”çš„ AIS_Shape
         if constexpr (std::is_same<T, gp_Pnt>::value)
         {
             TopoDS_Vertex ver = BRepBuilderAPI_MakeVertex(object);
@@ -164,7 +164,7 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
             Handle(Geom_Surface) genericSurface = Handle(Geom_Surface)::DownCast(object);
             if (genericSurface.IsNull())
             {
-                return;  // Ìø¹ıÎŞĞ§µÄÃæ
+                return;  // è·³è¿‡æ— æ•ˆçš„é¢
             }
             TopoDS_Face face = BRepBuilderAPI_MakeFace(genericSurface, Precision::Confusion());
             aisShape = new AIS_Shape(face);
@@ -182,40 +182,40 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
             const gp_Pnt& point = object.first;
             Standard_Real value = object.second;
 
-            // ¸ñÊ½»¯Standard_Real£¬±£ÁôÁ½Î»Ğ¡Êı
+            // æ ¼å¼åŒ–Standard_Realï¼Œä¿ç•™ä¸¤ä½å°æ•°
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2) << value;
             TCollection_AsciiString textString(oss.str().c_str());
 
-            // ´´½¨ÎÄ±¾¶ÔÏó
+            // åˆ›å»ºæ–‡æœ¬å¯¹è±¡
             Handle(AIS_TextLabel) aisTextLabel = new AIS_TextLabel();
             aisTextLabel->SetText(textString);
             aisTextLabel->SetPosition(point);
             aisTextLabel->SetColor(color);
-            // ÏÔÊ¾ÎÄ±¾
+            // æ˜¾ç¤ºæ–‡æœ¬
             context->Display(aisTextLabel, Standard_True);
             TopoDS_Vertex ver = BRepBuilderAPI_MakeVertex(point);
 
-            // ÏÔÊ¾µã
+            // æ˜¾ç¤ºç‚¹
             aisShape = new AIS_Shape(ver);
-            aisShape->SetColor(color); // ÉèÖÃÑÕÉ«
+            aisShape->SetColor(color); // è®¾ç½®é¢œè‰²
             context->Display(aisShape, Standard_True);
-            return;  // Ìø¹ıºóĞøµÄ AIS_Shape ´¦Àí
+            return;  // è·³è¿‡åç»­çš„ AIS_Shape å¤„ç†
         }
         else if constexpr (std::is_same<T, gp_Pln>::value)
         {
-            // ¶¨ÒåÆ½ÃæµÄ·¶Î§
+            // å®šä¹‰å¹³é¢çš„èŒƒå›´
             Standard_Real uMin = -2000.0, uMax = 2000.0, vMin = -2000.0, vMax = 2000.0;
 
-            // ½« gp_Pln ×ª»»Îª Geom_Plane
+            // å°† gp_Pln è½¬æ¢ä¸º Geom_Plane
             Handle(Geom_Plane) geomPlane = new Geom_Plane(object);
 
-            // ´´½¨ TopoDS_Face
+            // åˆ›å»º TopoDS_Face
             TopoDS_Face face = BRepBuilderAPI_MakeFace(geomPlane, uMin, uMax, vMin, vMax, Precision::Confusion());
             aisShape = new AIS_Shape(face);
         }
 
-        aisShape->SetColor(color); // ÉèÖÃÑÕÉ«
+        aisShape->SetColor(color); // è®¾ç½®é¢œè‰²
         context->Display(aisShape, Standard_True);
     }
     catch (Standard_Failure& e)
@@ -224,7 +224,7 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
         return;
     }
 
-    // µ÷ÕûÊÓ½Ç£¬Ê¹ËùÓĞ¶ÔÏóÊÊÓ¦ÊÓÍ¼
+    // è°ƒæ•´è§†è§’ï¼Œä½¿æ‰€æœ‰å¯¹è±¡é€‚åº”è§†å›¾
     if (myOccView)
     {
         myOccView->fitAll();
@@ -234,14 +234,14 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
 template <typename T>
 void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color)
 {
-    Handle(AIS_InteractiveContext) context = myOccView->getContext();  // Ö±½Ó·ÃÎÊ myOccView
+    Handle(AIS_InteractiveContext) context = myOccView->getContext();  // ç›´æ¥è®¿é—® myOccView
     for (const auto& obj : objects)
     {
         try
         {
             Handle(AIS_Shape) aisShape;
 
-            // ¸ù¾İ¶ÔÏóÀàĞÍ´´½¨¶ÔÓ¦µÄ AIS_Shape
+            // æ ¹æ®å¯¹è±¡ç±»å‹åˆ›å»ºå¯¹åº”çš„ AIS_Shape
             if constexpr (std::is_same<T, gp_Pnt>::value)
             {
                 TopoDS_Vertex ver = BRepBuilderAPI_MakeVertex(obj);
@@ -275,7 +275,7 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
                 const gp_Pnt& point = obj.first;
                 Standard_Real value = obj.second;
 
-                // ¸ñÊ½»¯Standard_Real£¬±£ÁôÁ½Î»Ğ¡Êı
+                // æ ¼å¼åŒ–Standard_Realï¼Œä¿ç•™ä¸¤ä½å°æ•°
                 std::ostringstream oss;
                 oss << std::fixed << std::setprecision(2) << value;
                 TCollection_AsciiString textString(oss.str().c_str());
@@ -284,30 +284,30 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
                 aisTextLabel->SetText(textString);
                 aisTextLabel->SetPosition(point);
                 aisTextLabel->SetColor(color);
-                // ÏÔÊ¾ÎÄ±¾
+                // æ˜¾ç¤ºæ–‡æœ¬
                 context->Display(aisTextLabel, Standard_True);
                 TopoDS_Vertex ver = BRepBuilderAPI_MakeVertex(point);
 
-                // ÏÔÊ¾µã
+                // æ˜¾ç¤ºç‚¹
                 aisShape = new AIS_Shape(ver);
-                aisShape->SetColor(color); // ÉèÖÃÑÕÉ«
+                aisShape->SetColor(color); // è®¾ç½®é¢œè‰²
                 context->Display(aisShape, Standard_True);
-                continue;  // Ìø¹ıºóĞøµÄ AIS_Shape ´¦Àí
+                continue;  // è·³è¿‡åç»­çš„ AIS_Shape å¤„ç†
             }
             else if constexpr (std::is_same<T, gp_Pln>::value)
             {
-                // ¶¨ÒåÆ½ÃæµÄ·¶Î§
+                // å®šä¹‰å¹³é¢çš„èŒƒå›´
                 Standard_Real uMin = -2000.0, uMax = 2000.0, vMin = -2000.0, vMax = 2000.0;
 
-                // ½« gp_Pln ×ª»»Îª Geom_Plane
+                // å°† gp_Pln è½¬æ¢ä¸º Geom_Plane
                 Handle(Geom_Plane) geomPlane = new Geom_Plane(obj);
 
-                // ´´½¨ TopoDS_Face
+                // åˆ›å»º TopoDS_Face
                 TopoDS_Face face = BRepBuilderAPI_MakeFace(geomPlane, uMin, uMax, vMin, vMax, Precision::Confusion());
                 aisShape = new AIS_Shape(face);
             }
 
-            aisShape->SetColor(color); // ÉèÖÃÑÕÉ«
+            aisShape->SetColor(color); // è®¾ç½®é¢œè‰²
             context->Display(aisShape, Standard_True);
         }
         catch (Standard_Failure& e)
@@ -316,7 +316,7 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
         }
     }
 
-    // µ÷ÕûÊÓ½Ç£¬Ê¹ËùÓĞ¶ÔÏóÊÊÓ¦ÊÓÍ¼
+    // è°ƒæ•´è§†è§’ï¼Œä½¿æ‰€æœ‰å¯¹è±¡é€‚åº”è§†å›¾
     if (myOccView)
     {
         myOccView->fitAll();
@@ -326,40 +326,40 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
 
 void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, const std::string& filename)
 {
-    // »ñÈ¡ÇúÃæµÄ²ÎÊı·¶Î§
+    // è·å–æ›²é¢çš„å‚æ•°èŒƒå›´
     Standard_Real uMin, uMax, vMin, vMax;
     bsplineSurface->Bounds(uMin, uMax, vMin, vMax);
 
-    // Ê¹ÓÃÇúÃæºÍ²ÎÊı·¶Î§´´½¨Ãæ
+    // ä½¿ç”¨æ›²é¢å’Œå‚æ•°èŒƒå›´åˆ›å»ºé¢
     TopoDS_Face face = BRepBuilderAPI_MakeFace(bsplineSurface, uMin, uMax, vMin, vMax, 1e-7);
 
-    // ¼ì²éÃæÊÇ·ñÓĞĞ§
+    // æ£€æŸ¥é¢æ˜¯å¦æœ‰æ•ˆ
     if (face.IsNull())
     {
-        std::cerr << "Ãæ´´½¨Ê§°Ü£¡" << std::endl;
+        std::cerr << "é¢åˆ›å»ºå¤±è´¥ï¼" << std::endl;
         return;
     }
 
-    // ½«ÎÄ¼şÃû×ª»»ÎªĞ¡Ğ´ÒÔ½øĞĞ²»Çø·Ö´óĞ¡Ğ´µÄ±È½Ï
+    // å°†æ–‡ä»¶åè½¬æ¢ä¸ºå°å†™ä»¥è¿›è¡Œä¸åŒºåˆ†å¤§å°å†™çš„æ¯”è¾ƒ
     std::string filename_lower = filename;
     std::transform(filename_lower.begin(), filename_lower.end(), filename_lower.begin(), ::tolower);
 
-    // ¸ù¾İÎÄ¼şÀ©Õ¹ÃûÑ¡ÔñÊä³ö¸ñÊ½
+    // æ ¹æ®æ–‡ä»¶æ‰©å±•åé€‰æ‹©è¾“å‡ºæ ¼å¼
     if (filename_lower.size() >= 5 && filename_lower.substr(filename_lower.size() - 5) == ".brep")
     {
-        // ½«Ãæ±£´æµ½ BREP ÎÄ¼ş
+        // å°†é¢ä¿å­˜åˆ° BREP æ–‡ä»¶
         if (BRepTools::Write(face, filename.c_str()))
         {
-            std::cout << "³É¹¦µ¼³öµ½ BREP ÎÄ¼ş: " << filename << std::endl;
+            std::cout << "æˆåŠŸå¯¼å‡ºåˆ° BREP æ–‡ä»¶: " << filename << std::endl;
         }
         else
         {
-            std::cerr << "µ¼³ö BREP ÎÄ¼şÊ§°Ü£¡" << std::endl;
+            std::cerr << "å¯¼å‡º BREP æ–‡ä»¶å¤±è´¥ï¼" << std::endl;
         }
     }
     else if (filename_lower.size() >= 5 && filename_lower.substr(filename_lower.size() - 5) == ".step")
     {
-        // ½«Ãæ±£´æµ½ STEP ÎÄ¼ş
+        // å°†é¢ä¿å­˜åˆ° STEP æ–‡ä»¶
         STEPControl_Writer writer;
         IFSelect_ReturnStatus status = writer.Transfer(face, STEPControl_AsIs);
         if (status == IFSelect_RetDone)
@@ -367,21 +367,21 @@ void ExportBSplineSurface(const Handle(Geom_BSplineSurface)& bsplineSurface, con
             status = writer.Write(filename.c_str());
             if (status == IFSelect_RetDone)
             {
-                std::cout << "³É¹¦µ¼³öµ½ STEP ÎÄ¼ş: " << filename << std::endl;
+                std::cout << "æˆåŠŸå¯¼å‡ºåˆ° STEP æ–‡ä»¶: " << filename << std::endl;
             }
             else
             {
-                std::cerr << "µ¼³ö STEP ÎÄ¼şÊ§°Ü£¡" << std::endl;
+                std::cerr << "å¯¼å‡º STEP æ–‡ä»¶å¤±è´¥ï¼" << std::endl;
             }
         }
         else
         {
-            std::cerr << "Ãæ×ª»»Îª STEP ¸ñÊ½Ê§°Ü£¡" << std::endl;
+            std::cerr << "é¢è½¬æ¢ä¸º STEP æ ¼å¼å¤±è´¥ï¼" << std::endl;
         }
     }
     else
     {
-        std::cerr << "²»Ö§³ÖµÄÎÄ¼şÀ©Õ¹Ãû£¬ÇëÊ¹ÓÃ .brep »ò .step¡£" << std::endl;
+        std::cerr << "ä¸æ”¯æŒçš„æ–‡ä»¶æ‰©å±•åï¼Œè¯·ä½¿ç”¨ .brep æˆ– .stepã€‚" << std::endl;
     }
 }
 
@@ -616,19 +616,19 @@ TopoDS_Shape createCurve(const QString& curveType)
         Standard_Real majorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Major Radius:", 0, -1000, 1000, 8, &ok);
         Standard_Real minorRadius = QInputDialog::getDouble(nullptr, "Input", "Enter Minor Radius:", 0, -1000, 1000, 8, &ok);
 
-        // ÔÚÕı°ëÖáÉÏ´´½¨Ë«ÇúÏß
+        // åœ¨æ­£åŠè½´ä¸Šåˆ›å»ºåŒæ›²çº¿
         gp_Hypr hyperbolaPositive(hyperbolaAx2, majorRadius, minorRadius);
         BRepBuilderAPI_MakeEdge edgeMakerPositive(hyperbolaPositive);
 
-        // ÑØ×Å y Öá½øĞĞ 90¡ã µÄĞı×ª£¬µÃµ½¸º°ëÖáÉÏµÄË«ÇúÏß
+        // æ²¿ç€ y è½´è¿›è¡Œ 90Â° çš„æ—‹è½¬ï¼Œå¾—åˆ°è´ŸåŠè½´ä¸Šçš„åŒæ›²çº¿
         gp_Trsf rotationTrsf;
         gp_Ax1 axis(hyperbolaAx2.Location(), hyperbolaAx2.YDirection());
 
-        rotationTrsf.SetRotation(axis, M_PI);  // M_PI ÊÇÔ²ÖÜÂÊ
+        rotationTrsf.SetRotation(axis, M_PI);  // M_PI æ˜¯åœ†å‘¨ç‡
         gp_Hypr hyperbolaNegative = hyperbolaPositive.Transformed(rotationTrsf);
         BRepBuilderAPI_MakeEdge edgeMakerNegative(hyperbolaNegative);
 
-        // ½«Õı¸º°ëÖáÉÏµÄË«ÇúÏß·ÅÈëÒ»¸ö¸´ºÏĞÎ×´ÖĞ
+        // å°†æ­£è´ŸåŠè½´ä¸Šçš„åŒæ›²çº¿æ”¾å…¥ä¸€ä¸ªå¤åˆå½¢çŠ¶ä¸­
         TopoDS_Compound compound;
         BRep_Builder compoundBuilder;
         compoundBuilder.MakeCompound(compound);
@@ -821,7 +821,7 @@ void occQt::importFile()
     TopoDS_Shape aTopoBox = BRepPrimAPI_MakeBox(3.0, 4.0, 5.0).Shape();
     TopoDS_Shape shape;
     STEPControl_Reader reader;
-    QString filename = QFileDialog::getOpenFileName(this, "Ñ¡ÔñÎÄ¼ş", QDir::homePath(), "All Files (*.*);;Text Files (*.txt);;Image Files (*.png *.jpg)");
+    QString filename = QFileDialog::getOpenFileName(this, "é€‰æ‹©æ–‡ä»¶", QDir::homePath(), "All Files (*.*);;Text Files (*.txt);;Image Files (*.png *.jpg)");
     if (reader.ReadFile(filename.toStdString().c_str()) == IFSelect_RetDone) {
         reader.TransferRoots();
         shape = reader.OneShape();
@@ -903,14 +903,14 @@ void occQt::Triangulation()
                     {
                     Handle(AIS_Shape) triShape = new AIS_Shape(faceList[j][i]);
                     triShape->SetColor(Quantity_NOC_BISQUE);
-                    // »¥³âËø,Îö¹¹Ê±×Ô¶¯½âËø
+                    // äº’æ–¥é”,ææ„æ—¶è‡ªåŠ¨è§£é”
                     std::lock_guard<std::mutex> lock(displayMutex);
                     myOccView->getContext()->Display(triShape, Standard_True);
                     }));
             }
         }
 
-        // µÈ´ıËùÓĞÒì²½ÈÎÎñÍê³É
+        // ç­‰å¾…æ‰€æœ‰å¼‚æ­¥ä»»åŠ¡å®Œæˆ
         for (auto& f : futures) {
             f.get();
         }
@@ -923,37 +923,37 @@ void occQt::TriangulationIntersection()
     if (faceList[0].size() && faceList[1].size())
     {
         auto start_time1 = std::chrono::high_resolution_clock::now();
-        // ´´½¨RÊ÷
+        // åˆ›å»ºRæ ‘
         R_Tree RTree1, RTree2;
         RTree1.BuildRtree(faceList[0], triPoints[0]);
         RTree2.BuildRtree(faceList[1], triPoints[1]);
-        // »ñÈ¡½áÊøÊ±¼äµã
+        // è·å–ç»“æŸæ—¶é—´ç‚¹
 
         auto end_time1 = std::chrono::high_resolution_clock::now();
-        // ¼ÆËã³ÌĞòÖ´ĞĞÊ±¼ä£¬µ¥Î»ÎªÃë
+        // è®¡ç®—ç¨‹åºæ‰§è¡Œæ—¶é—´ï¼Œå•ä½ä¸ºç§’
         std::chrono::duration<Standard_Real> execution_time1 = end_time1 - start_time1;
 
-        // ½«Ö´ĞĞÊ±¼ä×ª»»ÎªºÁÃë
+        // å°†æ‰§è¡Œæ—¶é—´è½¬æ¢ä¸ºæ¯«ç§’
         Standard_Real execution_time_ms1 = execution_time1.count() * 1000.0;
 
-        std::cout << "³ÌĞòÖ´ĞĞÊ±¼äÎª£º" << execution_time_ms1 << " ºÁÃë" << std::endl;
-        // ³õÊ¼»¯½á¹û
+        std::cout << "ç¨‹åºæ‰§è¡Œæ—¶é—´ä¸ºï¼š" << execution_time_ms1 << " æ¯«ç§’" << std::endl;
+        // åˆå§‹åŒ–ç»“æœ
         result.Nullify();
         BRep_Builder builder;
         builder.MakeCompound(result);
 
         std::vector<std::future<void>> futures;
-        std::mutex sectionMutex; // ÓÃÓÚ±£»¤BRepAlgoAPI_Section²Ù×÷
+        std::mutex sectionMutex; // ç”¨äºä¿æŠ¤BRepAlgoAPI_Sectionæ“ä½œ
 
-        // ¶¨ÒåÒ»¸öµİ¹éº¯ÊıÀ´´¦ÀíÃ¿¸ö½Úµã
+        // å®šä¹‰ä¸€ä¸ªé€’å½’å‡½æ•°æ¥å¤„ç†æ¯ä¸ªèŠ‚ç‚¹
         std::function<void(R_TreeNode*)> processNode;
         processNode = [&](R_TreeNode* currentNode) {
-            // ÔÚµÚ¶ş¸ö R Ê÷ÖĞÕÒµ½¿ÉÄÜÏà½»µÄ½Úµã
+            // åœ¨ç¬¬äºŒä¸ª R æ ‘ä¸­æ‰¾åˆ°å¯èƒ½ç›¸äº¤çš„èŠ‚ç‚¹
             std::vector<R_TreeNode*> potentialIntersectNodes = RTree2.Search(currentNode->Box, RTree2.Root);
 
             for (R_TreeNode* node2 : potentialIntersectNodes)
             {
-                // ½«Ã¿¸öÇó½»²Ù×÷×÷ÎªÒ»¸öÒì²½ÈÎÎñ
+                // å°†æ¯ä¸ªæ±‚äº¤æ“ä½œä½œä¸ºä¸€ä¸ªå¼‚æ­¥ä»»åŠ¡
                 futures.push_back(std::async(std::launch::async, [&, currentNode, node2]() 
                     {
                     std::unique_lock<std::mutex> lock(sectionMutex);
@@ -961,28 +961,28 @@ void occQt::TriangulationIntersection()
                     section.ComputePCurveOn1(Standard_True);
                     section.Approximation(Standard_True);
                     section.Build();
-                    lock.unlock(); // ÊÍ·ÅËø
+                    lock.unlock(); // é‡Šæ”¾é”
 
                     if (section.IsDone())
                     {
                         TopoDS_Shape intersectionLine = section.Shape();
-                        // ÔÚÕâÀï²»ĞèÒªËø£¬ÒòÎªbuilder.Add±»¼Ù¶¨ÎªÏß³Ì°²È«»ò¶Ô½á¹ûµÄÓ°Ïì²»»áÔì³É³åÍ»
+                        // åœ¨è¿™é‡Œä¸éœ€è¦é”ï¼Œå› ä¸ºbuilder.Addè¢«å‡å®šä¸ºçº¿ç¨‹å®‰å…¨æˆ–å¯¹ç»“æœçš„å½±å“ä¸ä¼šé€ æˆå†²çª
                         builder.Add(result, intersectionLine);
                     }
                     }));
             }
 
-            // ½«µ±Ç°½ÚµãµÄ×Ó½Úµã¼ÓÈëµİ¹é´¦Àí
+            // å°†å½“å‰èŠ‚ç‚¹çš„å­èŠ‚ç‚¹åŠ å…¥é€’å½’å¤„ç†
             for (R_TreeNode* child : currentNode->Childs)
             {
                 processNode(child);
             }
             };
 
-        // ¿ªÊ¼´Ó¸ù½Úµã´¦Àí
+        // å¼€å§‹ä»æ ¹èŠ‚ç‚¹å¤„ç†
         processNode(RTree1.Root);
 
-        // µÈ´ıËùÓĞÒì²½ÈÎÎñÍê³É
+        // ç­‰å¾…æ‰€æœ‰å¼‚æ­¥ä»»åŠ¡å®Œæˆ
         for (auto& future : futures) {
             future.get();
         }
@@ -1017,42 +1017,42 @@ void occQt::ClearDisplay()
 
 void occQt::PrintInfo()
 {
-    // ÔÚÎÄ±¾¿òÖĞÊä³ö¶¥µãĞÅÏ¢
+    // åœ¨æ–‡æœ¬æ¡†ä¸­è¾“å‡ºé¡¶ç‚¹ä¿¡æ¯
     QString outputText;
     TopExp_Explorer exp;
     Standard_Integer cnt = 1;
     for (exp.Init(result, TopAbs_EDGE); exp.More(); exp.Next()) {
         TopoDS_Edge edge = TopoDS::Edge(exp.Current());
-        // »ñÈ¡±ßµÄÆğÊ¼ºÍ½áÊø¶¥µã
+        // è·å–è¾¹çš„èµ·å§‹å’Œç»“æŸé¡¶ç‚¹
         TopoDS_Vertex startVertex, endVertex;
         TopExp::Vertices(edge, startVertex, endVertex);
 
-        // »ñÈ¡¶¥µãµÄ×ø±ê
+        // è·å–é¡¶ç‚¹çš„åæ ‡
         gp_Pnt startPoint = BRep_Tool::Pnt(startVertex);
         gp_Pnt endPoint = BRep_Tool::Pnt(endVertex);
 
-        // ½«¶¥µãĞÅÏ¢Ìí¼Óµ½Êä³öÎÄ±¾
+        // å°†é¡¶ç‚¹ä¿¡æ¯æ·»åŠ åˆ°è¾“å‡ºæ–‡æœ¬
         outputText += QString("Edge%1: startV : (%2, %3, %4), endV : (%5, %6, %7)\n")
             .arg(cnt).arg(startPoint.X()).arg(startPoint.Y()).arg(startPoint.Z())
             .arg(endPoint.X()).arg(endPoint.Y()).arg(endPoint.Z());
         cnt++;
     }
 
-    // ÔÚ¶Ô»°¿òÖĞÏÔÊ¾ÎÄ±¾¿ò
+    // åœ¨å¯¹è¯æ¡†ä¸­æ˜¾ç¤ºæ–‡æœ¬æ¡†
     QDialog dialog(this);
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
 
     QTextEdit* outputTextEdit = new QTextEdit(&dialog);
     outputTextEdit->setPlainText(outputText);
-    // ÉèÖÃÎÄ±¾¿ò¶ÔÏóÃû³Æ
+    // è®¾ç½®æ–‡æœ¬æ¡†å¯¹è±¡åç§°
     layout->addWidget(outputTextEdit);
 
-    // ÉèÖÃÎÄ±¾¿òÀ©Õ¹ÒÔÌî³ä¿Õ¼ä
+    // è®¾ç½®æ–‡æœ¬æ¡†æ‰©å±•ä»¥å¡«å……ç©ºé—´
     outputTextEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     dialog.setWindowTitle("Edge Info");
 
-    // ÏÔÊ¾¶Ô»°¿ò
+    // æ˜¾ç¤ºå¯¹è¯æ¡†
     dialog.exec();
 
 }
@@ -1060,25 +1060,25 @@ void occQt::PrintInfo()
 void occQt::RandomExport()
 {
 
-    // ´´½¨Ò»¸öÎÄ¼ş¶Ô»°¿ò
+    // åˆ›å»ºä¸€ä¸ªæ–‡ä»¶å¯¹è¯æ¡†
     QFileDialog dialog;
 
-    // ÉèÖÃ¶Ô»°¿òÄ£Ê½ÎªÑ¡ÔñÎÄ¼ş¼Ğ
+    // è®¾ç½®å¯¹è¯æ¡†æ¨¡å¼ä¸ºé€‰æ‹©æ–‡ä»¶å¤¹
     dialog.setFileMode(QFileDialog::Directory);
     QString folderPath;
-    // ÏÔÊ¾¶Ô»°¿ò
+    // æ˜¾ç¤ºå¯¹è¯æ¡†
     if (dialog.exec()) {
-        // »ñÈ¡ÓÃ»§Ñ¡ÔñµÄÎÄ¼ş¼ĞÂ·¾¶
+        // è·å–ç”¨æˆ·é€‰æ‹©çš„æ–‡ä»¶å¤¹è·¯å¾„
         folderPath = dialog.selectedFiles().first();
     }
-    // »ñÈ¡Á½¸ö¼òµ¥×Ö·û´®
+    // è·å–ä¸¤ä¸ªç®€å•å­—ç¬¦ä¸²
     bool ok;
     QString string1 = QInputDialog::getText(nullptr, "Input", "Enter String 1: (Basic Model Type: plane, cone, cylinder, sphere, torus)", QLineEdit::Normal, "", &ok);
     QString string2 = QInputDialog::getText(nullptr, "Input", "Enter String 2: (Basic Model Type: plane, cone, cylinder, sphere, torus)", QLineEdit::Normal, "", &ok);
     Standard_Integer value = QInputDialog::getInt(nullptr, "Input", "Enter an Integer:", 0, 0, 100, 1, &ok);
      
 
-    // Ê¹ÓÃÓÃ»§ÊäÈëµ÷ÓÃRandomExport::randomRotateAndExport()
+    // ä½¿ç”¨ç”¨æˆ·è¾“å…¥è°ƒç”¨RandomExport::randomRotateAndExport()
     RandomExport::randomRotateAndExport(folderPath.toStdString().c_str(), string1.toStdString().c_str(), string2.toStdString().c_str(), value);
 }
 
@@ -1146,25 +1146,25 @@ void occQt::MakeSurface()
 
 void occQt::ExportFile()
 {
-    // ´´½¨Ò»¸öÎÄ¼ş¶Ô»°¿ò
+    // åˆ›å»ºä¸€ä¸ªæ–‡ä»¶å¯¹è¯æ¡†
     QFileDialog dialog;
 
-    // ÉèÖÃ¶Ô»°¿òÄ£Ê½ÎªÑ¡ÔñÎÄ¼ş¼Ğ
+    // è®¾ç½®å¯¹è¯æ¡†æ¨¡å¼ä¸ºé€‰æ‹©æ–‡ä»¶å¤¹
     dialog.setFileMode(QFileDialog::Directory);
     QString folderPath;
-    // ÏÔÊ¾¶Ô»°¿ò
+    // æ˜¾ç¤ºå¯¹è¯æ¡†
     if (dialog.exec()) {
-        // »ñÈ¡ÓÃ»§Ñ¡ÔñµÄÎÄ¼ş¼ĞÂ·¾¶
+        // è·å–ç”¨æˆ·é€‰æ‹©çš„æ–‡ä»¶å¤¹è·¯å¾„
         folderPath = dialog.selectedFiles().first();
     }
 
-    // Ö¸¶¨ÎÄ¼şÃû
+    // æŒ‡å®šæ–‡ä»¶å
     QString filePath = folderPath + "/exportModel.step";
 
-    // »ñÈ¡ÎÄ¼şµÄ»ù±¾ĞÅÏ¢
+    // è·å–æ–‡ä»¶çš„åŸºæœ¬ä¿¡æ¯
     QFileInfo fileInfo(filePath);
 
-    // Èç¹ûÎÄ¼şÒÑ´æÔÚ£¬Ôò×Ô¶¯Ìí¼Óºó×º
+    // å¦‚æœæ–‡ä»¶å·²å­˜åœ¨ï¼Œåˆ™è‡ªåŠ¨æ·»åŠ åç¼€
     Standard_Integer suffix = 1;
     while (fileInfo.exists()) {
         filePath = folderPath + QString("/exportModel_%1.step").arg(suffix);
@@ -1189,7 +1189,7 @@ void occQt::ExportFile()
 
 }
 
-// ¶Ôµ¥ÌõµÈ²ÎÏß½øĞĞµÈ¾à²ÉÑù²¢¼ÆËã»¡³¤
+// å¯¹å•æ¡ç­‰å‚çº¿è¿›è¡Œç­‰è·é‡‡æ ·å¹¶è®¡ç®—å¼§é•¿
 std::vector<std::pair<gp_Pnt, Standard_Real>> SampleIsoCurveWithArcLength(const Handle(Geom_BSplineCurve)& bsplineCurve, Standard_Integer numSamples) 
 {
     Handle(GeomAdaptor_Curve) curve = new GeomAdaptor_Curve(bsplineCurve);
@@ -1199,18 +1199,18 @@ std::vector<std::pair<gp_Pnt, Standard_Real>> SampleIsoCurveWithArcLength(const 
     for (Standard_Integer i = 1; i <= sampler.NbPoints(); ++i)
     {
         Standard_Real param = sampler.Parameter(i);
-        gp_Pnt point = curve->Value(param); // »ñÈ¡µã×ø±ê
+        gp_Pnt point = curve->Value(param); // è·å–ç‚¹åæ ‡
 
-        // ¼ÆËãµ±Ç°µãÓëµÚÒ»¸öµãÖ®¼äµÄ»¡³¤
+        // è®¡ç®—å½“å‰ç‚¹ä¸ç¬¬ä¸€ä¸ªç‚¹ä¹‹é—´çš„å¼§é•¿
         Standard_Real arcLength = CPnts_AbscissaPoint::Length(*curve, sampler.Parameter(1), param);
 
-        // ¸üĞÂµãºÍ¶ÔÓ¦»¡³¤´æ´¢
+        // æ›´æ–°ç‚¹å’Œå¯¹åº”å¼§é•¿å­˜å‚¨
         sampledPointsWithArcLength.emplace_back(point, arcLength);
     }
 
     return sampledPointsWithArcLength;
 }
-// Êä³ö²ÉÑùµãºÍ¶ÔÓ¦»¡³¤µÄº¯Êı
+// è¾“å‡ºé‡‡æ ·ç‚¹å’Œå¯¹åº”å¼§é•¿çš„å‡½æ•°
 void PrintSampledPointsWithArcLength(const std::vector<std::pair<gp_Pnt, Standard_Real>>& sampledPoints) {
     for (const auto& pair : sampledPoints)
     {
@@ -1224,7 +1224,7 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
     Handle(Geom_BSplineCurve)& curve1, Handle(Geom_BSplineCurve)& curve2, Handle(Geom_BSplineCurve)& curve3, Handle(Geom_BSplineCurve)& curve4
 ) {
 
-    // ´´½¨ GeomFill_BSplineCurves ¶ÔÏó£¬Ê¹ÓÃ Coons Ìî³äÑùÊ½
+    // åˆ›å»º GeomFill_BSplineCurves å¯¹è±¡ï¼Œä½¿ç”¨ Coons å¡«å……æ ·å¼
     GeomFill_BSplineCurves fillCoonsStyle(
         curve1, // U=0
         curve2, // V=1
@@ -1233,21 +1233,21 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
         GeomFill_CoonsStyle
     );
 
-    // »ñÈ¡Éú³ÉµÄÇúÃæ
+    // è·å–ç”Ÿæˆçš„æ›²é¢
     Handle(Geom_Surface) surface = fillCoonsStyle.Surface();
 
-    // ¼ì²éÇúÃæÊÇ·ñÉú³É³É¹¦
+    // æ£€æŸ¥æ›²é¢æ˜¯å¦ç”ŸæˆæˆåŠŸ
     if (surface.IsNull()) {
-        throw std::runtime_error("Ê¹ÓÃ CoonsStyle ´´½¨ÇúÃæÊ§°Ü£¡");
+        throw std::runtime_error("ä½¿ç”¨ CoonsStyle åˆ›å»ºæ›²é¢å¤±è´¥ï¼");
     }
 
-    std::cout << "Ê¹ÓÃ CoonsStyle ³É¹¦´´½¨ÇúÃæ£¡" << std::endl;
+    std::cout << "ä½¿ç”¨ CoonsStyle æˆåŠŸåˆ›å»ºæ›²é¢ï¼" << std::endl;
 
-    // ³¢ÊÔ½« Geom_Surface ×ª»»Îª Geom_BSplineSurface
+    // å°è¯•å°† Geom_Surface è½¬æ¢ä¸º Geom_BSplineSurface
     Handle(Geom_BSplineSurface) bsplineSurface = Handle(Geom_BSplineSurface)::DownCast(surface);
     if (bsplineSurface.IsNull()) 
     {
-        throw std::runtime_error("Éú³ÉµÄÇúÃæ²»ÊÇ B-Spline ÇúÃæ£¡");
+        throw std::runtime_error("ç”Ÿæˆçš„æ›²é¢ä¸æ˜¯ B-Spline æ›²é¢ï¼");
     }
 
     return bsplineSurface;
@@ -1257,14 +1257,14 @@ Handle(Geom_BSplineSurface) GenerateCoonsSurface(
 void UniformCurve(Handle(Geom_BSplineCurve)& curve);
 void occQt::GenerateIsoCurves(void)
 {
-    for (Standard_Integer i = 29; i <= 29; i++)
+    for (Standard_Integer i = 10; i <= 41; i++)
     {
-        //if (i == 20) continue; // Èı±ß
+        //if (i == 20) continue; // ä¸‰è¾¹
         //if (i >= 22 && i <= 29) continue;
         //if (i >= 30 && i <= 33) continue;
         //if (i >= 37 && i <= 98) continue;
         myOccView->getContext()->RemoveAll(Standard_True);
-        // ¶ÁÈë±ß½çÏß
+        // è¯»å…¥è¾¹ç•Œçº¿
         std::vector<Handle(Geom_BSplineCurve)> tempArray;
         tempArray.clear();
         std::string filename = "D:/GordenModels/NewModels/Processed/test";
@@ -1275,6 +1275,7 @@ void occQt::GenerateIsoCurves(void)
         SurfaceModelingTool::ApproximateBoundaryCurves(tempArray);
         if (tempArray.size() == 3)
         {
+            continue;
             gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
             gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
 
@@ -1301,10 +1302,10 @@ void occQt::GenerateIsoCurves(void)
             pnt1 = tempArray[0]->StartPoint(); pnt2 = tempArray[0]->EndPoint(); pnt3 = tempArray[1]->StartPoint();
             pnt4 = tempArray[1]->EndPoint(); pnt5 = tempArray[2]->StartPoint(); pnt6 = tempArray[2]->EndPoint();
 
-            // Èı±ßÇé¿ö£¬´´½¨ÍË»¯±ß¹¹³ÉËÄ±ß
+            // ä¸‰è¾¹æƒ…å†µï¼Œåˆ›å»ºé€€åŒ–è¾¹æ„æˆå››è¾¹
             std::vector<gp_Pnt> boundaryPoints = { tempArray[0]->StartPoint(), tempArray[1]->StartPoint(), tempArray[2]->StartPoint() };
 
-            // ¶¨Òå±ß
+            // å®šä¹‰è¾¹
             gp_Vec line_01(boundaryPoints[1].XYZ() - boundaryPoints[0].XYZ());
             gp_Vec line_12(boundaryPoints[2].XYZ() - boundaryPoints[1].XYZ());
             gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
@@ -1313,21 +1314,21 @@ void occQt::GenerateIsoCurves(void)
                 {
                     Standard_Real dotProduct = v1.Dot(v2);
                     Standard_Real magnitudes = v1.Magnitude() * v2.Magnitude();
-                    return std::acos(dotProduct / magnitudes);  // ·µ»Ø½Ç¶È
+                    return std::acos(dotProduct / magnitudes);  // è¿”å›è§’åº¦
                 };
 
-            // ¼ÆËãÈı¸ö½ÇµÄ¼Ğ½Ç
-            Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // µã0µÄ¼Ğ½Ç
-            Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // µã1µÄ¼Ğ½Ç
-            Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // µã2µÄ¼Ğ½Ç
+            // è®¡ç®—ä¸‰ä¸ªè§’çš„å¤¹è§’
+            Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // ç‚¹0çš„å¤¹è§’
+            Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // ç‚¹1çš„å¤¹è§’
+            Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // ç‚¹2çš„å¤¹è§’
 
-            // ÕÒ³ö×î´ó½Ç¶È
+            // æ‰¾å‡ºæœ€å¤§è§’åº¦
             Standard_Real maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
             Standard_Integer maxAngleIndex = 0;
             if (maxAngle == angleAtPoint1) maxAngleIndex = 1;
             else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
 
-            // ¹¹ÔìÍË»¯±ß
+            // æ„é€ é€€åŒ–è¾¹
             auto CreateDegenerateEdge = [](const gp_Pnt& point)
                 {
                     TColgp_Array1OfPnt poles(1, 2);
@@ -1354,6 +1355,7 @@ void occQt::GenerateIsoCurves(void)
             }
             else
             {
+                continue;
                 tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
             }
         }
@@ -1372,7 +1374,7 @@ void occQt::GenerateIsoCurves(void)
         std::vector<gp_Vec> normalsOfUISOLines, normalsOfVISOLines;
         std::vector<std::vector<Standard_Real>> uKnots;
         std::vector<std::vector<Standard_Real>> vKnots;
-        // ĞÂÌí¼Ó´úÂë
+        // æ–°æ·»åŠ ä»£ç 
         std::vector<Handle(Geom_BSplineCurve)> uInternalCurve, vInternalCurve;
         Standard_Real uAngleSum = 0, vAngleSum = 0;
         Handle(Geom_BSplineSurface) aResSurface;
@@ -1401,21 +1403,20 @@ void occQt::GenerateIsoCurves(void)
 
         if (aResSurface.IsNull())
         {
-            // Éú³É²»ÁËGorden£¬²»ÊÊÓÃĞÂËã·¨£¬¼ÌĞøÉú³ÉCoons
+            // ç”Ÿæˆä¸äº†Gordenï¼Œä¸é€‚ç”¨æ–°ç®—æ³•ï¼Œç»§ç»­ç”ŸæˆCoons
             SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
         }
-        continue;
         SurfaceModelingTool::GetISOCurveWithNormal(aResSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
         myOccView->getContext()->RemoveAll(true);
         Visualize(uISOcurvesArray_Initial, Quantity_NOC_RED);
         Visualize(vISOcurvesArray_Initial, Quantity_NOC_RED);
-        //¹¹ÔìLoftingÇúÃæ
+        //æ„é€ Loftingæ›²é¢
         std::vector<TopoDS_Shape>  uLoftingSur, vLoftingSur;
         SurfaceModelingTool::CreateLoftingSurface(uISOcurvesArray_Initial, normalsOfUISOLines, uLoftingSur);
         SurfaceModelingTool::CreateLoftingSurface(vISOcurvesArray_Initial, normalsOfVISOLines, vLoftingSur);
         Visualize(uLoftingSur);
         Visualize(vLoftingSur);
-        // Éú³ÉĞŞÕıµÄµÈ²ÎÏß
+        // ç”Ÿæˆä¿®æ­£çš„ç­‰å‚çº¿
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_New, vISOcurvesArray_New;
         std::vector<gp_Pnt> interPoints;
         std::vector<TopoDS_Edge> uInterpoalteTangentArray;
@@ -1434,17 +1435,23 @@ void occQt::GenerateIsoCurves(void)
             vInterpolatePoints,
             vInterpoalteTangentArray, vInterpoalteTangentArray2, aResSurface);
 
-        // ´óÓÚ 4 ÊÇÒòÎª°üº¬ÁË±ß½ç
+        // å¤§äº 4 æ˜¯å› ä¸ºåŒ…å«äº†è¾¹ç•Œ
         if (uInternalCurve.size() >= 4 || vInternalCurve.size() >= 4)
         {
-            // ¿ÉÄÜ³öÏÖÍË»¯±ßµÄÇé¿ö£¬ËùÒÔ¼ÆËãºÍÁ½¸ö¶Ô±ßµÄ¼Ğ½Ç
+            // å¯èƒ½å‡ºç°é€€åŒ–è¾¹çš„æƒ…å†µï¼Œæ‰€ä»¥è®¡ç®—å’Œä¸¤ä¸ªå¯¹è¾¹çš„å¤¹è§’
             if (MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[0]) > 10 ||
                 MathTool::ComputeAngleBetweenCurves(uISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
             {
                 std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
             }
 
-            // ±£ÁôÏß¶àµÄ·½Ïò
+            if (MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[0]) > 10 && 
+                MathTool::ComputeCurveCurveDistance(vISOcurvesArray_New[0], uInternalCurve[uInternalCurve.size() - 1]) > 10)
+            {
+                std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
+            }
+
+            // ä¿ç•™çº¿å¤šçš„æ–¹å‘
             if (uInternalCurve.size() > vInternalCurve.size())
             {
                 uISOcurvesArray_New.clear();
@@ -1465,73 +1472,8 @@ void occQt::GenerateIsoCurves(void)
             MathTool::ReverseIfNeeded(uISOcurvesArray_New);
             MathTool::ReverseIfNeeded(vISOcurvesArray_New);
             myOccView->getContext()->RemoveAll(true);
-            Visualize(vISOcurvesArray_New);
-            Visualize(uISOcurvesArray_New);
-            // µ÷ÓÃ³ÂöÎµÄ Compatible
-            std::for_each(uISOcurvesArray_New.begin(), uISOcurvesArray_New.end(), cxBasicFunc::UniformCurve);
-            std::for_each(vISOcurvesArray_New.begin(), vISOcurvesArray_New.end(), cxBasicFunc::UniformCurve);
-            Visualize(vISOcurvesArray_New);
-            Visualize(uISOcurvesArray_New);
-            //return;
-            FileProcess fp_uvcurve;
-            std::for_each(uISOcurvesArray_New.begin(), uISOcurvesArray_New.end(), [&](const auto& obj) {
-                fp_uvcurve.addElement(obj);
-            });
-            std::for_each(vISOcurvesArray_New.begin(), vISOcurvesArray_New.end(), [&](const auto& obj) {
-                fp_uvcurve.addElement(obj);
-            });
-            fp_uvcurve.setFilePath("D:\\testFile\\SurfAppro\\case2_des\\" + std::to_string(fileIndex) + "uvcurve.step");
-            fp_uvcurve.exportToStep();
-            CurveOperate::CompatibleWithInterPointsThree(vISOcurvesArray_New, uISOcurvesArray_New);
-            Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
-            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
-            CurveOperate::CompatibleWithInterPointsThree(uISOcurvesArray_New, vISOcurvesArray_New);
-            myOccView->getContext()->RemoveAll(true);
-            Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
-            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
-            //visualize intersection point and params
-            std::vector<std::vector<gp_Pnt>> pointsOnTheCurve(vISOcurvesArray_New.size());
-            std::vector<std::vector<Standard_Real>> paramsOnTheCurve(vISOcurvesArray_New.size());
-            for (Standard_Integer i = 0; i < vISOcurvesArray_New.size(); i++) {
-                if (CurveOperate::isDegenerate(vISOcurvesArray_New[i])) {
-                    pointsOnTheCurve[i] = { vISOcurvesArray_New[i]->Pole(1) };
-                    paramsOnTheCurve[i] = { vISOcurvesArray_New[i]->FirstParameter() };
-                    continue;
-                }
-                std::tie(pointsOnTheCurve[i], paramsOnTheCurve[i]) = CurveOperate::CalCurvesInterPointsParamsToCurve(uISOcurvesArray_New, vISOcurvesArray_New[i]);
-            }
-            // ´´½¨Ò»¸ö´æ´¢pairµÄvector
-            std::vector<std::pair<gp_Pnt, Standard_Real>> pointParamPairs;
-            for (Standard_Integer i = 0; i < pointsOnTheCurve.size(); i++) {
-                for (Standard_Integer j = 0; j < pointsOnTheCurve[i].size(); j++) {
-                    pointParamPairs.emplace_back(std::make_pair(pointsOnTheCurve[i][j], paramsOnTheCurve[i][j]));
-                }
-            }
-            Visualize(pointParamPairs, Quantity_NOC_GOLD);
-            //visualize intersection point and params
-            std::vector<std::vector<gp_Pnt>> pointsOnTheCurve1(uISOcurvesArray_New.size());
-            std::vector<std::vector<Standard_Real>> paramsOnTheCurve1(uISOcurvesArray_New.size());
-            for (Standard_Integer i = 0; i < uISOcurvesArray_New.size(); i++) {
-                if (CurveOperate::isDegenerate(uISOcurvesArray_New[i])) {
-                    pointsOnTheCurve1[i] = { uISOcurvesArray_New[i]->Pole(1) };
-                    paramsOnTheCurve1[i] = { uISOcurvesArray_New[i]->FirstParameter() };
-                    continue;
-                }
-                std::tie(pointsOnTheCurve1[i], paramsOnTheCurve1[i]) = CurveOperate::CalCurvesInterPointsParamsToCurve(vISOcurvesArray_New, uISOcurvesArray_New[i]);
-            }
-            // ´´½¨Ò»¸ö´æ´¢pairµÄvector
-            std::vector<std::pair<gp_Pnt, Standard_Real>> pointParamPairs1;
-            for (Standard_Integer i = 0; i < pointsOnTheCurve1.size(); i++) {
-                for (Standard_Integer j = 0; j < pointsOnTheCurve1[i].size(); j++) {
-                    pointParamPairs1.emplace_back(std::make_pair(pointsOnTheCurve1[i][j], paramsOnTheCurve1[i][j]));
-                }
-            }
-            myOccView->getContext()->RemoveAll(true);
-            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
-            Visualize(vISOcurvesArray_New, Quantity_NOC_GOLD);
-            Visualize(pointParamPairs1, Quantity_NOC_GOLD);
 
-            // µ÷ÓÃºúĞÂÓîµÄ Gorden
+            // è°ƒç”¨èƒ¡æ–°å®‡çš„ Gorden
             TopoDS_Face aGordenFace;
             std::vector<gp_Pnt> upoints, vpoints;
             std::vector<Standard_Real> uparams, vparams;
@@ -1540,7 +1482,7 @@ void occQt::GenerateIsoCurves(void)
             uIndex = CurveOperate::isDegenerate(uISOcurvesArray_New.front()) ? uISOcurvesArray_New.size() - 1 : 0;
             std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(uISOcurvesArray_New, vISOcurvesArray_New[vIndex]);
             std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(vISOcurvesArray_New, uISOcurvesArray_New[uIndex]);
-            // ÅÅĞò²Ù×÷
+            // æ’åºæ“ä½œ
             std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
             for (size_t i = 0; i < vparams.size(); ++i) {
                 combinedv.emplace_back(vparams[i], vISOcurvesArray_New[i]);
@@ -1570,13 +1512,13 @@ void occQt::GenerateIsoCurves(void)
             Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
             Visualize(aBSplineSurface);
 
-            // Ö±½Ó²»½øĞĞºóÃæµÄ²Ù×÷£¬¼ÆËãÏÂÒ»¸öcase
+            // ç›´æ¥ä¸è¿›è¡Œåé¢çš„æ“ä½œï¼Œè®¡ç®—ä¸‹ä¸€ä¸ªcase
             continue;
         }
 
         continue;
         myOccView->getContext()->RemoveAll(Standard_True);
-        // ¸ù¾İu¡¢vµÈ²ÎÏßÖ®¼äµÄ½»µã£¬Éú³É×îÖÕµÈ²ÎÏß
+        // æ ¹æ®uã€vç­‰å‚çº¿ä¹‹é—´çš„äº¤ç‚¹ï¼Œç”Ÿæˆæœ€ç»ˆç­‰å‚çº¿
         interPoints.clear();
         std::vector<gp_Pnt> boundaryPoints;
         std::vector<Handle(Geom_BSplineSurface)> surfaceArray;
@@ -1611,30 +1553,30 @@ void occQt::GenerateIsoCurves(void)
         interPoints.push_back(uISOcurvesArray_Final[uISOcurvesArray_Final.size() - 1]->EndPoint());
 
         //Visualize(interPoints, Quantity_NOC_GOLD);
-        // ±éÀú u(v)ISOcurvesArray_Final ½øĞĞ¿ÉÊÓ»¯
+        // éå† u(v)ISOcurvesArray_Final è¿›è¡Œå¯è§†åŒ–
         Visualize(uISOcurvesArray_Final);
         Visualize(vISOcurvesArray_Final);
         auto ExportPointsToBREP = [](const std::vector<gp_Pnt>& boundaryPoints, const std::string& filename)
             {
-                // ´´½¨Ò»¸ö¸´ºÏÌåÒÔ´æ´¢ËùÓĞ¶¥µã
+                // åˆ›å»ºä¸€ä¸ªå¤åˆä½“ä»¥å­˜å‚¨æ‰€æœ‰é¡¶ç‚¹
                 TopoDS_Compound compound;
                 BRep_Builder builder;
                 builder.MakeCompound(compound);
 
-                // ½« gp_Pnt ×ª»»Îª TopoDS_Vertex ²¢Ìí¼Óµ½¸´ºÏÌå
+                // å°† gp_Pnt è½¬æ¢ä¸º TopoDS_Vertex å¹¶æ·»åŠ åˆ°å¤åˆä½“
                 for (const auto& point : boundaryPoints)
                 {
                     TopoDS_Vertex vertex = BRepBuilderAPI_MakeVertex(point);
                     builder.Add(compound, vertex);
                 }
 
-                // ½«¸´ºÏÌå±£´æµ½ BREP ÎÄ¼ş
+                // å°†å¤åˆä½“ä¿å­˜åˆ° BREP æ–‡ä»¶
                 if (BRepTools::Write(compound, filename.c_str()))
                 {
-                    std::cout << "³É¹¦µ¼³öµ½ BREP ÎÄ¼ş: " << filename << std::endl;
+                    std::cout << "æˆåŠŸå¯¼å‡ºåˆ° BREP æ–‡ä»¶: " << filename << std::endl;
                 }
                 else {
-                    std::cerr << "µ¼³ö BREP ÎÄ¼şÊ§°Ü£¡" << std::endl;
+                    std::cerr << "å¯¼å‡º BREP æ–‡ä»¶å¤±è´¥ï¼" << std::endl;
                 }
             };
 
@@ -1663,13 +1605,13 @@ void occQt::GenerateIsoCurves(void)
         SurfaceModelingTool tool;
         std::string knotsPath = filename + "knots.txt";
         tool.setKnotsOutputPath(knotsPath.c_str());
-        // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬Èç¹û´æÔÚ£¬Çå¿ÕÎÄ¼şÄÚÈİ
+        // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼Œå¦‚æœå­˜åœ¨ï¼Œæ¸…ç©ºæ–‡ä»¶å†…å®¹
         std::ifstream checkFile(tool.getKnotsOuputPath());
         if (checkFile.is_open())
         {
-            // ¹Ø±Õ¼ì²éÎÄ¼şµÄÊäÈëÁ÷
+            // å…³é—­æ£€æŸ¥æ–‡ä»¶çš„è¾“å…¥æµ
             checkFile.close();
-            // Çå¿ÕÎÄ¼şÄÚÈİ£¬¸²¸ÇĞ´
+            // æ¸…ç©ºæ–‡ä»¶å†…å®¹ï¼Œè¦†ç›–å†™
             std::ofstream clearFile(tool.getKnotsOuputPath(), std::ios::trunc);
             clearFile.close();
         }
