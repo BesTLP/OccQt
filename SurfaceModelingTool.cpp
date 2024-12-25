@@ -2441,6 +2441,7 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 				surfacecoons->D1(((double)i / numIsoCurves) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()),
 					((double)j / numSamplePoints) * (surfacecoons->VKnot(surfacecoons->LastVKnotIndex()) - surfacecoons->VKnot(surfacecoons->FirstVKnotIndex())) + surfacecoons->VKnot(surfacecoons->FirstVKnotIndex()), closestPoint, DXu, DXv);
 			}
+			if (DXu.Magnitude() == 0 || DXv.Magnitude() == 0) continue;
 
 			DXu.Cross(DXv);
 			N = DXu.Normalized();
@@ -2477,27 +2478,7 @@ void SurfaceModelingTool::GetISOCurveWithNormal(const Handle(Geom_BSplineSurface
 				surfacecoons->D1(((double)j / numSamplePoints) * (surfacecoons->UKnot(surfacecoons->LastUKnotIndex()) - surfacecoons->UKnot(surfacecoons->FirstUKnotIndex())) + surfacecoons->UKnot(surfacecoons->FirstUKnotIndex()), 
 					((double)i / numIsoCurves) * (surfacecoons->VKnot(surfacecoons->LastVKnotIndex()) - surfacecoons->VKnot(surfacecoons->FirstVKnotIndex())) + surfacecoons->VKnot(surfacecoons->FirstVKnotIndex()), closestPoint, DXu, DXv);
 			}
-
-			//gp_Vec direction = aVGeom_BSplineCurve->EndPoint().XYZ() - aVGeom_BSplineCurve->StartPoint().XYZ(); // 得到方向向量
-			//direction.Normalize();
-			//if (j == 0)
-			//{
-			//	startTangent = DXv.Normalized();
-			//	if (startTangent.Dot(direction) < 0)
-			//	{
-			//		startTangent = -startTangent; // 反转切向量的方向
-			//	}
-			//}
-			//if (j == numSamplePoints - 1)
-			//{
-			//	endTangent = DXv.Normalized();
-			//	if (endTangent.Dot(direction) < 0)
-			//	{
-			//		endTangent = -endTangent; // 反转切向量的方向
-			//	}
-			//}
-			//tangentOfVISOLines.push_back(std::make_pair(startTangent.Normalized(), endTangent.Normalized()));
-
+			if (DXu.Magnitude() == 0 || DXv.Magnitude() == 0) continue;
 			DXu.Cross(DXv);
 			N = DXu.Normalized();
 			normalsV.push_back(N);
@@ -2618,12 +2599,26 @@ void SurfaceModelingTool::UpdateFinalCurves(const std::vector<Handle(Geom_BSplin
 	}
 	if (isThreeBoundary)
 	{
-		GeomAPI_ExtremaCurveCurve extrema1(uCurve, aBoundarycurveArray[0]);
-		GeomAPI_ExtremaCurveCurve extrema2(uCurve, aBoundarycurveArray[2]);
-
 		gp_Pnt p1, p2, p3;
-		extrema1.NearestPoints(p1,p2);
-		extrema2.NearestPoints(p1,p3);
+		// 如果是退化点，直接赋值，否则计算交点
+		if (aBoundarycurveArray[0]->StartPoint().Distance(aBoundarycurveArray[0]->EndPoint()) < 0.1)
+		{
+			p2 = aBoundarycurveArray[0]->StartPoint();
+		}
+		else
+		{
+			GeomAPI_ExtremaCurveCurve extrema(uCurve, aBoundarycurveArray[0]);
+			extrema.NearestPoints(p1, p2);
+		}
+		if (aBoundarycurveArray[2]->StartPoint().Distance(aBoundarycurveArray[2]->EndPoint()) < 0.1)
+		{
+			p3 = aBoundarycurveArray[2]->StartPoint();
+		}
+		else
+		{
+			GeomAPI_ExtremaCurveCurve extrema(uCurve, aBoundarycurveArray[2]);
+			extrema.NearestPoints(p1, p3);
+		}
 
 		double distance = p2.Distance(p3);
 		if (distance < Precision::Confusion())
@@ -2692,133 +2687,127 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 	std::vector<Handle(Geom_BSplineCurve)>& theVInternalCurve,
 	Standard_Real& theUAngleSum,
 	Standard_Real& theVAngleSum,
-	Standard_Real theAngleTolerance) {
-
-	if (theBoundaryCurveArray.size() != 4)
+	Standard_Real theAngleTolerance)
+{
+	if (theBoundaryCurveArray.size() == 4)
 	{
-		return Standard_False;
-	}
-
-	Handle(Geom_BSplineCurve) aBoundaryCurve1 = theBoundaryCurveArray[0];
-	Handle(Geom_BSplineCurve) aBoundaryCurve2 = theBoundaryCurveArray[1];
-	Handle(Geom_BSplineCurve) aBoundaryCurve3 = theBoundaryCurveArray[2];
-	Handle(Geom_BSplineCurve) aBoundaryCurve4 = theBoundaryCurveArray[3];
-
-	std::vector<PlanarCurve> aPlanarCurveArray;
-	for (Standard_Integer i = 0; i < theBoundaryCurveArray.size(); ++i) 
-	{
-		aPlanarCurveArray.emplace_back(PlanarCurve(theBoundaryCurveArray[i]));
-	}
-
-	Standard_Boolean isPlanar = Standard_True;
-	for (const PlanarCurve& aCurve : aPlanarCurveArray)
-	{
-		if (aCurve.GetCurveType() == CurveType::NOTPLANAR) 
+		std::vector<PlanarCurve> aPlanarCurveArray;
+		for (Standard_Integer i = 0; i < theBoundaryCurveArray.size(); ++i)
 		{
-			isPlanar = Standard_False;
-			break;
-		}
-	}
-
-	if (!isPlanar) {
-		return Standard_False;
-	}
-
-	theUInternalCurve.clear();
-	theVInternalCurve.clear();
-
-	for (auto& anInternalCurve : theInternalBSplineCurves)
-	{
-		PlanarCurve anInternalPlanarCurve(anInternalCurve);
-
-		if (anInternalPlanarCurve.GetCurveType() == CurveType::NOTPLANAR) 
-		{
-			continue;
+			aPlanarCurveArray.emplace_back(PlanarCurve(theBoundaryCurveArray[i]));
 		}
 
-		Standard_Real aDistance1 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve1);
-		Standard_Real aDistance2 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve2);
-		Standard_Real aDistance3 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve3);
-		Standard_Real aDistance4 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), aBoundaryCurve4);
-
-		Standard_Real aSplitPointParams[2] = { 0.0 };
-
-		if ((aDistance1 < 10.0 && aDistance3 < 10.0) || (aDistance2 < 10.0 && aDistance4 < 10.0))
+		Standard_Boolean isPlanar = Standard_True;
+		for (const PlanarCurve& aCurve : aPlanarCurveArray)
 		{
-			GeomAPI_ExtremaCurveCurve anExtrema1(anInternalPlanarCurve.GetCurve(), aDistance1 < 10.0 ? aBoundaryCurve1 : aBoundaryCurve2);
-			GeomAPI_ExtremaCurveCurve anExtrema2(anInternalPlanarCurve.GetCurve(), aDistance3 < 10.0 ? aBoundaryCurve3 : aBoundaryCurve4);
-			gp_Pnt anInternalPoint;
-			gp_Pnt aReplacePoint1, aReplacePoint2;
-
-			Standard_Real aParameter = 0;
-			if (anExtrema1.NbExtrema() > 0) 
+			if (aCurve.GetCurveType() == CurveType::NOTPLANAR)
 			{
-				anExtrema1.LowerDistanceParameters(aSplitPointParams[0], aParameter);
-				anExtrema1.NearestPoints(anInternalPoint, aReplacePoint1);
+				isPlanar = Standard_False;
+				break;
+			}
+		}
+
+		if (!isPlanar) 
+		{
+			return Standard_False;
+		}
+
+		theUInternalCurve.clear();
+		theVInternalCurve.clear();
+
+		for (auto& anInternalCurve : theInternalBSplineCurves)
+		{
+			PlanarCurve anInternalPlanarCurve(anInternalCurve);
+
+			if (anInternalPlanarCurve.GetCurveType() == CurveType::NOTPLANAR)
+			{
+				continue;
 			}
 
-			if (anExtrema2.NbExtrema() > 0)
+			Standard_Real aDistance1 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), theBoundaryCurveArray[0]);
+			Standard_Real aDistance2 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), theBoundaryCurveArray[1]);
+			Standard_Real aDistance3 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), theBoundaryCurveArray[2]);
+			Standard_Real aDistance4 = MathTool::ComputeCurveCurveDistance(anInternalPlanarCurve.GetCurve(), theBoundaryCurveArray[3]);
+
+			Standard_Real aSplitPointParams[2] = { 0.0 };
+
+			if ((aDistance1 < 10.0 && aDistance3 < 10.0) || (aDistance2 < 10.0 && aDistance4 < 10.0))
 			{
-				anExtrema2.LowerDistanceParameters(aSplitPointParams[1], aParameter);
-				anExtrema2.NearestPoints(anInternalPoint, aReplacePoint2);
-			}
+				GeomAPI_ExtremaCurveCurve anExtrema1(anInternalPlanarCurve.GetCurve(), aDistance1 < 10.0 ? theBoundaryCurveArray[0] : theBoundaryCurveArray[1]);
+				GeomAPI_ExtremaCurveCurve anExtrema2(anInternalPlanarCurve.GetCurve(), aDistance3 < 10.0 ? theBoundaryCurveArray[2] : theBoundaryCurveArray[3]);
+				gp_Pnt anInternalPoint;
+				gp_Pnt aReplacePoint1, aReplacePoint2;
 
-			if (aSplitPointParams[0] > aSplitPointParams[1])
-			{
-				std::swap(aSplitPointParams[0], aSplitPointParams[1]);
-				std::swap(aReplacePoint1, aReplacePoint2);
-			}
-
-			Handle(Geom_TrimmedCurve) aTrimmedCurve = new Geom_TrimmedCurve(anInternalPlanarCurve.GetCurve(), aSplitPointParams[0], aSplitPointParams[1]);
-			Handle(Geom_BSplineCurve) aModifiedCurve = GeomConvert::CurveToBSplineCurve(aTrimmedCurve, Convert_TgtThetaOver2);
-
-			Standard_Real anAngle1 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[0], anInternalPlanarCurve);
-			Standard_Real anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
-			Standard_Real anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
-			Standard_Real anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
-
-			aModifiedCurve->SetPole(1, aReplacePoint1);
-			aModifiedCurve->SetPole(aModifiedCurve->NbPoles(), aReplacePoint2);
-			anInternalPlanarCurve.SetCurve(aModifiedCurve);
-
-			if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance &&
-				std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
-			{
-				if (aDistance1 < 10.0 && aDistance3 < 10.0)
+				Standard_Real aParameter = 0;
+				if (anExtrema1.NbExtrema() > 0)
 				{
-					theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
-					theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					anExtrema1.LowerDistanceParameters(aSplitPointParams[0], aParameter);
+					anExtrema1.NearestPoints(anInternalPoint, aReplacePoint1);
 				}
-				else if(aDistance2 < 10.0 && aDistance4 < 10.0)
+
+				if (anExtrema2.NbExtrema() > 0)
+				{
+					anExtrema2.LowerDistanceParameters(aSplitPointParams[1], aParameter);
+					anExtrema2.NearestPoints(anInternalPoint, aReplacePoint2);
+				}
+
+				if (aSplitPointParams[0] > aSplitPointParams[1])
+				{
+					std::swap(aSplitPointParams[0], aSplitPointParams[1]);
+					std::swap(aReplacePoint1, aReplacePoint2);
+				}
+
+				Handle(Geom_TrimmedCurve) aTrimmedCurve = new Geom_TrimmedCurve(anInternalPlanarCurve.GetCurve(), aSplitPointParams[0], aSplitPointParams[1]);
+				Handle(Geom_BSplineCurve) aModifiedCurve = GeomConvert::CurveToBSplineCurve(aTrimmedCurve, Convert_TgtThetaOver2);
+
+				Standard_Real anAngle1 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[0], anInternalPlanarCurve);
+				Standard_Real anAngle3 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[2], anInternalPlanarCurve);
+				Standard_Real anAngle2 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[1], anInternalPlanarCurve);
+				Standard_Real anAngle4 = MathTool::ComputeAngleBetweenPlanarCurves(aPlanarCurveArray[3], anInternalPlanarCurve);
+
+				aModifiedCurve->SetPole(1, aReplacePoint1);
+				aModifiedCurve->SetPole(aModifiedCurve->NbPoles(), aReplacePoint2);
+				anInternalPlanarCurve.SetCurve(aModifiedCurve);
+
+				if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance &&
+					std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
+				{
+					if (aDistance1 < 10.0 && aDistance3 < 10.0)
+					{
+						theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
+						theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					}
+					else if (aDistance2 < 10.0 && aDistance4 < 10.0)
+					{
+						theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
+						theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					}
+				}
+				else if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance)
 				{
 					theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
 					theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
 				}
-			}
-			else if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance)
-			{
-				theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
-				theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
-			}
-			else if (std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance) 
-			{
-				theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
-				theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+				else if (std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
+				{
+					theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
+					theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+				}
 			}
 		}
+
+		theUInternalCurve.insert(theUInternalCurve.begin(), theBoundaryCurveArray[0]);
+		theUInternalCurve.push_back(theBoundaryCurveArray[2]);
+		theVInternalCurve.insert(theVInternalCurve.begin(), theBoundaryCurveArray[1]);
+		theVInternalCurve.push_back(theBoundaryCurveArray[3]);
+
+		MathTool::SortBSplineCurves(theUInternalCurve, theUInternalCurve[0]);
+		MathTool::SortBSplineCurves(theVInternalCurve, theVInternalCurve[0]);
+		MathTool::CheckSelfIntersect(theUInternalCurve);
+		MathTool::CheckSelfIntersect(theVInternalCurve);
+
+		return theUInternalCurve.size() >= 4 || theVInternalCurve.size() >= 4;
 	}
-
-	theUInternalCurve.insert(theUInternalCurve.begin(), aBoundaryCurve1);
-	theUInternalCurve.push_back(aBoundaryCurve3);
-	theVInternalCurve.insert(theVInternalCurve.begin(), aBoundaryCurve2);
-	theVInternalCurve.push_back(aBoundaryCurve4);
-
-	MathTool::SortBSplineCurves(theUInternalCurve, theUInternalCurve[0]);
-	MathTool::SortBSplineCurves(theVInternalCurve, theVInternalCurve[0]);
-	MathTool::CheckSelfIntersect(theUInternalCurve);
-	MathTool::CheckSelfIntersect(theVInternalCurve);
-
-	return theUInternalCurve.size() >= 4 || theVInternalCurve.size() >= 4;
 }
 
 
