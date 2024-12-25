@@ -609,7 +609,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 			if (uCurves[i]->StartPoint().IsEqual(uCurves[i]->EndPoint(), 1.e-2)) {
 				interPoints(i + 1, j + 1) = uCurves[i]->StartPoint();
 				Pnts.push_back(uCurves[i]->StartPoint());
-				gp_Pnt2d Pnt2d((j + 1.0) / vsize, 1);
+				gp_Pnt2d Pnt2d(theVParams[j], theUParams[i]);
 				PntParams.push_back(Pnt2d);
 				continue;
 			}
@@ -617,7 +617,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 			else if (vCurves[j]->StartPoint().IsEqual(vCurves[j]->EndPoint(), 1.e-2)) {
 				interPoints(i + 1, j + 1) = vCurves[j]->StartPoint();
 				Pnts.push_back(vCurves[j]->StartPoint());
-				gp_Pnt2d Pnt2d(1, (i + 1.0) / usize);
+				gp_Pnt2d Pnt2d(theVParams[j], theUParams[i]);
 				PntParams.push_back(Pnt2d);
 				continue;
 			}
@@ -628,12 +628,6 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 				std::cout << "最近点对不唯一！" << std::endl;
 			}
 			int nbEx = extrema.NbExtrema();
-			//最近点对如果出问题，可从内部线转等参线的工作中取
-
-			Standard_Real para1, para2;
-			extrema.Parameters(1, para1, para2);
-			interParaMatrixU(i, j) = para1;
-			interParaMatrixV(i, j) = para2;
 
 			gp_Pnt p1, p2;
 			extrema.NearestPoints(p1, p2);
@@ -641,7 +635,7 @@ void GordenSurface::BuildMyGordonSurf(std::vector<Handle(Geom_BSplineCurve)>& uC
 			interPoints(i + 1, j + 1) = interPnt;
 
 			Pnts.push_back(interPnt);
-			gp_Pnt2d Pnt2d(para1, para2);
+			gp_Pnt2d Pnt2d(theVParams[j], theUParams[i]);
 			PntParams.push_back(Pnt2d);
 		}
 	}

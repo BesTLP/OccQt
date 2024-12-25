@@ -1467,22 +1467,105 @@ void occQt::GenerateIsoCurves(void)
             myOccView->getContext()->RemoveAll(true);
             Visualize(vISOcurvesArray_New);
             Visualize(uISOcurvesArray_New);
-            //// 调用陈鑫的 Compatible
-            //for (auto curve : uISOcurvesArray_New)
-            //{
-            //    UniformCurve(curve);
-            //}
-            //for (auto curve : vISOcurvesArray_New)
-            //{
-            //    UniformCurve(curve);
-            //}
-
-            //SurfaceModelingTool::CompatibleWithInterPoints(uISOcurvesArray_New, vISOcurvesArray_New);
-            //SurfaceModelingTool::CompatibleWithInterPoints(vISOcurvesArray_New, uISOcurvesArray_New);
+            // 调用陈鑫的 Compatible
+            std::for_each(uISOcurvesArray_New.begin(), uISOcurvesArray_New.end(), cxBasicFunc::UniformCurve);
+            std::for_each(vISOcurvesArray_New.begin(), vISOcurvesArray_New.end(), cxBasicFunc::UniformCurve);
+            Visualize(vISOcurvesArray_New);
+            Visualize(uISOcurvesArray_New);
+            //return;
+            FileProcess fp_uvcurve;
+            std::for_each(uISOcurvesArray_New.begin(), uISOcurvesArray_New.end(), [&](const auto& obj) {
+                fp_uvcurve.addElement(obj);
+            });
+            std::for_each(vISOcurvesArray_New.begin(), vISOcurvesArray_New.end(), [&](const auto& obj) {
+                fp_uvcurve.addElement(obj);
+            });
+            fp_uvcurve.setFilePath("D:\\testFile\\SurfAppro\\case2_des\\" + std::to_string(fileIndex) + "uvcurve.step");
+            fp_uvcurve.exportToStep();
+            CurveOperate::CompatibleWithInterPointsThree(vISOcurvesArray_New, uISOcurvesArray_New);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
+            CurveOperate::CompatibleWithInterPointsThree(uISOcurvesArray_New, vISOcurvesArray_New);
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
+            //visualize intersection point and params
+            std::vector<std::vector<gp_Pnt>> pointsOnTheCurve(vISOcurvesArray_New.size());
+            std::vector<std::vector<Standard_Real>> paramsOnTheCurve(vISOcurvesArray_New.size());
+            for (Standard_Integer i = 0; i < vISOcurvesArray_New.size(); i++) {
+                if (CurveOperate::isDegenerate(vISOcurvesArray_New[i])) {
+                    pointsOnTheCurve[i] = { vISOcurvesArray_New[i]->Pole(1) };
+                    paramsOnTheCurve[i] = { vISOcurvesArray_New[i]->FirstParameter() };
+                    continue;
+                }
+                std::tie(pointsOnTheCurve[i], paramsOnTheCurve[i]) = CurveOperate::CalCurvesInterPointsParamsToCurve(uISOcurvesArray_New, vISOcurvesArray_New[i]);
+            }
+            // 创建一个存储pair的vector
+            std::vector<std::pair<gp_Pnt, Standard_Real>> pointParamPairs;
+            for (Standard_Integer i = 0; i < pointsOnTheCurve.size(); i++) {
+                for (Standard_Integer j = 0; j < pointsOnTheCurve[i].size(); j++) {
+                    pointParamPairs.emplace_back(std::make_pair(pointsOnTheCurve[i][j], paramsOnTheCurve[i][j]));
+                }
+            }
+            Visualize(pointParamPairs, Quantity_NOC_GOLD);
+            //visualize intersection point and params
+            std::vector<std::vector<gp_Pnt>> pointsOnTheCurve1(uISOcurvesArray_New.size());
+            std::vector<std::vector<Standard_Real>> paramsOnTheCurve1(uISOcurvesArray_New.size());
+            for (Standard_Integer i = 0; i < uISOcurvesArray_New.size(); i++) {
+                if (CurveOperate::isDegenerate(uISOcurvesArray_New[i])) {
+                    pointsOnTheCurve1[i] = { uISOcurvesArray_New[i]->Pole(1) };
+                    paramsOnTheCurve1[i] = { uISOcurvesArray_New[i]->FirstParameter() };
+                    continue;
+                }
+                std::tie(pointsOnTheCurve1[i], paramsOnTheCurve1[i]) = CurveOperate::CalCurvesInterPointsParamsToCurve(vISOcurvesArray_New, uISOcurvesArray_New[i]);
+            }
+            // 创建一个存储pair的vector
+            std::vector<std::pair<gp_Pnt, Standard_Real>> pointParamPairs1;
+            for (Standard_Integer i = 0; i < pointsOnTheCurve1.size(); i++) {
+                for (Standard_Integer j = 0; j < pointsOnTheCurve1[i].size(); j++) {
+                    pointParamPairs1.emplace_back(std::make_pair(pointsOnTheCurve1[i][j], paramsOnTheCurve1[i][j]));
+                }
+            }
+            myOccView->getContext()->RemoveAll(true);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_GOLD);
+            Visualize(pointParamPairs1, Quantity_NOC_GOLD);
 
             // 调用胡新宇的 Gorden
             TopoDS_Face aGordenFace;
-            GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, aGordenFace);
+            std::vector<gp_Pnt> upoints, vpoints;
+            std::vector<Standard_Real> uparams, vparams;
+            Standard_Integer vIndex, uIndex;
+            vIndex = CurveOperate::isDegenerate(vISOcurvesArray_New.front()) ? vISOcurvesArray_New.size() - 1 : 0;
+            uIndex = CurveOperate::isDegenerate(uISOcurvesArray_New.front()) ? uISOcurvesArray_New.size() - 1 : 0;
+            std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(uISOcurvesArray_New, vISOcurvesArray_New[vIndex]);
+            std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(vISOcurvesArray_New, uISOcurvesArray_New[uIndex]);
+            // 排序操作
+            std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
+            for (size_t i = 0; i < vparams.size(); ++i) {
+                combinedv.emplace_back(vparams[i], vISOcurvesArray_New[i]);
+            }
+            std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b) {
+                return a.first < b.first;
+            });
+            for (size_t i = 0; i < combinedv.size(); ++i) {
+                vparams[i] = combinedv[i].first;
+                vISOcurvesArray_New[i] = combinedv[i].second;
+            }
+
+            std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
+            for (size_t i = 0; i < uparams.size(); ++i) {
+                combinedu.emplace_back(uparams[i], uISOcurvesArray_New[i]);
+            }
+            std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) {
+                return a.first < b.first;
+            });
+            for (size_t i = 0; i < combinedu.size(); ++i) {
+                uparams[i] = combinedu[i].first;
+                uISOcurvesArray_New[i] = combinedu[i].second;
+            }
+
+            GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, uparams, vparams, aGordenFace);
             Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
             Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
             Visualize(aBSplineSurface);
