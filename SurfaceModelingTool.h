@@ -67,7 +67,7 @@ private:
 		theTolerance = 0.1);
 	// 判断给定的 B-Spline 曲线是否为线性曲线
 	bool IsBSplineCurveLinear(const Handle(Geom_BSplineCurve)& theCurve,
-		Standard_Real theTolerance = 1e-6);
+		Standard_Real theTolerance = 0.03);
 	// 判断给定的 B-Spline 曲线是否为一个点
 	bool IsBSplineCurvePoint(const Handle(Geom_BSplineCurve)& theCurve,
 		Standard_Real theTolerance = 1e-6);
@@ -86,7 +86,7 @@ public:
 	static Standard_Real ComputeAngleWithAxis(const gp_Vec& theVec, const gp_Vec&
 		theAxis);
 	// 检查一组 B-Spline 曲线是否存在自交
-	static void CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)>
+	static void CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)>&
 		theBSplineCurvesArray);
 	// 计算曲线的平均切向量方向
 	static gp_Dir ComputeAverageTangent(const Handle(Geom_BSplineCurve)&

@@ -206,7 +206,7 @@ void occQt::Visualize(const T& object, const Quantity_Color& color)
         else if constexpr (std::is_same<T, gp_Pln>::value)
         {
             // 定义平面的范围
-            Standard_Real uMin = -2000.0, uMax = 2000.0, vMin = -2000.0, vMax = 2000.0;
+            Standard_Real uMin = -500.0, uMax = 500.0, vMin = -500.0, vMax = 500.0;
 
             // 将 gp_Pln 转换为 Geom_Plane
             Handle(Geom_Plane) geomPlane = new Geom_Plane(object);
@@ -299,7 +299,7 @@ void occQt::Visualize(const std::vector<T>& objects, const Quantity_Color& color
             else if constexpr (std::is_same<T, gp_Pln>::value)
             {
                 // 定义平面的范围
-                Standard_Real uMin = -2000.0, uMax = 2000.0, vMin = -2000.0, vMax = 2000.0;
+                Standard_Real uMin = -500.0, uMax = 500.0, vMin = -500.0, vMax = 500.0;
 
                 // 将 gp_Pln 转换为 Geom_Plane
                 Handle(Geom_Plane) geomPlane = new Geom_Plane(obj);
@@ -1260,10 +1260,10 @@ void UniformCurve(Handle(Geom_BSplineCurve)& curve);
 void occQt::GenerateIsoCurves(void)
 {
 
-    for (Standard_Integer i = 24; i <= 41; i++)
+    for (Standard_Integer i = 1; i <= 46; i++)
     {
         occQt::isVisualize = false;
-        if (i == 23 || i == 22 || i == 33 || i == 36 || i == 40); // 三边
+        if (i ==23 || (i >= 42 && i <= 45)) continue;; // 三边
 
         myOccView->getContext()->RemoveAll(Standard_True);
         // 读入边界线
@@ -1274,181 +1274,214 @@ void occQt::GenerateIsoCurves(void)
         filename += "_";
         std::string boundaryPath = filename + "boundary.brep";
         SurfaceModelingTool::LoadBSplineCurves(boundaryPath.c_str(), tempArray);
-        if (tempArray.size() == 4 || tempArray.size() == 0) continue;
+        if (tempArray.size() == 0) continue;
+
         SurfaceModelingTool::ApproximateBoundaryCurves(tempArray);
         Visualize(tempArray);
+        for (int j = 0; j < tempArray.size(); j++)
+        {
+            double x = (tempArray[j]->StartPoint().X() + tempArray[j]->EndPoint().X())/2;
+            double y = (tempArray[j]->StartPoint().Y() + tempArray[j]->EndPoint().Y()) / 2;
+            double z = (tempArray[j]->StartPoint().Z() + tempArray[j]->EndPoint().Z()) / 2;
+            gp_Pnt pnt(x, y, z);
+            Standard_Real value = double(j + 1);
+            Visualize(std::make_pair(pnt, value));
+        }
+
         std::vector<Handle(Geom_BSplineCurve)> anInternalBSplineCurves;
         std::string internalPath = filename + "internal.brep";
 
         SurfaceModelingTool::LoadBSplineCurves(internalPath, anInternalBSplineCurves);
         Visualize(anInternalBSplineCurves);
-        //if (tempArray.size() == 3)
-        //{
-        //    gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
-        //    gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
-
-        //    Standard_Real tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
-        //    if (tempArray[1]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
-        //    {
-        //        tempArray[1]->Reverse();
-        //    }
-        //    else if (tempArray[2]->StartPoint().Distance(tempArray[0]->EndPoint()) < tol)
-        //    {
-        //        std::swap(tempArray[1], tempArray[2]);
-        //    }
-        //    else if (tempArray[2]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
-        //    {
-        //        std::swap(tempArray[1], tempArray[2]);
-        //        tempArray[1]->Reverse();
-        //    }
-
-        //    if (tempArray[2]->EndPoint().Distance(tempArray[1]->EndPoint()) < tol)
-        //    {
-        //        tempArray[2]->Reverse();
-        //    }
-
-        //    pnt1 = tempArray[0]->StartPoint(); pnt2 = tempArray[0]->EndPoint(); pnt3 = tempArray[1]->StartPoint();
-        //    pnt4 = tempArray[1]->EndPoint(); pnt5 = tempArray[2]->StartPoint(); pnt6 = tempArray[2]->EndPoint();
-
-        //    // 三边情况，创建退化边构成四边
-        //    std::vector<gp_Pnt> boundaryPoints = { tempArray[0]->StartPoint(), tempArray[1]->StartPoint(), tempArray[2]->StartPoint() };
-
-        //    // 定义边
-        //    gp_Vec line_01(boundaryPoints[1].XYZ() - boundaryPoints[0].XYZ());
-        //    gp_Vec line_12(boundaryPoints[2].XYZ() - boundaryPoints[1].XYZ());
-        //    gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
-
-        //    auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
-        //        {
-        //            Standard_Real dotProduct = v1.Dot(v2);
-        //            Standard_Real magnitudes = v1.Magnitude() * v2.Magnitude();
-        //            return std::acos(dotProduct / magnitudes);  // 返回角度
-        //        };
-
-        //    // 计算三个角的夹角
-        //    Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
-        //    Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // 点1的夹角
-        //    Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // 点2的夹角
-
-        //    // 找出最大角度
-        //    Standard_Real maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
-        //    Standard_Integer maxAngleIndex = 0;
-        //    if (maxAngle == angleAtPoint1) maxAngleIndex = 1;
-        //    else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
-
-        //    // 构造退化边
-        //    auto CreateDegenerateEdge = [](const gp_Pnt& point)
-        //        {
-        //            TColgp_Array1OfPnt poles(1, 2);
-        //            poles.SetValue(1, point);
-        //            poles.SetValue(2, point);
-
-        //            TColStd_Array1OfReal knots(1, 2);
-        //            knots.SetValue(1, 0.0);
-        //            knots.SetValue(2, 1.0);
-
-        //            TColStd_Array1OfInteger multiplicities(1, 2);
-        //            multiplicities.SetValue(1, 2);
-        //            multiplicities.SetValue(2, 2);
-
-        //            return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
-        //        };
-
-        //    //maxAngleIndex = 0;
-        //    //maxAngleIndex = 1;
-        //    //maxAngleIndex = 2;
-        //    if (maxAngleIndex == 0)
-        //    {
-        //        tempArray.push_back(CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
-        //    }
-        //    else
-        //    {
-        //        tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
-        //    }
-        //}
-        if(tempArray.size() == 3)
+        if (tempArray.size() == 3)
         {
-            // 初始化一个向量用于存储每条曲线的交点计数以及对应的样条曲线
-            std::vector<std::pair<int, Handle(Geom_BSplineCurve)>> anInterCount =
-            {
-                {0, tempArray[0]},
-                {0, tempArray[1]},
-                {0, tempArray[2]}
-            };
+            gp_Pnt pnt1 = tempArray[0]->StartPoint(), pnt2 = tempArray[0]->EndPoint(), pnt3 = tempArray[1]->StartPoint();
+            gp_Pnt pnt4 = tempArray[1]->EndPoint(), pnt5 = tempArray[2]->StartPoint(), pnt6 = tempArray[2]->EndPoint();
 
-            // 遍历内部样条曲线与tempArray中的曲线，统计每条曲线的交点计数
-            for (auto internalCurve : anInternalBSplineCurves)
-            {
-                for (int m = 0; m < tempArray.size(); m++)
-                {
-                    GeomAPI_ExtremaCurveCurve anExtrema(internalCurve, tempArray[m]);
-                    if (anExtrema.NbExtrema() > 0)
-                    {
-                        if (anExtrema.LowerDistance() < 10.0)
-                        {
-                            anInterCount[m].first++;
-                        }
-                    }
-                }
-            }
-
-            // 按交点计数从大到小对曲线进行排序
-            std::sort(anInterCount.begin(), anInterCount.end(), 
-                [](const std::pair<int, Handle(Geom_BSplineCurve)>& curve1, 
-                    const std::pair<int, Handle(Geom_BSplineCurve)>& curve2)
-            {
-                return curve1.first > curve2.first;
-            });
-            
-            // 清空并重新调整tempArray，将交点最多的两条边作为u方向的边
-            tempArray.clear();
-            tempArray.resize(4);
-            tempArray[0] = anInterCount[0].second;
-            tempArray[2] = anInterCount[1].second;
-            tempArray[1] = anInterCount[2].second;
-
-            // 将交点最多的两条边的交点作为退化边
-            gp_Pnt aDegeneratePoint(0, 0, 0);
-            if (tempArray[0]->StartPoint().Distance(tempArray[2]->StartPoint()) > 10
-                && tempArray[0]->StartPoint().Distance(tempArray[2]->EndPoint()) > 10)
-            {
-                aDegeneratePoint = tempArray[0]->EndPoint();
-            }else if(tempArray[0]->EndPoint().Distance(tempArray[2]->StartPoint()) > 10
-                && tempArray[0]->EndPoint().Distance(tempArray[2]->EndPoint()) > 10)
-            {
-                aDegeneratePoint = tempArray[0]->StartPoint();
-            }
-
-            // 构建退化边
-            TColgp_Array1OfPnt poles(1, 2);
-            poles.SetValue(1, aDegeneratePoint);
-            poles.SetValue(2, aDegeneratePoint);
-
-            TColStd_Array1OfReal knots(1, 2);
-            knots.SetValue(1, 0.0);
-            knots.SetValue(2, 1.0);
-
-            TColStd_Array1OfInteger multiplicities(1, 2);
-            multiplicities.SetValue(1, 2);
-            multiplicities.SetValue(2, 2);
-
-            tempArray[3] =  new Geom_BSplineCurve(poles, knots, multiplicities, 1);
-
-            // 调整次序，要求首尾相接
             Standard_Real tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
-            if (tempArray[0]->StartPoint().Distance(tempArray[1]->StartPoint()) < tol)
+            if (tempArray[1]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
             {
-                tempArray[0]->Reverse();
+                tempArray[1]->Reverse();
             }
+            else if (tempArray[2]->StartPoint().Distance(tempArray[0]->EndPoint()) < tol)
+            {
+                std::swap(tempArray[1], tempArray[2]);
+            }
+            else if (tempArray[2]->EndPoint().Distance(tempArray[0]->EndPoint()) < tol)
+            {
+                std::swap(tempArray[1], tempArray[2]);
+                tempArray[1]->Reverse();
+            }
+
             if (tempArray[2]->EndPoint().Distance(tempArray[1]->EndPoint()) < tol)
             {
                 tempArray[2]->Reverse();
             }
+
+            pnt1 = tempArray[0]->StartPoint(); pnt2 = tempArray[0]->EndPoint(); pnt3 = tempArray[1]->StartPoint();
+            pnt4 = tempArray[1]->EndPoint(); pnt5 = tempArray[2]->StartPoint(); pnt6 = tempArray[2]->EndPoint();
+
+            // 三边情况，创建退化边构成四边
+            std::vector<gp_Pnt> boundaryPoints = { tempArray[0]->StartPoint(), tempArray[1]->StartPoint(), tempArray[2]->StartPoint() };
+
+            // 定义边
+            gp_Vec line_01(boundaryPoints[1].XYZ() - boundaryPoints[0].XYZ());
+            gp_Vec line_12(boundaryPoints[2].XYZ() - boundaryPoints[1].XYZ());
+            gp_Vec line_20(boundaryPoints[0].XYZ() - boundaryPoints[2].XYZ());
+
+            auto calculateAngle = [](const gp_Vec& v1, const gp_Vec& v2)
+                {
+                    Standard_Real dotProduct = v1.Dot(v2);
+                    Standard_Real magnitudes = v1.Magnitude() * v2.Magnitude();
+                    return std::acos(dotProduct / magnitudes);  // 返回角度
+                };
+
+            // 计算三个角的夹角
+            Standard_Real angleAtPoint0 = calculateAngle(-line_20, line_01);  // 点0的夹角
+            Standard_Real angleAtPoint1 = calculateAngle(-line_01, line_12);  // 点1的夹角
+            Standard_Real angleAtPoint2 = calculateAngle(-line_12, line_20);  // 点2的夹角
+
+            // 找出最大角度
+            Standard_Real maxAngle = std::max({ angleAtPoint0, angleAtPoint1, angleAtPoint2 });
+            Standard_Integer maxAngleIndex = 0;
+            if (maxAngle == angleAtPoint1) maxAngleIndex = 1;
+            else if (maxAngle == angleAtPoint2) maxAngleIndex = 2;
+
+            //// 构造退化边
+            //auto CreateDegenerateEdge = [](const gp_Pnt& point)
+            //    {
+            //        TColgp_Array1OfPnt poles(1, 2);
+            //        poles.SetValue(1, point);
+            //        poles.SetValue(2, point);
+
+            //        TColStd_Array1OfReal knots(1, 2);
+            //        knots.SetValue(1, 0.0);
+            //        knots.SetValue(2, 1.0);
+
+            //        TColStd_Array1OfInteger multiplicities(1, 2);
+            //        multiplicities.SetValue(1, 2);
+            //        multiplicities.SetValue(2, 2);
+
+            //        return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
+            //    };
+
+            // 构造退化边
+            auto CreateDegenerateEdge = [](const gp_Pnt& p1, const gp_Pnt& p2)
+                {
+                    TColgp_Array1OfPnt poles(1, 2);
+                    poles.SetValue(1, p1);
+                    poles.SetValue(2, p2);
+
+                    TColStd_Array1OfReal knots(1, 2);
+                    knots.SetValue(1, 0.0);
+                    knots.SetValue(2, 1.0);
+
+                    TColStd_Array1OfInteger multiplicities(1, 2);
+                    multiplicities.SetValue(1, 2);
+                    multiplicities.SetValue(2, 2);
+
+                    return new Geom_BSplineCurve(poles, knots, multiplicities, 1);
+                };
+            //maxAngleIndex = 0;
+            //maxAngleIndex = 1;
+            //maxAngleIndex = 2;
+            if (maxAngleIndex == 0)
+            {
+                //tempArray.push_back(CreateDegenerateEdge(boundaryPoints[maxAngleIndex]));
+                tempArray.push_back(CreateDegenerateEdge(tempArray[2]->EndPoint(), tempArray[0]->StartPoint()));
+            }
+            else
+            {
+                tempArray.insert(tempArray.begin() + maxAngleIndex, CreateDegenerateEdge(tempArray[maxAngleIndex - 1]->EndPoint(), tempArray[maxAngleIndex]->StartPoint()));
+            }
         }
+        //if(tempArray.size() == 3)
+        //{
+        //    // 初始化一个向量用于存储每条曲线的交点计数以及对应的样条曲线
+        //    std::vector<std::pair<int, Handle(Geom_BSplineCurve)>> anInterCount =
+        //    {
+        //        {0, tempArray[0]},
+        //        {0, tempArray[1]},
+        //        {0, tempArray[2]}
+        //    };
+
+        //    // 遍历内部样条曲线与tempArray中的曲线，统计每条曲线的交点计数
+        //    for (auto internalCurve : anInternalBSplineCurves)
+        //    {
+        //        for (int m = 0; m < tempArray.size(); m++)
+        //        {
+        //            GeomAPI_ExtremaCurveCurve anExtrema(internalCurve, tempArray[m]);
+        //            if (anExtrema.NbExtrema() > 0)
+        //            {
+        //                if (anExtrema.LowerDistance() < 10.0)
+        //                {
+        //                    anInterCount[m].first++;
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    // 按交点计数从大到小对曲线进行排序
+        //    std::sort(anInterCount.begin(), anInterCount.end(), 
+        //        [](const std::pair<int, Handle(Geom_BSplineCurve)>& curve1, 
+        //            const std::pair<int, Handle(Geom_BSplineCurve)>& curve2)
+        //    {
+        //        return curve1.first > curve2.first;
+        //    });
+        //    
+        //    // 清空并重新调整tempArray，将交点最多的两条边作为u方向的边
+        //    tempArray.clear();
+        //    tempArray.resize(4);
+        //    tempArray[0] = anInterCount[0].second;
+        //    tempArray[2] = anInterCount[1].second;
+        //    tempArray[1] = anInterCount[2].second;
+
+        //    // 将交点最多的两条边的交点作为退化边
+        //    gp_Pnt aDegeneratePoint(0, 0, 0);
+        //    if (tempArray[0]->StartPoint().Distance(tempArray[2]->StartPoint()) > 10
+        //        && tempArray[0]->StartPoint().Distance(tempArray[2]->EndPoint()) > 10)
+        //    {
+        //        aDegeneratePoint = tempArray[0]->EndPoint();
+        //    }else if(tempArray[0]->EndPoint().Distance(tempArray[2]->StartPoint()) > 10
+        //        && tempArray[0]->EndPoint().Distance(tempArray[2]->EndPoint()) > 10)
+        //    {
+        //        aDegeneratePoint = tempArray[0]->StartPoint();
+        //    }
+
+        //    // 构建退化边
+        //    TColgp_Array1OfPnt poles(1, 2);
+        //    poles.SetValue(1, aDegeneratePoint);
+        //    poles.SetValue(2, aDegeneratePoint);
+
+        //    TColStd_Array1OfReal knots(1, 2);
+        //    knots.SetValue(1, 0.0);
+        //    knots.SetValue(2, 1.0);
+
+        //    TColStd_Array1OfInteger multiplicities(1, 2);
+        //    multiplicities.SetValue(1, 2);
+        //    multiplicities.SetValue(2, 2);
+
+        //    tempArray[3] =  new Geom_BSplineCurve(poles, knots, multiplicities, 1);
+
+        //    // 调整次序，要求首尾相接
+        //    Standard_Real tol = tempArray[0]->EndPoint().Distance(tempArray[0]->StartPoint()) / 1000;
+        //    if (tempArray[0]->StartPoint().Distance(tempArray[1]->StartPoint()) < tol)
+        //    {
+        //        tempArray[0]->Reverse();
+        //    }
+        //    if (tempArray[2]->EndPoint().Distance(tempArray[1]->EndPoint()) < tol)
+        //    {
+        //        tempArray[2]->Reverse();
+        //    }
+        //}
         Handle(Geom_BSplineCurve) bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4;
         SurfaceModelingTool::Arrange_Coons_G0(tempArray, bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, 10, Standard_True);
         std::vector<Handle(Geom_BSplineCurve)> aBoundarycurveArray = { bslpineCurve1 , bslpineCurve2, bslpineCurve3, bslpineCurve4 };
-        Visualize(tempArray, Quantity_NOC_RED);
+        // = true;
+        Visualize(tempArray[0], Quantity_NOC_RED);
+        Visualize(tempArray[2], Quantity_NOC_RED);
+        Visualize(tempArray[1], Quantity_NOC_BLUE);
+        Visualize(tempArray[3]->StartPoint(), Quantity_NOC_BLUE);
         Standard_Integer isoCount = 20;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Initial, vISOcurvesArray_Initial;
         std::vector<Handle(Geom_BSplineCurve)> uISOcurvesArray_Final, vISOcurvesArray_Final;
@@ -1461,15 +1494,36 @@ void occQt::GenerateIsoCurves(void)
         Handle(Geom_BSplineSurface) aResSurface;
 
         //MathTool::TrimInternalCurves(anInternalBSplineCurves, aBoundarycurveArray, 20);
-        occQt::isVisualize = true;
+        // = true;
         myOccView->getContext()->RemoveAll(true);
         if (SurfaceModelingTool::GetInternalCurves(aBoundarycurveArray, anInternalBSplineCurves, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, 5))
         {
             myOccView->getContext()->RemoveAll(true);
-            Visualize(uInternalCurve, Quantity_NOC_RED);
-            Visualize(vInternalCurve, Quantity_NOC_BLUE);
+            
+            occQt::isVisualize = true;
+            for (auto uCurve : uInternalCurve)
+            {
+                PlanarCurve u(uCurve);
+                if (u.GetCurveType() == CurveType::PLANAR)
+                {
+                    Visualize(u.GetPlane(), Quantity_NOC_GOLD);
+                }
+                Visualize(u.GetCurve(), Quantity_NOC_BLUE);
+            }
+            for (auto vCurve : vInternalCurve)
+            {
+                PlanarCurve v(vCurve);
+                if (v.GetCurveType() == CurveType::PLANAR)
+                {
+                    Visualize(v.GetPlane(), Quantity_NOC_GOLD);
+                }
+                Visualize(v.GetCurve(), Quantity_NOC_RED);
+            }
+            //Visualize(uInternalCurve, Quantity_NOC_RED);
+            //Visualize(vInternalCurve, Quantity_NOC_BLUE);
             aResSurface = SurfaceModelingTool::GenerateReferSurface(aBoundarycurveArray, uInternalCurve, vInternalCurve, uAngleSum, vAngleSum, isoCount, GORDEN_TWO_DIRECTION_GORDEN);
-            Visualize(aResSurface);
+            //Visualize(aResSurface);
+            occQt::isVisualize = false;
         }
         myOccView->getContext()->RemoveAll(true);
         Visualize(bslpineCurve1, Quantity_NOC_RED);
@@ -1479,10 +1533,12 @@ void occQt::GenerateIsoCurves(void)
         if (aResSurface.IsNull())
         {
             // 生成不了Gorden，不适用新算法，继续生成Coons
+            continue;
             SurfaceModelingTool::Coons_G0(bslpineCurve1, bslpineCurve2, bslpineCurve3, bslpineCurve4, aResSurface);
         }
         Visualize(aResSurface, Quantity_NOC_GOLD);
         SurfaceModelingTool::GetISOCurveWithNormal(aResSurface, uISOcurvesArray_Initial, vISOcurvesArray_Initial, normalsOfUISOLines, normalsOfVISOLines, isoCount);
+        
         myOccView->getContext()->RemoveAll(true);
         Visualize(uISOcurvesArray_Initial, Quantity_NOC_RED);
         Visualize(vISOcurvesArray_Initial, Quantity_NOC_RED);
@@ -1513,6 +1569,7 @@ void occQt::GenerateIsoCurves(void)
         myOccView->getContext()->RemoveAll(true);
         Visualize(uISOcurvesArray_New, Quantity_NOC_BLUE);
         Visualize(vISOcurvesArray_New, Quantity_NOC_RED);
+        occQt::isVisualize = false;
         if (uInternalCurve.size() >= 4 || vInternalCurve.size() >= 4)
         {
             // 可能出现退化边的情况，所以计算和两个对边的夹角
@@ -1531,6 +1588,8 @@ void occQt::GenerateIsoCurves(void)
             {
                 std::swap(uISOcurvesArray_New, vISOcurvesArray_New);
             }
+
+
             // 保留线多的方向
             if (uInternalCurve.size() > vInternalCurve.size())
             {
@@ -1575,8 +1634,10 @@ void occQt::GenerateIsoCurves(void)
                 }
                 Visualize(vPlanarCurve.GetCurve(), Quantity_NOC_RED);
             }
+            occQt::isVisualize = true;
             Visualize(vISOcurvesArray_New);
             Visualize(uISOcurvesArray_New);
+            occQt::isVisualize = false;
             CurveOperate::CompatibleWithInterPointsThree(vISOcurvesArray_New, uISOcurvesArray_New);
             Visualize(vISOcurvesArray_New, Quantity_NOC_WHITE);
             Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
@@ -1622,9 +1683,8 @@ void occQt::GenerateIsoCurves(void)
                 }
             }
             myOccView->getContext()->RemoveAll(true);
-            occQt::isVisualize = true;
-            Visualize(uISOcurvesArray_New, Quantity_NOC_WHITE);
-            Visualize(vISOcurvesArray_New, Quantity_NOC_GOLD);
+            Visualize(uISOcurvesArray_New, Quantity_NOC_BLUE);
+            Visualize(vISOcurvesArray_New, Quantity_NOC_RED);
             Visualize(pointParamPairs1, Quantity_NOC_GOLD);
 
             // 调用胡新宇的 Gorden
@@ -1660,16 +1720,15 @@ void occQt::GenerateIsoCurves(void)
                 uparams[i] = combinedu[i].first;
                 uISOcurvesArray_New[i] = combinedu[i].second;
             }
-
             GordenSurface::BuildMyGordonSurf(uISOcurvesArray_New, vISOcurvesArray_New, uparams, vparams, aGordenFace);
             Handle(Geom_Surface) aGeomSurface = BRep_Tool::Surface(aGordenFace);
             Handle(Geom_BSplineSurface) aBSplineSurface = Handle(Geom_BSplineSurface)::DownCast(aGeomSurface);
+            occQt::isVisualize = true;
             Visualize(aBSplineSurface);
-
             // 直接不进行后面的操作，计算下一个case
             continue;
         }
-
+        continue;
         myOccView->getContext()->RemoveAll(Standard_True);
         // 根据u、v等参线之间的交点，生成最终等参线
         interPoints.clear();
@@ -1695,6 +1754,22 @@ void occQt::GenerateIsoCurves(void)
         Visualize(TangentArray, Quantity_NOC_RED);
 
         SurfaceModelingTool::UpdateFinalCurves(aBoundarycurveArray, uISOcurvesArray_Final, vISOcurvesArray_Final);
+
+        for (int i = 0; i < uISOcurvesArray_Final.size(); i++)
+        {
+            Visualize(std::make_pair(uISOcurvesArray_Final[i]->Pole(1), uISOcurvesArray_Final[i]->FirstParameter()));
+        }
+        for (auto uCurves : uISOcurvesArray_Final)
+        {
+            Visualize(uCurves->StartPoint(), Quantity_NOC_GOLD);
+            Visualize(uCurves->EndPoint(), Quantity_NOC_AZURE);
+        }
+
+        for (auto vCurves : vISOcurvesArray_Final)
+        {
+            Visualize(vCurves->StartPoint(), Quantity_NOC_GOLD);
+            Visualize(vCurves->EndPoint(), Quantity_NOC_AZURE);
+        }
         occQt::isVisualize = true;
         Visualize(uISOcurvesArray_Final, Quantity_NOC_RED);
         Visualize(vISOcurvesArray_Final, Quantity_NOC_BLUE);

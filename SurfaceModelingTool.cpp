@@ -2785,13 +2785,19 @@ Standard_Boolean SurfaceModelingTool::GetInternalCurves(
 				}
 				else if (std::abs(anAngle1) < theAngleTolerance && std::abs(anAngle3) < theAngleTolerance)
 				{
-					theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
-					theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					if (aDistance1 > 10 && aDistance3 > 10)
+					{
+						theUAngleSum += (std::abs(anAngle1) + std::abs(anAngle3)) / 2.0;
+						theUInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					}
 				}
 				else if (std::abs(anAngle2) < theAngleTolerance && std::abs(anAngle4) < theAngleTolerance)
 				{
-					theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
-					theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					if (aDistance2 > 10 && aDistance4 > 10)
+					{
+						theVAngleSum += (std::abs(anAngle2) + std::abs(anAngle4)) / 2.0;
+						theVInternalCurve.push_back(anInternalPlanarCurve.GetCurve());
+					}
 				}
 			}
 		}
@@ -2960,8 +2966,10 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		std::for_each(theUInternalCurve.begin(), theUInternalCurve.end(), UniformCurve);
 		std::for_each(theVInternalCurve.begin(), theVInternalCurve.end(), UniformCurve);
 
-		CurveOperate::CompatibleWithInterPoints(theVInternalCurve, theUInternalCurve);
-		CurveOperate::CompatibleWithInterPoints(theUInternalCurve, theVInternalCurve);
+		if (!(CurveOperate::CompatibleWithInterPointsThree(theVInternalCurve, theUInternalCurve)
+			&& CurveOperate::CompatibleWithInterPointsThree(theUInternalCurve, theVInternalCurve))) {
+			return Handle(Geom_BSplineSurface)();
+		}
 
 		std::vector<gp_Pnt> upoints, vpoints;
 		std::vector<Standard_Real> uparams, vparams;
@@ -2971,30 +2979,30 @@ Handle(Geom_BSplineSurface) SurfaceModelingTool::GenerateReferSurface(
 		std::tie(upoints, uparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theUInternalCurve, theVInternalCurve[vIndex]);
 		std::tie(vpoints, vparams) = CurveOperate::CalCurvesInterPointsParamsToCurve(theVInternalCurve, theUInternalCurve[uIndex]);
 		// 排序操作
-		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedv;
-		for (size_t i = 0; i < vparams.size(); ++i) 
+		std::vector<std::pair<Standard_Real, Handle(Geom_BSplineCurve)>> combinedv;
+		for (size_t i = 0; i < vparams.size(); ++i)
 		{
 			combinedv.emplace_back(vparams[i], theVInternalCurve[i]);
 		}
 		std::sort(combinedv.begin(), combinedv.end(), [](const auto& a, const auto& b)
 			{
-			return a.first < b.first;
-		});
+				return a.first < b.first;
+			});
 		for (size_t i = 0; i < combinedv.size(); ++i)
 		{
 			vparams[i] = combinedv[i].first;
 			theVInternalCurve[i] = combinedv[i].second;
 		}
 
-		std::vector<std::pair<double, Handle(Geom_BSplineCurve)>> combinedu;
-		for (size_t i = 0; i < uparams.size(); ++i) 
+		std::vector<std::pair<Standard_Real, Handle(Geom_BSplineCurve)>> combinedu;
+		for (size_t i = 0; i < uparams.size(); ++i)
 		{
 			combinedu.emplace_back(uparams[i], theUInternalCurve[i]);
 		}
-		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b) 
-		{
-			return a.first < b.first;
-		});
+		std::sort(combinedu.begin(), combinedu.end(), [](const auto& a, const auto& b)
+			{
+				return a.first < b.first;
+			});
 		for (size_t i = 0; i < combinedu.size(); ++i)
 		{
 			uparams[i] = combinedu[i].first;
@@ -3194,38 +3202,122 @@ Standard_Boolean PlanarCurve::IsBSplineCurveLinear(const Handle(Geom_BSplineCurv
 		return false;
 	}
 
-	// 获取第一个和第二个控制点
+	// 获取第一个和最后一个控制点
 	gp_Pnt aP0 = theCurve->Pole(1);
-	gp_Pnt aP1 = theCurve->Pole(2);
+	gp_Pnt aP1 = theCurve->Pole(theCurve->NbPoles());
 
 	// 计算方向向量 v = P1 - P0
 	gp_Vec aV(aP0, aP1);
-	if (aV.Magnitude() < theTolerance)
+	if (aV.Magnitude() < 1e-3)
 	{
-		// 前两个点重合，无法定义方向
+		// 点重合，无法定义方向
 		return false;
 	}
 
 	// 对于每一个后续的控制点，检查是否与方向向量共线
-	for (Standard_Integer i = 3; i <= aNumPoles; ++i)
+	for (Standard_Integer i = 2; i <= aNumPoles; ++i)
 	{
 		gp_Pnt aPi = theCurve->Pole(i);
 		gp_Vec aU(aP0, aPi);
+		if (aU.Magnitude() < 1e-3) continue;
 
-		// 计算叉积 v × u
-		gp_Vec aCross = aV.Crossed(aU);
-
+		aU.Normalize();
+		aV.Normalize();
+		Standard_Real anAngle = aU.Angle(aV);
 		// 检查叉积的模长是否在容差范围内
-		if (aCross.Magnitude() > theTolerance)
-		{
-			// 不共线
-			return false;
-		}
+		if (anAngle > theTolerance) return false;
 	}
 	// 所有控制点共线
 	return true;
 }
+//Standard_Boolean PlanarCurve::IsBSplineCurveLinear(const Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
+//{
+//	if (theCurve.IsNull())
+//	{
+//		return false;
+//	}
+//
+//	// 获取控制点数量
+//	Standard_Integer aNumPoles = theCurve->NbPoles();
+//	if (aNumPoles < 2)
+//	{
+//		// 少于两个控制点，无法确定直线
+//		return false;
+//	}
+//
+//	// 使用首尾控制点定义直线
+//	gp_Pnt aP0 = theCurve->Pole(1);
+//	gp_Pnt aP1 = theCurve->Pole(aNumPoles);
+//
+//	// 构建直线方向向量
+//	gp_Vec aDirection(aP0, aP1);
+//	if (aDirection.Magnitude() < theTolerance)
+//	{
+//		// 首尾点重合，无法定义直线
+//		return false;
+//	}
+//
+//	// 遍历其余控制点，检查点到直线的距离
+//	for (Standard_Integer i = 2; i < aNumPoles; ++i)
+//	{
+//		gp_Pnt aPi = theCurve->Pole(i);
+//
+//		// 计算点到直线的距离
+//		gp_Vec aVecP0Pi(aP0, aPi);
+//		gp_Vec aVecP1Pi(aP1, aPi);
+//
+//		// 计算叉积模长，点到直线的距离公式： |(P1 - P0) × (P - P0)| / |P1 - P0|
+//		Standard_Real aDistance = aDirection.Crossed(aVecP0Pi).Magnitude() / aDirection.Magnitude();
+//
+//		if (aDistance > theTolerance)
+//		{
+//			// 点偏离直线
+//			return false;
+//		}
+//	}
+//
+//	// 所有点都在直线容差范围内
+//	return true;
+//}
 
+
+Standard_Boolean IsBSplineLinearViaControlPoints(const Handle(Geom_BSplineCurve)& theCurve, double theToler) {
+	// 如果只有一个控制点，或两个控制点，也可视为直线或退化点
+	Standard_Integer nbPoles = theCurve->NbPoles();
+	if (nbPoles <= 2) {
+		//点处理
+		if (nbPoles == 1) {
+
+		}
+		//直线
+		return true;
+	}
+
+	// 取控制点
+	std::vector<gp_Pnt> ctrlPoints;
+	ctrlPoints.reserve(nbPoles);
+	for (Standard_Integer i = 1; i <= nbPoles; ++i) {
+		ctrlPoints.push_back(theCurve->Pole(i));
+	}
+
+	const gp_Pnt& p1 = ctrlPoints[0];
+	const gp_Pnt& p2 = ctrlPoints[1];
+
+	// 基准向量
+	gp_Vec baseVec(p1, p2);
+	// 若 baseVec 很小，再往后面点去找一个不一样的点以构造基准向量
+
+	// 依次判断余下点
+	for (Standard_Integer i = 2; i < ctrlPoints.size(); ++i) {
+		gp_Vec testVec(p1, ctrlPoints[i]);
+		gp_Vec crossVec = baseVec.Crossed(testVec);
+		// 若叉积模长大于公差，即可判定为不共线
+		if (crossVec.Magnitude() > theToler) {
+			return false;
+		}
+	}
+	return true;
+}
 
 Standard_Boolean PlanarCurve::IsBSplineCurvePoint(const Handle(Geom_BSplineCurve)& theCurve, Standard_Real theTolerance)
 {
@@ -3298,14 +3390,14 @@ Standard_Real MathTool::ComputeAngleWithAxis(const gp_Vec& theVec, const gp_Vec&
 	return std::acos(aCosAngle); // 返回夹角
 }
 
-void MathTool::CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)> theBSplineCurvesArray)
+void MathTool::CheckSelfIntersect(std::vector<Handle(Geom_BSplineCurve)>& theBSplineCurvesArray)
 {
-	for (Standard_Integer i = 0; i < theBSplineCurvesArray.size(); i++)
+	for (Standard_Integer i = 1; i < theBSplineCurvesArray.size() - 1; i++)
 	{
-		for (Standard_Integer j = i + 1; j < theBSplineCurvesArray.size(); j++)
+		for (Standard_Integer j = i + 1; j < theBSplineCurvesArray.size() - 1; j++)
 		{
 			Standard_Real aDistance = MathTool::ComputeCurveCurveDistance(theBSplineCurvesArray[i], theBSplineCurvesArray[j]);
-			if (aDistance < 1e-3)
+			if (aDistance < 10)
 			{
 				// 曲线自交，保留距离主平面更近的曲线
 				gp_Pnt aPnt1 = MathTool::ComputeAverageSamplePoint(theBSplineCurvesArray[i], 10);
